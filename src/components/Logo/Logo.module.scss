@@ -31,12 +31,47 @@
   flex-shrink: 0;
 }
 
-.iconImage {
-  object-fit: contain;
-  height: auto;
+.iconSvg {
   display: block;
+  height: auto;
+  overflow: visible;
 }
 
+// --- Cores Dinâmicas do Ícone Vetorial (WCAG AAA) ---
+.backCard {
+  fill: #0F172A;
+  stroke: transparent;
+  stroke-width: 2px;
+  transition: fill $transition-fast, stroke $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    fill: #1E2D4A;
+    stroke: #2B3F66;
+  }
+}
+
+.frontCard {
+  fill: #2563EB;
+  transition: fill $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    fill: #3B82F6;
+  }
+}
+
+.soundArc {
+  fill: #0F172A;
+  transition: fill $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    fill: #60A5FA;
+  }
+}
+
+// --- Tipografia Nunito da Marca ---
 .textContainer {
   display: flex;
   flex-direction: column;
@@ -46,14 +81,24 @@
 .brandTitle {
   font-family: var(--font-nunito), $font-family-heading;
   font-weight: 800;
-  color: var(--ink);
+  color: #172554;
   letter-spacing: -0.015em;
   transition: color $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    color: #F8FAFC;
+  }
 }
 
 .brandAccent {
-  color: var(--primary);
+  color: #2563EB;
   transition: color $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    color: #60A5FA;
+  }
 }
 
 .brandSubtitle {
@@ -63,9 +108,14 @@
   letter-spacing: 0.01em;
   text-transform: lowercase;
   transition: color $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    color: #94A3B8;
+  }
 }
 
-// --- Sizes ---
+// --- Tamanhos ---
 .sm {
   gap: 0.5rem;
 

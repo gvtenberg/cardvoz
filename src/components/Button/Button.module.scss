@@ -63,11 +63,23 @@
 .secondary {
   background-color: var(--card-bg);
   color: var(--text-primary);
-  border: 1px solid var(--card-border-strong);
+  border: 1px solid var(--card-border);
 
   &:hover:not(:disabled) {
     background-color: var(--card-hover);
     border-color: var(--card-border-hover);
+  }
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    background-color: #10192A;
+    border-color: #1E2D4A;
+    color: #F8FAFC;
+
+    &:hover:not(:disabled) {
+      background-color: #15223A;
+      border-color: #3B82F6;
+    }
   }
 }
 

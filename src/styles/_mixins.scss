@@ -68,6 +68,13 @@
   border: 1px solid var(--card-border);
   padding: 0.2rem 0.5rem;
   border-radius: $radius-xs;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    color: #93C5FD;
+    border-color: #243657;
+    background-color: #15223A;
+  }
 }
 
 // --- Tecla de Atalho Física (<kbd>) ---
@@ -87,6 +94,14 @@
   line-height: 1.2;
   box-shadow: $shadow-kbd;
   vertical-align: middle;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    color: #E2E8F0;
+    border-color: #2B3F66;
+    background-color: #15223A;
+    box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.4);
+  }
 }
 
 // --- Botões Acessíveis & Táteis ---

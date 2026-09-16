@@ -7,8 +7,15 @@
   z-index: 40;
   width: 100%;
   border-bottom: 1px solid var(--card-border);
-  background-color: var(--bg);
+  background-color: rgba(250, 249, 246, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: background-color $transition-fast, border-color $transition-fast;
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    background-color: rgba(10, 16, 29, 0.85);
+  }
 }
 
 .container {

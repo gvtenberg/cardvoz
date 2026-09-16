@@ -8,7 +8,7 @@
   width: 2.125rem;
   height: 2.125rem;
   border-radius: $radius-xs;
-  border: 1px solid var(--card-border-strong);
+  border: 1px solid var(--card-border);
   background-color: var(--card-bg);
   color: var(--text-muted);
   cursor: pointer;
@@ -18,6 +18,19 @@
     color: var(--primary);
     background-color: var(--muted-bg);
     border-color: var(--card-border-hover);
+  }
+
+  :global(.dark) &,
+  :global([data-theme="dark"]) & {
+    background-color: #10192A;
+    border-color: #1E2D4A;
+    color: #94A3B8;
+
+    &:hover {
+      background-color: #15223A;
+      border-color: #3B82F6;
+      color: #60A5FA;
+    }
   }
 
   &:focus-visible {
