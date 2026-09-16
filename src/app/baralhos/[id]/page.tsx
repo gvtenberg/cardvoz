@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Play, PlusCircle, HelpCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Play, Plus } from "lucide-react";
 import styles from "./page.module.scss";
 
 interface Props {
@@ -76,81 +76,77 @@ export default async function DeckDetailPage({ params }: Props) {
 
   return (
     <main id="main-content" className={styles.main}>
-      <nav aria-label="Navegação estrutural">
+      <nav aria-label="Navegação estrutural" className={styles.navBar}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
           <span>Voltar para todos os baralhos</span>
         </Link>
       </nav>
 
-      {/* Deck Header */}
-      <section aria-labelledby="deck-detail-heading" className={styles.deckHeader}>
-        <div>
-          <span className={styles.categoryBadge}>
-            {deck.category}
-          </span>
+      {/* Deck Header Summary */}
+      <header aria-labelledby="deck-detail-heading" className={styles.deckHeader}>
+        <div className={styles.deckMeta}>
+          <div className={styles.topMeta}>
+            <span className={styles.categoryTag}>{deck.category}</span>
+            <span className={styles.cardsCount}>{deck.cards.length} fichas cadastradas</span>
+          </div>
+
           <h1 id="deck-detail-heading" className={styles.title}>
             {deck.title}
           </h1>
-          <p className={styles.description}>
-            {deck.description}
-          </p>
+          <p className={styles.description}>{deck.description}</p>
         </div>
 
         <div className={styles.actionsGroup}>
           <Link
             href={`/estudar?deck=${id}`}
             className={styles.studyBtn}
+            aria-label={`Iniciar estudo por voz do baralho ${deck.title}`}
           >
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
-            <span>Estudar Baralho</span>
+            <span>Estudar fichas</span>
           </Link>
 
           <Link
             href={`/baralhos/${id}/novo-cartao`}
             className={styles.addCardBtn}
+            aria-label={`Adicionar nova ficha ao baralho ${deck.title}`}
           >
-            <PlusCircle aria-hidden="true" />
-            <span>Adicionar Cartão</span>
+            <Plus aria-hidden="true" />
+            <span>Nova ficha</span>
           </Link>
         </div>
-      </section>
+      </header>
 
-      {/* Cards List */}
+      {/* Cards List in Catalog Index Style */}
       <section aria-labelledby="cards-list-heading" className={styles.cardsSection}>
         <div className={styles.sectionHeader}>
           <h2 id="cards-list-heading" className={styles.sectionTitle}>
-            Cartões Cadastrados ({deck.cards.length})
+            Fichas cadastradas ({deck.cards.length})
           </h2>
           <span className={styles.sectionSubtitle}>
-            Ordenados pela sequência de estudo
+            Ordem de apresentação durante o estudo por voz
           </span>
         </div>
 
         <div className={styles.cardsList}>
           {deck.cards.map((card, index) => (
             <article key={index} className={styles.cardItem}>
-              <span className={styles.cardNumber}>
-                {index + 1}
-              </span>
+              <div className={styles.cardNumberColumn}>
+                <span className={styles.cardNumber}>#{index + 1}</span>
+              </div>
+
               <div className={styles.cardContent}>
-                <div>
-                  <h3 className={styles.label}>
-                    <HelpCircle style={{ color: "var(--primary)" }} aria-hidden="true" />
-                    <span>Pergunta</span>
-                  </h3>
-                  <p className={styles.questionText}>
-                    {card.question}
-                  </p>
+                <div className={styles.qaBlock}>
+                  <span className={styles.fieldLabel}>Pergunta</span>
+                  <p className={styles.questionText}>{card.question}</p>
                 </div>
-                <div>
-                  <h4 className={styles.label}>
-                    <CheckCircle2 style={{ color: "var(--success)" }} aria-hidden="true" />
-                    <span>Resposta</span>
-                  </h4>
-                  <p className={styles.answerText}>
-                    {card.answer}
-                  </p>
+
+                <div className={styles.qaDivider} aria-hidden="true" />
+
+                <div className={styles.qaBlock}>
+                  <span className={styles.answerLabel}>Resposta</span>
+                  <p className={styles.answerText}>{card.answer}</p>
                 </div>
               </div>
             </article>

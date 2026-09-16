@@ -1,35 +1,50 @@
 // =============================================================================
-// CardVoz Design Tokens - Sistema de Cores Azul Acessível (WCAG AAA / AA)
+// CardVoz Design Tokens - Paleta Editorial "Tinta & Papel" (Ink Blue)
+// WCAG 2.1 AAA / AA - Tipografia Editorial, Foco Acessivel & Metáfora de Fichas
 // =============================================================================
 
-// --- Modo Claro (Light Mode) ---
-$color-light-bg: #F8FAFC;
-$color-light-card: #FFFFFF;
-$color-light-border: #E2E8F0;
-$color-light-primary: #1D4ED8;        // blue-700
-$color-light-primary-hover: #2563EB;  // blue-600
-$color-light-text-primary: #0F172A;   // slate-900 (Contraste ~18:1 - WCAG AAA)
-$color-light-text-muted: #475569;     // slate-600 (Contraste ~7.4:1 - WCAG AAA)
-$color-light-focus-ring: #2563EB;     // Anel visível com offset
-$color-light-success: #16A34A;
-$color-light-destructive: #DC2626;
+// --- Modo Claro (Light Mode - Papel Natural & Tinta Azul-Profunda) ---
+$color-light-bg: #FAF9F6;              // Papel natural / off-white aquecido
+$color-light-card: #FFFFFF;          // Ficha de estudo em papel puro
+$color-light-border: #E5E7EB;        // Borda de ficha precisa (1px)
+$color-light-border-strong: #D1D5DB; // Divisores e bordas com enfase
+$color-light-ink: #172554;           // Azul tinta caneta-tinteiro profunda (blue-950)
+$color-light-primary: #1E3A8A;       // Azul cobalto nobre (blue-900)
+$color-light-primary-hover: #1D4ED8; // Azul acao (blue-700)
+$color-light-accent: #2563EB;        // Azul cobalto vibrante para elementos interativos
+$color-light-text-primary: #18181B;  // Grafite escuro / preto tinta (Contraste 16.5:1 - AAA)
+$color-light-text-muted: #52525B;    // Grafite medio legivel (Contraste 7.2:1 - AAA)
+$color-light-focus-ring: #2563EB;    // Anel nitido de foco acessivel
+$color-light-muted-bg: #F4F4F5;      // Superficie sutil para tags e caixas de atalho
+$color-light-success: #15803D;       // Tinta verde editorial (green-700)
+$color-light-success-bg: #F0FDF4;
+$color-light-destructive: #B91C1C;   // Tinta vermelha de revisao (red-700)
+$color-light-destructive-bg: #FEF2F2;
 
-// --- Modo Escuro (Dark Mode) ---
-$color-dark-bg: #0B0F19;              // Midnight Navy
-$color-dark-card: #131C2E;
-$color-dark-border: #1E293B;
-$color-dark-primary: #38BDF8;         // Sky-400 vivo de alto contraste
-$color-dark-primary-hover: #60A5FA;   // Blue-400
-$color-dark-text-primary: #F8FAFC;    // slate-50 (Contraste ~19:1 - WCAG AAA)
-$color-dark-text-muted: #94A3B8;      // slate-400 (Contraste ~8.5:1 - WCAG AAA)
-$color-dark-focus-ring: #38BDF8;      // Anel visível com offset
-$color-dark-success: #22C55E;
-$color-dark-destructive: #EF4444;
+// --- Modo Escuro (Dark Mode - Obsidiana Fosca & Azul Celeste Suave) ---
+$color-dark-bg: #0D1117;             // Obsidiana fosca (papel escuro estilo GitHub/iA Writer)
+$color-dark-card: #161B22;           // Ficha em ardosia fosca
+$color-dark-border: #2D333B;         // Borda de ficha refinada (1px)
+$color-dark-border-strong: #444C56;  // Divisores com enfase
+$color-dark-ink: #E6EDF3;            // Tinta clara suave para titulos
+$color-dark-primary: #60A5FA;        // Azul celeste suave de alto contraste (blue-400)
+$color-dark-primary-hover: #93C5FD;  // Azul celeste claro (blue-300)
+$color-dark-accent: #38BDF8;         // Celeste vivo para elementos interativos
+$color-dark-text-primary: #F0F6FC;   // Texto claro papel (Contraste 16.2:1 - AAA)
+$color-dark-text-muted: #9CA3AF;     // Cinza medio legivel (Contraste 7.8:1 - AAA)
+$color-dark-focus-ring: #60A5FA;     // Anel nitido de foco acessivel
+$color-dark-muted-bg: #21262D;       // Superficie sutil escura
+$color-dark-success: #22C55E;        // Verde suave de acerto
+$color-dark-success-bg: rgba(34, 197, 94, 0.12);
+$color-dark-destructive: #F87171;    // Vermelho suave de revisao
+$color-dark-destructive-bg: rgba(248, 113, 113, 0.12);
 
-// --- Tipografia ---
-$font-family-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-$font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+// --- Tipografia Editorial & Acessivel ---
+$font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$font-family-serif: "Newsreader", "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+$font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
+$font-size-2xs: 0.6875rem; // 11px
 $font-size-xs: 0.75rem;    // 12px
 $font-size-sm: 0.875rem;   // 14px
 $font-size-base: 1rem;     // 16px
@@ -39,7 +54,7 @@ $font-size-2xl: 1.5rem;    // 24px
 $font-size-3xl: 1.875rem;  // 30px
 $font-size-4xl: 2.25rem;   // 36px
 
-// --- Espaçamentos ---
+// --- Espaçamentos Lineares ---
 $spacing-1: 0.25rem;
 $spacing-2: 0.5rem;
 $spacing-3: 0.75rem;
@@ -51,21 +66,23 @@ $spacing-10: 2.5rem;
 $spacing-12: 3rem;
 $spacing-16: 4rem;
 
-// --- Raio de Borda ---
-$radius-sm: 0.375rem;
-$radius-md: 0.5rem;
-$radius-lg: 0.75rem;
-$radius-xl: 1rem;
-$radius-2xl: 1.5rem;
+// --- Geometria Tatil (Bordas de Papel e Fichas Reais) ---
+$radius-xs: 0.25rem;  // 4px
+$radius-sm: 0.375rem; // 6px
+$radius-md: 0.5rem;   // 8px
+$radius-lg: 0.75rem;  // 12px
+$radius-xl: 1rem;     // 16px
 $radius-full: 9999px;
 
-// --- Transições & Sombras ---
+// --- Transições & Sombras Sutis (Sem borrões artificiais exagerados) ---
+$transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
 $transition-default: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-paper: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
+$shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+$shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+$shadow-kbd: 0 1px 0 1px rgba(0, 0, 0, 0.08);
 
-// --- Breakpoints Responsivos ---
+// --- Breakpoints ---
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;

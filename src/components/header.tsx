@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
-import { Volume2, PlusCircle, Library } from "lucide-react";
+import { Plus, BookMarked } from "lucide-react";
 import styles from "./Header.module.scss";
 
 export function Header() {
@@ -11,27 +11,30 @@ export function Header() {
       <div className={styles.container}>
         <Link
           href="/"
-          className={styles.logo}
-          aria-label="CardVoz - Página inicial"
+          className={styles.brand}
+          aria-label="CardVoz - Ir para a página inicial"
         >
-          <span className={styles.iconWrapper}>
-            <Volume2 style={{ width: "1.25rem", height: "1.25rem" }} aria-hidden="true" />
-          </span>
-          <span className={styles.logoText}>
-            CardVoz
-            <span className={styles.badge}>Acessível</span>
-          </span>
+          <div className={styles.brandMark} aria-hidden="true">
+            <BookMarked />
+          </div>
+          <div className={styles.brandText}>
+            <span className={styles.brandTitle}>CardVoz</span>
+            <span className={styles.brandSubtitle}>fichas de estudo por voz</span>
+          </div>
         </Link>
 
         <nav aria-label="Navegação principal" className={styles.nav}>
-          <Link href="#meus-baralhos" className={styles.navLink}>
-            <Library style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
+          <Link href="/#meus-baralhos" className={styles.navLink}>
             <span>Meus Baralhos</span>
           </Link>
 
-          <Link href="/baralhos/novo" className={styles.ctaButton}>
-            <PlusCircle style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
-            <span>Novo Baralho</span>
+          <Link
+            href="/baralhos/novo"
+            className={styles.newDeckBtn}
+            aria-label="Criar novo baralho de fichas"
+          >
+            <Plus aria-hidden="true" />
+            <span>Novo baralho</span>
           </Link>
 
           <div className={styles.divider} aria-hidden="true" />

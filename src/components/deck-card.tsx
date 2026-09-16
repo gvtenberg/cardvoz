@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Play, Layers, ArrowRight } from "lucide-react";
+import { Play, ArrowUpRight } from "lucide-react";
 import styles from "./DeckCard.module.scss";
 
 export interface DeckProps {
@@ -17,43 +17,38 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
       className={styles.card}
       aria-labelledby={`deck-title-${deck.id}`}
     >
-      <div>
-        <div className={styles.topRow}>
-          <span className={styles.categoryBadge}>
-            {deck.category}
-          </span>
-          <span className={styles.countBadge}>
-            <Layers aria-hidden="true" />
-            <span>{deck.cardCount} cartões</span>
-          </span>
+      <div className={styles.cardTop}>
+        <div className={styles.metaRow}>
+          <span className={styles.categoryTag}>{deck.category}</span>
+          <span className={styles.countIndicator}>{deck.cardCount} fichas</span>
         </div>
 
         <h3 id={`deck-title-${deck.id}`} className={styles.title}>
-          {deck.title}
+          <Link href={`/baralhos/${deck.id}`} className={styles.titleLink}>
+            {deck.title}
+          </Link>
         </h3>
 
-        <p className={styles.description}>
-          {deck.description}
-        </p>
+        <p className={styles.description}>{deck.description}</p>
       </div>
 
-      <div className={styles.footer}>
+      <div className={styles.cardBottom}>
         <Link
           href={`/estudar?deck=${deck.id}`}
-          className={styles.studyButton}
-          aria-label={`Iniciar estudo por voz do baralho ${deck.title}`}
+          className={styles.studyBtn}
+          aria-label={`Iniciar estudo por voz do baralho ${deck.title} com ${deck.cardCount} fichas`}
         >
           <Play style={{ fill: "currentColor" }} aria-hidden="true" />
-          <span>Estudar agora</span>
+          <span>Estudar ficha</span>
         </Link>
 
         <Link
           href={`/baralhos/${deck.id}`}
-          className={styles.detailsLink}
-          aria-label={`Ver detalhes e cartões do baralho ${deck.title}`}
+          className={styles.openLink}
+          aria-label={`Abrir detalhes e gerenciar fichas do baralho ${deck.title}`}
         >
-          <span>Detalhes</span>
-          <ArrowRight aria-hidden="true" />
+          <span>Abrir</span>
+          <ArrowUpRight aria-hidden="true" />
         </Link>
       </div>
     </article>

@@ -5,9 +5,9 @@ import { SkipToContent } from "@/components/skip-to-content";
 import { Header } from "@/components/header";
 
 export const metadata: Metadata = {
-  title: "CardVoz - Flashcards Acessíveis com Controle por Voz",
+  title: "CardVoz — Fichas de Estudo Acessíveis por Voz",
   description:
-    "Aplicativo inclusivo de estudo por flashcards voltado para pessoas cegas e com baixa visão, com controle completo por voz e suporte a leitores de tela.",
+    "Fichas de estudo e memorização ativa projetadas para pessoas cegas e com baixa visão. Controle integral por voz e teclado em conformidade com as diretrizes WCAG 2.1.",
 };
 
 export default function RootLayout({
@@ -33,16 +33,16 @@ export default function RootLayout({
             style={{
               borderTop: "1px solid var(--card-border)",
               backgroundColor: "var(--card-bg)",
-              padding: "1.75rem 1rem",
+              padding: "1.5rem 1.25rem",
               marginTop: "auto",
-              fontSize: "0.875rem",
+              fontSize: "0.8125rem",
               color: "var(--text-muted)",
-              transition: "background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+              transition: "background-color 100ms cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
             <div
               style={{
-                maxWidth: "1200px",
+                maxWidth: "1120px",
                 margin: "0 auto",
                 display: "flex",
                 flexDirection: "row",
@@ -52,11 +52,11 @@ export default function RootLayout({
                 gap: "1rem",
               }}
             >
-              <p>
-                CardVoz &copy; {new Date().getFullYear()} &mdash; Projeto de Extensão Universitária em Acessibilidade
+              <p style={{ fontWeight: 500 }}>
+                CardVoz &mdash; Fichas de Estudo e Tecnologia Assistiva
               </p>
-              <p style={{ fontSize: "0.75rem" }}>
-                Em conformidade com as diretrizes WCAG 2.1 (Níveis AA e AAA)
+              <p style={{ fontSize: "0.75rem", fontFamily: "var(--font-family-mono, monospace)" }}>
+                WCAG 2.1 AAA/AA &bull; Navegação por voz e leitor de tela
               </p>
             </div>
           </footer>

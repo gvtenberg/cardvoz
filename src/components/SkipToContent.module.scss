@@ -7,15 +7,16 @@
   &:focus {
     @include not-sr-only;
     position: fixed;
-    top: 1rem;
-    left: 1rem;
+    top: 0.75rem;
+    left: 0.75rem;
     z-index: 9999;
-    padding: 0.75rem 1.25rem;
+    padding: 0.5rem 1rem;
     background-color: var(--primary);
     color: var(--primary-fg);
-    font-weight: 700;
-    border-radius: $radius-lg;
-    box-shadow: $shadow-lg;
+    font-weight: 600;
+    font-size: $font-size-xs;
+    border-radius: $radius-xs;
+    box-shadow: $shadow-card;
     @include focus-ring;
     text-decoration: none;
   }

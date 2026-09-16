@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import styles from "./page.module.scss";
 
 export default function NovoBaralhoPage() {
@@ -27,26 +27,21 @@ export default function NovoBaralhoPage() {
 
   return (
     <main id="main-content" className={styles.main}>
-      <nav aria-label="Navegação estrutural">
+      <nav aria-label="Navegação estrutural" className={styles.navBar}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
           <span>Voltar para meus baralhos</span>
         </Link>
       </nav>
 
-      <div className={styles.card}>
+      <section className={styles.formCard} aria-labelledby="form-heading">
         <div className={styles.header}>
-          <div className={styles.iconCircle}>
-            <PlusCircle aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className={styles.title}>
-              Criar Novo Baralho
-            </h1>
-            <p className={styles.subtitle}>
-              Preencha os dados abaixo para organizar seus cartões de estudo.
-            </p>
-          </div>
+          <h1 id="form-heading" className={styles.title}>
+            Criar Novo Baralho
+          </h1>
+          <p className={styles.subtitle}>
+            Organize suas fichas de estudo por matéria ou tópico específico.
+          </p>
         </div>
 
         {/* Live region for screen readers */}
@@ -55,8 +50,8 @@ export default function NovoBaralhoPage() {
         </div>
 
         {statusMessage && (
-          <div role="alert" className={styles.alert}>
-            <Sparkles style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
+          <div role="status" className={styles.alert}>
+            <CheckCircle2 style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
             <span>{statusMessage}</span>
           </div>
         )}
@@ -81,7 +76,7 @@ export default function NovoBaralhoPage() {
 
           <div className={styles.field}>
             <label htmlFor="categoria-baralho" className={styles.label}>
-              Categoria / Matéria
+              Categoria ou Matéria
             </label>
             <input
               type="text"
@@ -96,7 +91,7 @@ export default function NovoBaralhoPage() {
 
           <div className={styles.field}>
             <label htmlFor="descricao-baralho" className={styles.label}>
-              Descrição do Conteúdo
+              Descrição da Coleção
             </label>
             <textarea
               id="descricao-baralho"
@@ -104,21 +99,21 @@ export default function NovoBaralhoPage() {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Breve resumo dos tópicos abordados neste baralho..."
+              placeholder="Breve resumo dos conceitos e tópicos abordados nestas fichas..."
               className={styles.textarea}
             />
           </div>
 
           <div className={styles.actions}>
             <button type="submit" className={styles.submitBtn}>
-              Salvar Baralho
+              Salvar baralho
             </button>
             <Link href="/" className={styles.cancelBtn}>
               Cancelar
             </Link>
           </div>
         </form>
-      </div>
+      </section>
     </main>
   );
 }

@@ -1,12 +1,12 @@
 @use "./variables" as *;
 
-// --- Acessibilidade: Anel de foco de alto contraste (WCAG AAA) ---
+// --- Acessibilidade: Anel de foco nítido e visível (WCAG AAA) ---
 @mixin focus-ring {
-  outline: 3px solid var(--ring);
-  outline-offset: 3px;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-// --- Screen Readers (Acessibilidade) ---
+// --- Screen Readers (Acessibilidade Estrita) ---
 @mixin sr-only {
   position: absolute;
   width: 1px;
@@ -30,34 +30,89 @@
   white-space: normal;
 }
 
-// --- Superfície de Cartão / Container ---
+// --- Superfície de Cartão / Ficha de Estudo (Index Card de Papel) ---
 @mixin card-surface {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: $radius-xl;
-  box-shadow: $shadow-sm;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
   transition: border-color $transition-default, box-shadow $transition-default;
 }
 
-// --- Botões Acessíveis ---
+@mixin index-card {
+  @include card-surface;
+  position: relative;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: $radius-md;
+
+  &:hover {
+    border-color: var(--card-border-strong);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+// --- Etiqueta Editorial / Tag de Ficha ---
+@mixin catalog-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background-color: var(--muted-bg);
+  border: 1px solid var(--card-border);
+  padding: 0.2rem 0.5rem;
+  border-radius: $radius-xs;
+}
+
+// --- Tecla de Atalho Física (<kbd>) ---
+@mixin kbd-keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border-strong);
+  border-radius: $radius-xs;
+  padding: 0.15rem 0.45rem;
+  min-width: 1.5rem;
+  line-height: 1.2;
+  box-shadow: $shadow-kbd;
+  vertical-align: middle;
+}
+
+// --- Botões Acessíveis & Táteis ---
 @mixin button-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: $font-family-base;
   font-weight: 600;
-  border-radius: $radius-lg;
-  transition: all $transition-default;
+  font-size: $font-size-sm;
+  border-radius: $radius-sm;
+  transition: background-color $transition-fast, border-color $transition-fast, color $transition-fast, transform $transition-fast;
   cursor: pointer;
   text-decoration: none;
-  line-height: 1.25;
+  line-height: 1.3;
+  user-select: none;
 
   &:focus-visible {
     @include focus-ring;
   }
 
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
@@ -66,11 +121,12 @@
   @include button-base;
   background-color: var(--primary);
   color: var(--primary-fg);
-  border: 1px solid transparent;
-  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--primary);
+  padding: 0.625rem 1.125rem;
 
   &:hover:not(:disabled) {
     background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
   }
 }
 
@@ -78,12 +134,12 @@
   @include button-base;
   background-color: var(--card-bg);
   color: var(--text-primary);
-  border: 1px solid var(--card-border);
-  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--card-border-strong);
+  padding: 0.625rem 1.125rem;
 
   &:hover:not(:disabled) {
     background-color: var(--muted-bg);
-    border-color: var(--primary);
+    border-color: var(--text-muted);
   }
 }
 

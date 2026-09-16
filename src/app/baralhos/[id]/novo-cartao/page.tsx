@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import styles from "./page.module.scss";
 
 export default function NovoCartaoPage() {
@@ -18,11 +18,11 @@ export default function NovoCartaoPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || !answer.trim()) {
-      setStatusMessage("Por favor, preencha a pergunta e a resposta do cartão.");
+      setStatusMessage("Por favor, preencha a pergunta e a resposta da ficha.");
       return;
     }
 
-    setStatusMessage("Cartão salvo com sucesso no baralho!");
+    setStatusMessage("Ficha salva com sucesso no baralho!");
     setTimeout(() => {
       router.push(`/baralhos/${deckId}`);
     }, 800);
@@ -30,26 +30,21 @@ export default function NovoCartaoPage() {
 
   return (
     <main id="main-content" className={styles.main}>
-      <nav aria-label="Navegação estrutural">
+      <nav aria-label="Navegação estrutural" className={styles.navBar}>
         <Link href={`/baralhos/${deckId}`} className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
           <span>Voltar para o baralho</span>
         </Link>
       </nav>
 
-      <div className={styles.card}>
+      <section className={styles.formCard} aria-labelledby="form-heading">
         <div className={styles.header}>
-          <div className={styles.iconCircle}>
-            <PlusCircle aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className={styles.title}>
-              Adicionar Novo Cartão
-            </h1>
-            <p className={styles.subtitle}>
-              Insira a pergunta e a resposta correspondente para este cartão.
-            </p>
-          </div>
+          <h1 id="form-heading" className={styles.title}>
+            Adicionar Nova Ficha
+          </h1>
+          <p className={styles.subtitle}>
+            Insira o conteúdo da pergunta (frente da ficha) e da resposta (verso da ficha).
+          </p>
         </div>
 
         {/* Live region for screen reader alerts */}
@@ -58,8 +53,8 @@ export default function NovoCartaoPage() {
         </div>
 
         {statusMessage && (
-          <div role="alert" className={styles.alert}>
-            <Sparkles style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
+          <div role="status" className={styles.alert}>
+            <CheckCircle2 style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
             <span>{statusMessage}</span>
           </div>
         )}
@@ -67,7 +62,7 @@ export default function NovoCartaoPage() {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="pergunta" className={styles.label}>
-              Pergunta <span className={styles.required}>*</span>
+              Frente da Ficha (Pergunta) <span className={styles.required}>*</span>
             </label>
             <textarea
               id="pergunta"
@@ -76,7 +71,7 @@ export default function NovoCartaoPage() {
               rows={4}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Digite a pergunta que será falada durante o estudo..."
+              placeholder="Digite o enunciado da pergunta que será lido em voz alta..."
               className={styles.textarea}
               aria-required="true"
             />
@@ -84,7 +79,7 @@ export default function NovoCartaoPage() {
 
           <div className={styles.field}>
             <label htmlFor="resposta" className={styles.label}>
-              Resposta <span className={styles.required}>*</span>
+              Verso da Ficha (Resposta) <span className={styles.required}>*</span>
             </label>
             <textarea
               id="resposta"
@@ -93,7 +88,7 @@ export default function NovoCartaoPage() {
               rows={4}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Digite a resposta correta para conferência e leitura por voz..."
+              placeholder="Digite a resposta correta para conferência e confirmação..."
               className={styles.textarea}
               aria-required="true"
             />
@@ -101,14 +96,14 @@ export default function NovoCartaoPage() {
 
           <div className={styles.actions}>
             <button type="submit" className={styles.submitBtn}>
-              Salvar Cartão
+              Salvar ficha
             </button>
             <Link href={`/baralhos/${deckId}`} className={styles.cancelBtn}>
               Cancelar
             </Link>
           </div>
         </form>
-      </div>
+      </section>
     </main>
   );
 }

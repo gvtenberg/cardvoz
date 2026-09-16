@@ -2,29 +2,33 @@
 @use "../../../styles/mixins" as *;
 
 .main {
-  max-width: 56rem;
+  max-width: 52rem;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem 1.25rem 4rem;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2rem;
 
   @include respond-to(sm) {
-    padding: 3rem 1.5rem;
+    padding: 3rem 1.5rem 5rem;
   }
+}
+
+.navBar {
+  margin-bottom: 0.5rem;
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: $font-size-sm;
+  gap: 0.4rem;
+  font-size: $font-size-xs;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 0.25rem 0.5rem;
-  border-radius: $radius-md;
-  transition: color $transition-default;
+  padding: 0.25rem 0.45rem;
+  border-radius: $radius-xs;
+  transition: color $transition-fast;
 
   &:hover {
     color: var(--text-primary);
@@ -35,47 +39,58 @@
   }
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 0.875rem;
+    height: 0.875rem;
   }
 }
 
 .deckHeader {
-  @include card-surface;
-  padding: 1.5rem;
+  @include index-card;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 1.5rem;
+  background-color: var(--card-bg);
 
   @include respond-to(sm) {
-    padding: 2rem;
+    padding: 2.25rem;
   }
 
   @include respond-to(md) {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
   }
 }
 
-.categoryBadge {
-  font-size: $font-size-xs;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.6rem;
-  border-radius: $radius-md;
-  background-color: var(--muted-bg);
+.deckMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.topMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.categoryTag {
+  @include catalog-tag;
+}
+
+.cardsCount {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
   color: var(--text-muted);
-  border: 1px solid var(--card-border);
 }
 
 .title {
-  font-size: $font-size-2xl;
+  font-size: 1.65rem;
   font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-  margin-top: 0.75rem;
+  color: var(--ink);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 
   @include respond-to(sm) {
     font-size: 2rem;
@@ -87,42 +102,38 @@
   font-size: $font-size-sm;
   color: var(--text-muted);
   line-height: 1.6;
-  max-width: 36rem;
-
-  @include respond-to(sm) {
-    font-size: $font-size-base;
-  }
+  max-width: 34rem;
 }
 
 .actionsGroup {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex-shrink: 0;
 }
 
 .studyBtn {
   @include button-primary;
-  padding: 0.75rem 1.25rem;
-  font-size: $font-size-sm;
-  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: $font-size-xs;
+  gap: 0.35rem;
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 0.75rem;
+    height: 0.75rem;
   }
 }
 
 .addCardBtn {
   @include button-secondary;
-  padding: 0.75rem 1.25rem;
-  font-size: $font-size-sm;
-  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: $font-size-xs;
+  gap: 0.35rem;
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 0.75rem;
+    height: 0.75rem;
     color: var(--primary);
   }
 }
@@ -135,51 +146,58 @@
 
 .sectionHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.25rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--card-border);
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
 }
 
 .sectionTitle {
-  font-size: $font-size-xl;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
 }
 
 .sectionSubtitle {
-  font-size: $font-size-xs;
+  font-size: $font-size-2xs;
   color: var(--text-muted);
 }
 
 .cardsList {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .cardItem {
-  @include card-surface;
-  padding: 1.25rem;
+  @include index-card;
+  padding: 1.25rem 1.5rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 1.25rem;
+  background-color: var(--card-bg);
+}
+
+.cardNumberColumn {
+  flex-shrink: 0;
 }
 
 .cardNumber {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: $radius-full;
-  background-color: var(--badge-bg);
-  color: var(--primary);
+  font-family: $font-family-mono;
   font-size: $font-size-xs;
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: 0.15rem;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--muted-bg);
+  border: 1px solid var(--card-border);
+  padding: 0.2rem 0.45rem;
+  border-radius: $radius-xs;
 }
 
 .cardContent {
@@ -189,32 +207,45 @@
   gap: 0.75rem;
 }
 
-.label {
-  font-size: $font-size-xs;
-  font-weight: 800;
+.qaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fieldLabel {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+}
 
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
+.answerLabel {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
 }
 
 .questionText {
-  font-size: $font-size-base;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 0.25rem;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.qaDivider {
+  height: 1px;
+  background-color: var(--card-border);
 }
 
 .answerText {
   font-size: $font-size-sm;
+  font-weight: 500;
   color: var(--text-primary);
-  opacity: 0.9;
-  margin-top: 0.25rem;
+  line-height: 1.5;
 }

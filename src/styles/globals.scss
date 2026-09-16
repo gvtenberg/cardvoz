@@ -2,52 +2,54 @@
 @use "./mixins" as *;
 
 // =============================================================================
-// CSS Custom Properties (Light and Dark Mode)
+// CSS Custom Properties (Paleta Editorial Tinta & Papel)
 // =============================================================================
 
 :root {
-  // Modo Claro
+  // Modo Claro (Papel Natural e Tinta Azul-Profunda)
   --bg: #{$color-light-bg};
   --text-primary: #{$color-light-text-primary};
   --text-muted: #{$color-light-text-muted};
   --card-bg: #{$color-light-card};
   --card-border: #{$color-light-border};
+  --card-border-strong: #{$color-light-border-strong};
+  --ink: #{$color-light-ink};
   --primary: #{$color-light-primary};
   --primary-hover: #{$color-light-primary-hover};
   --primary-fg: #FFFFFF;
+  --accent: #{$color-light-accent};
   --ring: #{$color-light-focus-ring};
-  --muted-bg: #F1F5F9;
+  --muted-bg: #{$color-light-muted-bg};
   --success: #{$color-light-success};
-  --success-fg: #FFFFFF;
+  --success-bg: #{$color-light-success-bg};
   --destructive: #{$color-light-destructive};
-  --destructive-fg: #FFFFFF;
-  --badge-bg: rgba(29, 78, 216, 0.08);
-  --badge-border: rgba(29, 78, 216, 0.2);
+  --destructive-bg: #{$color-light-destructive-bg};
 }
 
 .dark,
 [data-theme="dark"] {
-  // Modo Escuro
+  // Modo Escuro (Obsidiana Fosca e Azul Celeste)
   --bg: #{$color-dark-bg};
   --text-primary: #{$color-dark-text-primary};
   --text-muted: #{$color-dark-text-muted};
   --card-bg: #{$color-dark-card};
   --card-border: #{$color-dark-border};
+  --card-border-strong: #{$color-dark-border-strong};
+  --ink: #{$color-dark-ink};
   --primary: #{$color-dark-primary};
   --primary-hover: #{$color-dark-primary-hover};
-  --primary-fg: #0B0F19;
+  --primary-fg: #0D1117;
+  --accent: #{$color-dark-accent};
   --ring: #{$color-dark-focus-ring};
-  --muted-bg: #1E293B;
+  --muted-bg: #{$color-dark-muted-bg};
   --success: #{$color-dark-success};
-  --success-fg: #0B0F19;
+  --success-bg: #{$color-dark-success-bg};
   --destructive: #{$color-dark-destructive};
-  --destructive-fg: #FFFFFF;
-  --badge-bg: rgba(56, 189, 248, 0.12);
-  --badge-border: rgba(56, 189, 248, 0.3);
+  --destructive-bg: #{$color-dark-destructive-bg};
 }
 
 // =============================================================================
-// Reset & Base Styles
+// Reset & Base Styles Editoriais
 // =============================================================================
 
 *,
@@ -72,7 +74,9 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: background-color $transition-default, color $transition-default;
+  transition: background-color $transition-fast, color $transition-fast;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
@@ -98,13 +102,18 @@ select {
   font-size: 1rem;
 }
 
-// Foco acessível global (WCAG AAA)
+// Tecla Física Acessível (<kbd>)
+kbd {
+  @include kbd-keycap;
+}
+
+// Foco acessível global estrito (WCAG AAA)
 :focus-visible {
   @include focus-ring;
 }
 
 // =============================================================================
-// Classes Globais de Acessibilidade
+// Classes Utilitárias de Acessibilidade
 // =============================================================================
 
 .sr-only {

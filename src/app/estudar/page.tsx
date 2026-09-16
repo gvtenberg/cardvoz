@@ -4,14 +4,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Volume2,
-  Eye,
-  CheckCircle2,
-  XCircle,
+  VolumeX,
   RotateCcw,
   ArrowLeft,
-  Award,
-  Sparkles,
-  VolumeX,
+  Check,
+  RotateCw,
+  Eye,
+  CheckCircle2,
 } from "lucide-react";
 import styles from "./page.module.scss";
 
@@ -24,6 +23,7 @@ interface Card {
 const SAMPLE_DECK = {
   id: "biologia-celular",
   title: "Biologia Celular",
+  category: "Ciências Biológicas",
   cards: [
     {
       id: 1,
@@ -72,7 +72,7 @@ export default function EstudarPage() {
   // Speak question when moving to new card
   useEffect(() => {
     if (!isFinished && currentCard && speechEnabled) {
-      const msg = `Pergunta número ${currentIndex + 1} de ${SAMPLE_DECK.cards.length}: ${currentCard.question}`;
+      const msg = `Ficha ${currentIndex + 1} de ${SAMPLE_DECK.cards.length}. Pergunta: ${currentCard.question}`;
       setAnnouncement(msg);
       speak(msg);
     }
@@ -80,7 +80,7 @@ export default function EstudarPage() {
 
   const handleReveal = useCallback(() => {
     setIsRevealed(true);
-    const msg = `Resposta: ${currentCard?.answer}. Pressione tecla 1 para marcar que acertou, ou tecla 2 para marcar que errou.`;
+    const msg = `Resposta: ${currentCard?.answer}. Pressione a tecla 1 para marcar acerto, ou tecla 2 para revisar.`;
     setAnnouncement(msg);
     if (speechEnabled && currentCard) {
       speak(`Resposta: ${currentCard.answer}`);
@@ -91,10 +91,10 @@ export default function EstudarPage() {
     (correct: boolean) => {
       if (correct) {
         setCorrectCount((prev) => prev + 1);
-        setAnnouncement("Cartão marcado como acerto.");
+        setAnnouncement("Ficha marcada como acerto.");
       } else {
         setIncorrectCount((prev) => prev + 1);
-        setAnnouncement("Cartão marcado para revisão futura.");
+        setAnnouncement("Ficha marcada para revisão.");
       }
 
       if (currentIndex + 1 < SAMPLE_DECK.cards.length) {
@@ -102,7 +102,7 @@ export default function EstudarPage() {
         setIsRevealed(false);
       } else {
         setIsFinished(true);
-        const finishMsg = `Sessão finalizada! Você acertou ${correct ? correctCount + 1 : correctCount} de ${SAMPLE_DECK.cards.length} cartões.`;
+        const finishMsg = `Sessão finalizada. Você acertou ${correct ? correctCount + 1 : correctCount} de ${SAMPLE_DECK.cards.length} fichas.`;
         setAnnouncement(finishMsg);
         if (speechEnabled) {
           speak(finishMsg);
@@ -118,7 +118,7 @@ export default function EstudarPage() {
     setCorrectCount(0);
     setIncorrectCount(0);
     setIsFinished(false);
-    setAnnouncement("Sessão reiniciada.");
+    setAnnouncement("Sessão reiniciada na primeira ficha.");
   };
 
   // Keyboard shortcut listener
@@ -169,144 +169,110 @@ export default function EstudarPage() {
         {announcement}
       </div>
 
-      <nav aria-label="Navegação da sessão" className={styles.topNav}>
+      {/* Top Study Bar */}
+      <nav aria-label="Controles da sessão de estudo" className={styles.topNav}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
-          <span>Encerrar sessão e voltar</span>
+          <span>Encerrar sessão</span>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => setSpeechEnabled(!speechEnabled)}
-          className={styles.audioToggle}
-          aria-label={speechEnabled ? "Desativar leitura de áudio automática" : "Ativar leitura de áudio automática"}
-        >
-          {speechEnabled ? (
-            <>
-              <Volume2 aria-hidden="true" />
-              <span>Áudio: Ativado</span>
-            </>
-          ) : (
-            <>
-              <VolumeX aria-hidden="true" />
-              <span>Áudio: Silenciado</span>
-            </>
-          )}
-        </button>
+        <div className={styles.topRightControls}>
+          <button
+            type="button"
+            onClick={() => setSpeechEnabled(!speechEnabled)}
+            className={styles.audioToggle}
+            aria-label={speechEnabled ? "Desativar leitura de áudio automática" : "Ativar leitura de áudio automática"}
+          >
+            {speechEnabled ? (
+              <>
+                <Volume2 aria-hidden="true" />
+                <span>Áudio ativo</span>
+              </>
+            ) : (
+              <>
+                <VolumeX aria-hidden="true" />
+                <span>Áudio mudo</span>
+              </>
+            )}
+          </button>
+        </div>
       </nav>
 
       {/* Finished Summary */}
       {isFinished ? (
-        <div className={styles.finishedCard}>
-          <div className={styles.finishedIcon}>
-            <Award aria-hidden="true" />
+        <section aria-labelledby="finished-title" className={styles.finishedCard}>
+          <div className={styles.finishedBadge} aria-hidden="true">
+            <CheckCircle2 />
           </div>
 
-          <h1 className={styles.finishedTitle}>
-            Sessão Concluída!
+          <h1 id="finished-title" className={styles.finishedTitle}>
+            Sessão Concluída
           </h1>
           <p className={styles.finishedSubtitle}>
-            Parabéns! Você revisou todos os cartões de <strong>{SAMPLE_DECK.title}</strong>.
+            Você revisou todas as {SAMPLE_DECK.cards.length} fichas do baralho <strong>{SAMPLE_DECK.title}</strong>.
           </p>
 
-          <div className={styles.scoreGrid}>
-            <div className={styles.scoreBoxCorrect}>
-              <span className={styles.scoreNum} style={{ color: "var(--success)" }}>
-                {correctCount}
-              </span>
-              <span className={styles.scoreLabel}>
-                Acertos
-              </span>
+          <div className={styles.scoreRow}>
+            <div className={styles.scoreItemCorrect}>
+              <span className={styles.scoreNumber}>{correctCount}</span>
+              <span className={styles.scoreLabel}>Acertos</span>
             </div>
-            <div className={styles.scoreBoxIncorrect}>
-              <span className={styles.scoreNum} style={{ color: "var(--destructive)" }}>
-                {incorrectCount}
-              </span>
-              <span className={styles.scoreLabel}>
-                Revisar
-              </span>
+            <div className={styles.scoreDivider} aria-hidden="true" />
+            <div className={styles.scoreItemIncorrect}>
+              <span className={styles.scoreNumber}>{incorrectCount}</span>
+              <span className={styles.scoreLabel}>Para revisar</span>
             </div>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem" }}>
+          <div className={styles.finishedActions}>
             <button
               type="button"
               onClick={restartSession}
-              style={{
-                backgroundColor: "var(--primary)",
-                color: "var(--primary-fg)",
-                padding: "0.85rem 1.5rem",
-                borderRadius: "0.75rem",
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                cursor: "pointer",
-              }}
+              className={styles.primaryAction}
             >
-              <RotateCcw style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
+              <RotateCcw aria-hidden="true" />
               <span>Estudar novamente</span>
             </button>
-            <Link
-              href="/"
-              style={{
-                backgroundColor: "var(--card-bg)",
-                border: "1px solid var(--card-border)",
-                color: "var(--text-primary)",
-                padding: "0.85rem 1.5rem",
-                borderRadius: "0.75rem",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-              }}
-            >
-              Voltar ao Início
+            <Link href="/" className={styles.secondaryAction}>
+              <span>Voltar aos baralhos</span>
             </Link>
           </div>
-        </div>
+        </section>
       ) : (
-        /* Active Study Card */
-        <div>
-          <div className={styles.sessionCard}>
-            <div>
-              <div className={styles.headerRow}>
-                <div>
-                  <span className={styles.sessionTag}>
-                    Sessão Ativa
-                  </span>
-                  <h1 className={styles.deckTitle}>
-                    Estudando: {SAMPLE_DECK.title}
-                  </h1>
-                </div>
-
-                <div className={styles.progressContainer}>
-                  <span className={styles.progressText}>
-                    {currentIndex + 1} de {SAMPLE_DECK.cards.length}
-                  </span>
-                  <div className={styles.progressBar}>
-                    <div
-                      className={styles.progressFill}
-                      style={{
-                        width: `${((currentIndex + 1) / SAMPLE_DECK.cards.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
+        /* Physical Flashcard Metaphor */
+        <div className={styles.studyWorkspace}>
+          <article
+            className={styles.indexCard}
+            aria-label={`Ficha de estudo ${currentIndex + 1} de ${SAMPLE_DECK.cards.length}: ${SAMPLE_DECK.title}`}
+          >
+            {/* Index Card Tab / Header */}
+            <div className={styles.cardHeader}>
+              <div className={styles.deckInfo}>
+                <span className={styles.categoryTag}>{SAMPLE_DECK.category}</span>
+                <span className={styles.deckName}>{SAMPLE_DECK.title}</span>
               </div>
 
-              <div>
-                <div className={styles.questionHeader}>
-                  <h2 className={styles.label}>
-                    Pergunta
-                  </h2>
+              <div className={styles.counterGroup}>
+                <span className={styles.cardCounter}>
+                  Ficha <strong>{currentIndex + 1}</strong> de {SAMPLE_DECK.cards.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Question Face */}
+            <div className={styles.cardBody}>
+              <div className={styles.questionSection}>
+                <div className={styles.sectionHeadingRow}>
+                  <span className={styles.sectionLabel}>Pergunta</span>
                   <button
                     type="button"
                     onClick={() => speak(`Pergunta: ${currentCard?.question}`)}
                     className={styles.repeatButton}
-                    aria-label="Repetir pergunta por áudio"
+                    aria-label="Repetir pergunta em voz alta"
                   >
                     <RotateCcw aria-hidden="true" />
-                    <span>Ouvir novamente (R)</span>
+                    <span>Ouvir novamente</span>
+                    <kbd>R</kbd>
                   </button>
                 </div>
 
@@ -314,78 +280,92 @@ export default function EstudarPage() {
                   {currentCard?.question}
                 </p>
               </div>
-            </div>
 
-            {/* Answer Section */}
-            <div className={styles.answerSection}>
+              {/* Answer Face */}
               {isRevealed ? (
-                <div className={styles.answerBox}>
-                  <div className={styles.questionHeader}>
-                    <h2 className={styles.label} style={{ color: "var(--primary)" }}>
-                      Resposta
-                    </h2>
+                <div className={styles.answerSection}>
+                  <div className={styles.sectionHeadingRow}>
+                    <span className={styles.answerLabel}>Resposta</span>
                     <button
                       type="button"
                       onClick={() => speak(`Resposta: ${currentCard?.answer}`)}
                       className={styles.repeatButton}
-                      aria-label="Repetir resposta por áudio"
+                      aria-label="Repetir resposta em voz alta"
                     >
                       <RotateCcw aria-hidden="true" />
-                      <span>Repetir resposta</span>
+                      <span>Ouvir resposta</span>
                     </button>
                   </div>
+
                   <p className={styles.answerText}>
                     {currentCard?.answer}
                   </p>
                 </div>
-              ) : (
+              ) : null}
+            </div>
+
+            {/* Bottom Card Action Area */}
+            <div className={styles.cardFooter}>
+              {!isRevealed ? (
                 <button
                   type="button"
                   onClick={handleReveal}
-                  className={styles.revealButton}
+                  className={styles.revealBtn}
+                  aria-label="Revelar a resposta desta ficha"
                 >
                   <Eye aria-hidden="true" />
-                  <span>Revelar Resposta (ou tecle Espaço)</span>
+                  <span>Mostrar resposta</span>
+                  <kbd>Espaço</kbd>
                 </button>
+              ) : (
+                <div className={styles.assessmentGrid}>
+                  <button
+                    type="button"
+                    onClick={() => handleAnswer(true)}
+                    className={styles.correctBtn}
+                    aria-label="Marcar que acertei esta ficha (tecla 1)"
+                  >
+                    <Check aria-hidden="true" />
+                    <span>Acertei</span>
+                    <kbd>1</kbd>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAnswer(false)}
+                    className={styles.reviewBtn}
+                    aria-label="Marcar para revisar novamente depois (tecla 2)"
+                  >
+                    <RotateCw aria-hidden="true" />
+                    <span>Revisar</span>
+                    <kbd>2</kbd>
+                  </button>
+                </div>
               )}
             </div>
-          </div>
+          </article>
 
-          {/* Action buttons (Acertei / Errei) */}
-          {isRevealed && (
-            <div className={styles.buttonGrid}>
-              <button
-                type="button"
-                onClick={() => handleAnswer(true)}
-                className={styles.btnCorrect}
-                aria-label="Marcar que acertei e passar para o próximo cartão"
-              >
-                <CheckCircle2 aria-hidden="true" />
-                <span>Acertei (Tecla 1)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleAnswer(false)}
-                className={styles.btnIncorrect}
-                aria-label="Marcar que errei para revisar novamente depois"
-              >
-                <XCircle aria-hidden="true" />
-                <span>Errei / Revisar (Tecla 2)</span>
-              </button>
+          {/* Clean Keyboard Shortcuts Strip */}
+          <footer className={styles.shortcutsStrip} aria-label="Atalhos de teclado disponíveis">
+            <span className={styles.shortcutsLabel}>Atalhos:</span>
+            <div className={styles.shortcutsList}>
+              <span className={styles.shortcutItem}>
+                <kbd>Espaço</kbd> <span>virar</span>
+              </span>
+              <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
+              <span className={styles.shortcutItem}>
+                <kbd>1</kbd> <span>acertei</span>
+              </span>
+              <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
+              <span className={styles.shortcutItem}>
+                <kbd>2</kbd> <span>revisar</span>
+              </span>
+              <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
+              <span className={styles.shortcutItem}>
+                <kbd>R</kbd> <span>repetir áudio</span>
+              </span>
             </div>
-          )}
-
-          {/* Accessibility & Voice hints footer */}
-          <div className={styles.shortcutsFooter}>
-            <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontWeight: 600 }}>
-              <Sparkles style={{ width: "1rem", height: "1rem", color: "var(--primary)" }} aria-hidden="true" />
-              Atalhos de teclado ativos:
-            </span>
-            <span className={styles.shortcutsList}>
-              [Espaço] Revelar &bull; [1] Acertei &bull; [2] Errei &bull; [R] Ouvir áudio
-            </span>
-          </div>
+          </footer>
         </div>
       )}
     </main>

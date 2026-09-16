@@ -2,13 +2,13 @@
 @use "../../styles/mixins" as *;
 
 .main {
-  max-width: 48rem;
+  max-width: 44rem;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem 3rem;
   width: 100%;
 
   @include respond-to(sm) {
-    padding: 3rem 1.5rem;
+    padding: 2.5rem 1.5rem 4rem;
   }
 }
 
@@ -23,13 +23,13 @@
 .backLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: $font-size-sm;
+  gap: 0.4rem;
+  font-size: $font-size-xs;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 0.25rem 0.5rem;
-  border-radius: $radius-md;
-  transition: color $transition-default;
+  padding: 0.25rem 0.45rem;
+  border-radius: $radius-xs;
+  transition: color $transition-fast;
 
   &:hover {
     color: var(--text-primary);
@@ -40,170 +40,149 @@
   }
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 0.875rem;
+    height: 0.875rem;
   }
+}
+
+.topRightControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .audioToggle {
   @include button-secondary;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.65rem;
   font-size: $font-size-xs;
   gap: 0.35rem;
 
   svg {
     width: 0.875rem;
     height: 0.875rem;
+    color: var(--primary);
   }
 }
 
-.sessionCard {
-  @include card-surface;
-  border-width: 2px;
-  padding: 1.5rem;
-  min-height: 20rem;
+.studyWorkspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.indexCard {
+  @include index-card;
+  min-height: 22rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
-  @include respond-to(sm) {
-    padding: 2.5rem;
-  }
+  padding: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
 }
 
-.headerRow {
+.cardHeader {
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  background-color: var(--muted-bg);
+  border-top-left-radius: $radius-md;
+  border-top-right-radius: $radius-md;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--card-border);
-  margin-bottom: 1.5rem;
 }
 
-.sessionTag {
+.deckInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.categoryTag {
+  @include catalog-tag;
+}
+
+.deckName {
   font-size: $font-size-xs;
-  font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: block;
+  font-weight: 600;
+  color: var(--ink);
 }
 
-.deckTitle {
-  font-size: $font-size-xl;
-  font-weight: 800;
-  color: var(--text-primary);
+.cardCounter {
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  color: var(--text-muted);
 
-  @include respond-to(sm) {
-    font-size: $font-size-2xl;
+  strong {
+    color: var(--ink);
   }
 }
 
-.progressContainer {
-  text-align: right;
-}
-
-.progressText {
-  font-size: $font-size-sm;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.progressBar {
-  width: 6rem;
-  height: 0.5rem;
-  background-color: var(--muted-bg);
-  border-radius: $radius-full;
-  margin-top: 0.35rem;
-  overflow: hidden;
+.cardBody {
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  flex: 1;
 
   @include respond-to(sm) {
-    width: 8rem;
+    padding: 2.25rem 2rem;
   }
 }
 
-.progressFill {
-  height: 100%;
-  background-color: var(--primary);
-  transition: width 300ms ease;
+.questionSection,
+.answerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.questionHeader {
+.answerSection {
+  padding-top: 1.5rem;
+  border-top: 1px dashed var(--card-border-strong);
+}
+
+.sectionHeadingRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
-.label {
-  font-size: $font-size-xs;
-  font-weight: 800;
+.sectionLabel {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
+}
+
+.answerLabel {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
 }
 
 .repeatButton {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: $font-size-xs;
+  font-size: $font-size-2xs;
   font-weight: 600;
   color: var(--primary);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.2rem 0.4rem;
-  border-radius: $radius-sm;
-
-  &:hover {
-    text-decoration: underline;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-}
-
-.questionText {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.6;
-
-  @include respond-to(sm) {
-    font-size: 1.5rem;
-  }
-}
-
-.answerSection {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--card-border);
-}
-
-.revealButton {
-  width: 100%;
-  padding: 1.25rem;
-  border-radius: $radius-xl;
-  border: 2px dashed var(--primary);
-  background-color: var(--badge-bg);
-  color: var(--primary);
-  font-weight: 700;
-  font-size: $font-size-base;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: background-color $transition-default;
+  border-radius: $radius-xs;
 
   &:hover {
     background-color: var(--muted-bg);
@@ -214,166 +193,274 @@
   }
 
   svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  kbd {
+    font-size: 0.625rem;
+    padding: 0.08rem 0.3rem;
+    min-width: 1.1rem;
   }
 }
 
-.answerBox {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.questionText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--ink);
+
+  @include respond-to(sm) {
+    font-size: 1.375rem;
+  }
 }
 
 .answerText {
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 500;
+  line-height: 1.55;
   color: var(--text-primary);
-  line-height: 1.5;
 
   @include respond-to(sm) {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
   }
 }
 
-.buttonGrid {
+.cardFooter {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--card-border);
+  background-color: var(--card-bg);
+  border-bottom-left-radius: $radius-md;
+  border-bottom-right-radius: $radius-md;
+}
+
+.revealBtn {
+  @include button-primary;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  font-size: $font-size-sm;
+  gap: 0.6rem;
+  justify-content: center;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  kbd {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    box-shadow: none;
+  }
+}
+
+.assessmentGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  margin-top: 1.5rem;
-
-  @include respond-to(sm) {
-    grid-template-columns: 1fr 1fr;
-  }
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-.btnCorrect {
+.correctBtn {
   @include button-base;
   background-color: var(--success);
-  color: var(--success-fg);
-  padding: 1.15rem;
-  font-size: $font-size-lg;
-  gap: 0.6rem;
-  box-shadow: $shadow-md;
+  color: #ffffff;
+  border: 1px solid var(--success);
+  padding: 0.75rem;
+  gap: 0.5rem;
 
   &:hover {
-    opacity: 0.92;
+    opacity: 0.93;
   }
 
   svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  kbd {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    box-shadow: none;
   }
 }
 
-.btnIncorrect {
+.reviewBtn {
   @include button-base;
-  background-color: var(--destructive);
-  color: var(--destructive-fg);
-  padding: 1.15rem;
-  font-size: $font-size-lg;
-  gap: 0.6rem;
-  box-shadow: $shadow-md;
+  background-color: var(--card-bg);
+  color: var(--destructive);
+  border: 1px solid var(--destructive);
+  padding: 0.75rem;
+  gap: 0.5rem;
 
   &:hover {
-    opacity: 0.92;
+    background-color: var(--destructive-bg);
   }
 
   svg {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  kbd {
+    color: var(--destructive);
+    border-color: var(--destructive);
+    box-shadow: none;
   }
 }
 
-.shortcutsFooter {
-  @include card-surface;
-  margin-top: 1.5rem;
-  padding: 1rem 1.25rem;
+.shortcutsStrip {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.6rem;
   font-size: $font-size-xs;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  padding: 0.5rem;
+}
+
+.shortcutsLabel {
+  font-family: $font-family-mono;
+  font-size: $font-size-2xs;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
 }
 
 .shortcutsList {
-  font-family: $font-family-mono;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.shortcutItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: $font-size-xs;
+}
+
+.shortcutSeparator {
+  color: var(--card-border-strong);
 }
 
 .finishedCard {
   @include card-surface;
-  padding: 2.5rem 1.5rem;
+  padding: 3rem 1.5rem;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   @include respond-to(sm) {
-    padding: 3rem;
+    padding: 3.5rem 2rem;
   }
 }
 
-.finishedIcon {
-  margin: 0 auto 1.5rem;
+.finishedBadge {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: $radius-2xl;
-  background-color: var(--badge-bg);
-  color: var(--primary);
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: $radius-xs;
+  background-color: var(--success-bg);
+  border: 1px solid var(--card-border);
+  color: var(--success);
+  margin-bottom: 1.25rem;
 
   svg {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 1.75rem;
+    height: 1.75rem;
   }
 }
 
 .finishedTitle {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--text-primary);
+  font-size: 1.75rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .finishedSubtitle {
   margin-top: 0.5rem;
+  font-size: $font-size-sm;
   color: var(--text-muted);
-  font-size: $font-size-base;
+  max-width: 24rem;
 }
 
-.scoreGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  max-width: 20rem;
-  margin: 2rem auto;
+.scoreRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 2rem 0;
+  padding: 1.25rem 2rem;
+  background-color: var(--muted-bg);
+  border: 1px solid var(--card-border);
+  border-radius: $radius-sm;
 }
 
-.scoreBoxCorrect {
-  padding: 1rem;
-  border-radius: $radius-xl;
-  border: 1px solid rgba(22, 163, 74, 0.3);
-  background-color: rgba(22, 163, 74, 0.1);
+.scoreItemCorrect,
+.scoreItemIncorrect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.scoreBoxIncorrect {
-  padding: 1rem;
-  border-radius: $radius-xl;
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  background-color: rgba(220, 38, 38, 0.1);
+.scoreNumber {
+  font-family: $font-family-mono;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.scoreNum {
-  display: block;
-  font-size: 1.75rem;
-  font-weight: 900;
+.scoreItemCorrect .scoreNumber {
+  color: var(--success);
+}
+
+.scoreItemIncorrect .scoreNumber {
+  color: var(--destructive);
 }
 
 .scoreLabel {
-  font-size: $font-size-xs;
-  font-weight: 700;
+  font-size: $font-size-2xs;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-primary);
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.scoreDivider {
+  width: 1px;
+  height: 2.5rem;
+  background-color: var(--card-border-strong);
+}
+
+.finishedActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.primaryAction {
+  @include button-primary;
+  padding: 0.6rem 1.25rem;
+  gap: 0.4rem;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.secondaryAction {
+  @include button-secondary;
+  padding: 0.6rem 1.25rem;
 }

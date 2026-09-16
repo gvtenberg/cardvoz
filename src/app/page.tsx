@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DeckCard, type DeckProps } from "@/components/deck-card";
 import { VoiceCommandHint } from "@/components/voice-command-hint";
-import { Sparkles, Plus, BookOpen, Volume2, ShieldCheck } from "lucide-react";
+import { Plus, Play } from "lucide-react";
 import styles from "./page.module.scss";
 
 const INITIAL_DECKS: DeckProps[] = [
@@ -40,102 +40,64 @@ const INITIAL_DECKS: DeckProps[] = [
 ];
 
 export default function HomePage() {
+  const totalCards = INITIAL_DECKS.reduce((acc, d) => acc + d.cardCount, 0);
+
   return (
-    <main id="main-content" tabIndex={-1} style={{ outline: "none" }}>
-      {/* Hero Section */}
-      <section aria-labelledby="hero-title" className={styles.hero}>
-        <div className={styles.heroContainer}>
-          <div className={styles.heroContent}>
-            <div className={styles.badge}>
-              <Sparkles aria-hidden="true" />
-              <span>Tecnologia Assistiva e Aprendizado Inclusivo</span>
-            </div>
+    <main id="main-content" tabIndex={-1} className={styles.main}>
+      {/* Workspace Header */}
+      <header className={styles.workspaceHeader}>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.pageTitle}>Seus baralhos</h1>
+          <p className={styles.pageSubtitle}>
+            {INITIAL_DECKS.length} coleções &bull; {totalCards} fichas de estudo &bull; Interação por voz e teclado
+          </p>
+        </div>
 
-            <h1 id="hero-title" className={styles.title}>
-              Estude flashcards com a liberdade da{" "}
-              <span className={styles.highlight}>
-                sua própria voz
-              </span>
-            </h1>
+        <div className={styles.headerActions}>
+          <Link
+            href="/baralhos/novo"
+            className={styles.primaryAction}
+            aria-label="Criar um novo baralho de fichas"
+          >
+            <Plus aria-hidden="true" />
+            <span>Novo baralho</span>
+          </Link>
 
-            <p className={styles.description}>
-              O CardVoz é uma plataforma de memorização ativa projetada para
-              pessoas cegas, com baixa visão ou que preferem interagir por comandos
-              de áudio. Sem barreiras visuais, 100% navegável por voz e teclado.
-            </p>
+          <Link
+            href="/estudar?deck=biologia-celular"
+            className={styles.secondaryAction}
+            aria-label="Iniciar estudo rápido do baralho Biologia Celular"
+          >
+            <Play style={{ fill: "currentColor" }} aria-hidden="true" />
+            <span>Prática rápida</span>
+          </Link>
+        </div>
+      </header>
 
-            <div className={styles.actions}>
-              <Link
-                href="/estudar?deck=biologia-celular"
-                className={styles.primaryBtn}
-                aria-label="Começar a estudar o primeiro baralho: Biologia Celular"
-              >
-                <Volume2 aria-hidden="true" />
-                <span>Começar Estudo Rápido</span>
-              </Link>
+      {/* Voice & Keyboard Navigation Reference */}
+      <VoiceCommandHint />
 
-              <Link
-                href="/baralhos/novo"
-                className={styles.secondaryBtn}
-              >
-                <Plus aria-hidden="true" />
-                <span>Criar Novo Baralho</span>
-              </Link>
-            </div>
+      {/* Decks Collection Section */}
+      <section
+        id="meus-baralhos"
+        aria-labelledby="collection-heading"
+        className={styles.collectionSection}
+      >
+        <div className={styles.sectionHeader}>
+          <h2 id="collection-heading" className={styles.sectionTitle}>
+            Coleções de estudo
+          </h2>
+          <span className={styles.sectionMeta}>
+            Selecione uma ficha para iniciar a sessão com leitura em voz alta
+          </span>
+        </div>
 
-            {/* Accessibility badges */}
-            <div className={styles.trustBadges}>
-              <span className={styles.trustItem}>
-                <ShieldCheck aria-hidden="true" />
-                Alto Contraste WCAG AAA
-              </span>
-              <span className={styles.trustItem}>
-                <ShieldCheck aria-hidden="true" />
-                Compatível com Leitores de Tela (NVDA / Orca / TalkBack)
-              </span>
-            </div>
-          </div>
+        <div className={styles.decksGrid}>
+          {INITIAL_DECKS.map((deck) => (
+            <DeckCard key={deck.id} deck={deck} />
+          ))}
         </div>
       </section>
-
-      {/* Main Content Area */}
-      <div className={styles.contentWrapper}>
-        {/* Voice Navigation Hint */}
-        <VoiceCommandHint />
-
-        {/* Decks Section */}
-        <section
-          id="meus-baralhos"
-          aria-labelledby="decks-heading"
-          className={styles.decksSection}
-        >
-          <div className={styles.decksHeader}>
-            <div>
-              <h2 id="decks-heading" className={styles.decksTitle}>
-                <BookOpen aria-hidden="true" />
-                <span>Meus Baralhos</span>
-              </h2>
-              <p className={styles.decksSubtitle}>
-                Selecione um baralho para praticar ou revisar seus cartões.
-              </p>
-            </div>
-
-            <Link
-              href="/baralhos/novo"
-              className={styles.addDeckLink}
-            >
-              <Plus aria-hidden="true" />
-              <span>Adicionar Baralho</span>
-            </Link>
-          </div>
-
-          <div className={styles.decksGrid}>
-            {INITIAL_DECKS.map((deck) => (
-              <DeckCard key={deck.id} deck={deck} />
-            ))}
-          </div>
-        </section>
-      </div>
     </main>
   );
 }
