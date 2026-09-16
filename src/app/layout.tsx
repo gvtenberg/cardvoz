@@ -1,8 +1,23 @@
 import type { Metadata } from "next";
+import { Poppins, Inter } from "next/font/google";
 import "@/styles/globals.scss";
-import { ThemeProvider } from "@/components/theme-provider";
-import { SkipToContent } from "@/components/skip-to-content";
-import { Header } from "@/components/header";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { SkipLink } from "@/components/SkipLink";
+import { Header } from "@/components/Header";
+
+const poppins = Poppins({
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
+});
+
+const inter = Inter({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "CardVoz — Fichas de Estudo Acessíveis por Voz",
@@ -16,15 +31,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body>
+    <html
+      lang="pt-BR"
+      className={`${poppins.variable} ${inter.variable}`}
+      suppressHydrationWarning
+    >
+      <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
-          <SkipToContent />
+          <SkipLink />
           <Header />
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {children}

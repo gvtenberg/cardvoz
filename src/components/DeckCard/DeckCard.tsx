@@ -1,5 +1,9 @@
+import React from "react";
 import Link from "next/link";
 import { Play, ArrowUpRight } from "lucide-react";
+import { Card, CardTitle, CardDescription, CardContent, CardFooter } from "../Card";
+import { Badge } from "../Badge";
+import { Button } from "../Button";
 import styles from "./DeckCard.module.scss";
 
 export interface DeckProps {
@@ -13,34 +17,34 @@ export interface DeckProps {
 
 export function DeckCard({ deck }: { deck: DeckProps }) {
   return (
-    <article
-      className={styles.card}
-      aria-labelledby={`deck-title-${deck.id}`}
-    >
-      <div className={styles.cardTop}>
+    <Card as="article" className={styles.deckCard} aria-labelledby={`deck-title-${deck.id}`}>
+      <CardContent className={styles.contentWrapper}>
         <div className={styles.metaRow}>
-          <span className={styles.categoryTag}>{deck.category}</span>
+          <Badge variant="category">{deck.category}</Badge>
           <span className={styles.countIndicator}>{deck.cardCount} fichas</span>
         </div>
 
-        <h3 id={`deck-title-${deck.id}`} className={styles.title}>
+        <CardTitle id={`deck-title-${deck.id}`} className={styles.title}>
           <Link href={`/baralhos/${deck.id}`} className={styles.titleLink}>
             {deck.title}
           </Link>
-        </h3>
+        </CardTitle>
 
-        <p className={styles.description}>{deck.description}</p>
-      </div>
+        <CardDescription className={styles.description}>
+          {deck.description}
+        </CardDescription>
+      </CardContent>
 
-      <div className={styles.cardBottom}>
-        <Link
+      <CardFooter className={styles.footer}>
+        <Button
           href={`/estudar?deck=${deck.id}`}
-          className={styles.studyBtn}
+          variant="primary"
+          size="sm"
           aria-label={`Iniciar estudo por voz do baralho ${deck.title} com ${deck.cardCount} fichas`}
         >
           <Play style={{ fill: "currentColor" }} aria-hidden="true" />
           <span>Estudar ficha</span>
-        </Link>
+        </Button>
 
         <Link
           href={`/baralhos/${deck.id}`}
@@ -50,7 +54,7 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
           <span>Abrir</span>
           <ArrowUpRight aria-hidden="true" />
         </Link>
-      </div>
-    </article>
+      </CardFooter>
+    </Card>
   );
 }

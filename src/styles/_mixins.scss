@@ -2,7 +2,7 @@
 
 // --- Acessibilidade: Anel de foco nítido e visível (WCAG AAA) ---
 @mixin focus-ring {
-  outline: 2px solid var(--ring);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -36,7 +36,7 @@
   border: 1px solid var(--card-border);
   border-radius: $radius-md;
   box-shadow: $shadow-card;
-  transition: border-color $transition-default, box-shadow $transition-default;
+  transition: background-color $transition-fast, border-color $transition-fast, box-shadow $transition-fast;
 }
 
 @mixin index-card {
@@ -47,7 +47,8 @@
   border-radius: $radius-md;
 
   &:hover {
-    border-color: var(--card-border-strong);
+    background-color: var(--card-hover);
+    border-color: var(--card-border-hover);
     box-shadow: $shadow-card-hover;
   }
 }
@@ -62,7 +63,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--badge-text);
   background-color: var(--muted-bg);
   border: 1px solid var(--card-border);
   padding: 0.2rem 0.5rem;
@@ -77,8 +78,8 @@
   font-family: $font-family-mono;
   font-size: $font-size-xs;
   font-weight: 600;
-  color: var(--text-primary);
-  background-color: var(--card-bg);
+  color: var(--badge-text);
+  background-color: var(--muted-bg);
   border: 1px solid var(--card-border-strong);
   border-radius: $radius-xs;
   padding: 0.15rem 0.45rem;
@@ -139,7 +140,7 @@
 
   &:hover:not(:disabled) {
     background-color: var(--muted-bg);
-    border-color: var(--text-muted);
+    border-color: var(--card-border-hover);
   }
 }
 

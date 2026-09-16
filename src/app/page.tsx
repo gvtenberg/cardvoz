@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { DeckCard, type DeckProps } from "@/components/deck-card";
-import { VoiceCommandHint } from "@/components/voice-command-hint";
+import { DeckCard, VoiceCommandHint, Button, type DeckProps } from "@/components";
 import { Plus, Play } from "lucide-react";
 import styles from "./page.module.scss";
 
@@ -54,23 +52,23 @@ export default function HomePage() {
         </div>
 
         <div className={styles.headerActions}>
-          <Link
+          <Button
             href="/baralhos/novo"
-            className={styles.primaryAction}
+            variant="primary"
             aria-label="Criar um novo baralho de fichas"
           >
             <Plus aria-hidden="true" />
             <span>Novo baralho</span>
-          </Link>
+          </Button>
 
-          <Link
+          <Button
             href="/estudar?deck=biologia-celular"
-            className={styles.secondaryAction}
+            variant="secondary"
             aria-label="Iniciar estudo rápido do baralho Biologia Celular"
           >
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
             <span>Prática rápida</span>
-          </Link>
+          </Button>
         </div>
       </header>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ThemeToggle } from "./theme-toggle";
 import { Plus, BookMarked } from "lucide-react";
+import { ThemeToggle } from "../ThemeToggle";
+import { Button } from "../Button";
 import styles from "./Header.module.scss";
 
 export function Header() {
@@ -28,14 +29,15 @@ export function Header() {
             <span>Meus Baralhos</span>
           </Link>
 
-          <Link
+          <Button
             href="/baralhos/novo"
-            className={styles.newDeckBtn}
+            variant="secondary"
+            size="sm"
             aria-label="Criar novo baralho de fichas"
           >
             <Plus aria-hidden="true" />
             <span>Novo baralho</span>
-          </Link>
+          </Button>
 
           <div className={styles.divider} aria-hidden="true" />
 

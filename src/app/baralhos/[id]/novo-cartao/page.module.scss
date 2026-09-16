@@ -90,43 +90,6 @@
   gap: 1.5rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.label {
-  font-size: $font-size-xs;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: 0.01em;
-}
-
-.required {
-  color: var(--destructive);
-}
-
-.textarea {
-  width: 100%;
-  padding: 0.75rem 0.9rem;
-  border-radius: $radius-xs;
-  border: 1px solid var(--card-border-strong);
-  background-color: var(--card-bg);
-  color: var(--text-primary);
-  font-size: $font-size-sm;
-  transition: border-color $transition-fast;
-  resize: vertical;
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-}
-
 .actions {
   display: flex;
   flex-direction: column;
@@ -137,16 +100,4 @@
     flex-direction: row;
     align-items: center;
   }
-}
-
-.submitBtn {
-  @include button-primary;
-  padding: 0.65rem 1.25rem;
-  font-size: $font-size-sm;
-}
-
-.cancelBtn {
-  @include button-secondary;
-  padding: 0.65rem 1.25rem;
-  font-size: $font-size-sm;
 }

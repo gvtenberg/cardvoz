@@ -2,7 +2,7 @@
 @use "./mixins" as *;
 
 // =============================================================================
-// CSS Custom Properties (Paleta Editorial Tinta & Papel)
+// CSS Custom Properties (Paleta Editorial Tinta & Papel / Deep Midnight Navy)
 // =============================================================================
 
 :root {
@@ -11,8 +11,10 @@
   --text-primary: #{$color-light-text-primary};
   --text-muted: #{$color-light-text-muted};
   --card-bg: #{$color-light-card};
+  --card-hover: #{$color-light-card-hover};
   --card-border: #{$color-light-border};
   --card-border-strong: #{$color-light-border-strong};
+  --card-border-hover: #{$color-light-border-hover};
   --ink: #{$color-light-ink};
   --primary: #{$color-light-primary};
   --primary-hover: #{$color-light-primary-hover};
@@ -20,6 +22,7 @@
   --accent: #{$color-light-accent};
   --ring: #{$color-light-focus-ring};
   --muted-bg: #{$color-light-muted-bg};
+  --badge-text: #{$color-light-text-muted};
   --success: #{$color-light-success};
   --success-bg: #{$color-light-success-bg};
   --destructive: #{$color-light-destructive};
@@ -28,20 +31,23 @@
 
 .dark,
 [data-theme="dark"] {
-  // Modo Escuro (Obsidiana Fosca e Azul Celeste)
+  // Modo Escuro (Deep Midnight Navy Rico)
   --bg: #{$color-dark-bg};
   --text-primary: #{$color-dark-text-primary};
   --text-muted: #{$color-dark-text-muted};
   --card-bg: #{$color-dark-card};
+  --card-hover: #{$color-dark-card-hover};
   --card-border: #{$color-dark-border};
   --card-border-strong: #{$color-dark-border-strong};
+  --card-border-hover: #{$color-dark-border-hover};
   --ink: #{$color-dark-ink};
   --primary: #{$color-dark-primary};
   --primary-hover: #{$color-dark-primary-hover};
-  --primary-fg: #0D1117;
+  --primary-fg: #080C14;
   --accent: #{$color-dark-accent};
   --ring: #{$color-dark-focus-ring};
   --muted-bg: #{$color-dark-muted-bg};
+  --badge-text: #{$color-dark-badge-text};
   --success: #{$color-dark-success};
   --success-bg: #{$color-dark-success-bg};
   --destructive: #{$color-dark-destructive};
@@ -77,6 +83,14 @@ body {
   transition: background-color $transition-fast, color $transition-fast;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+// Títulos com Poppins
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-heading;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 ::selection {

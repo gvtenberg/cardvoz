@@ -1,17 +1,19 @@
 // =============================================================================
-// CardVoz Design Tokens - Paleta Editorial "Tinta & Papel" (Ink Blue)
-// WCAG 2.1 AAA / AA - Tipografia Editorial, Foco Acessivel & Metáfora de Fichas
+// CardVoz Design Tokens - Paleta Editorial "Tinta & Papel" e Deep Midnight Navy
+// WCAG 2.1 AAA / AA - Tipografia Poppins & Inter, Foco Acessivel & Fichas de Estudo
 // =============================================================================
 
 // --- Modo Claro (Light Mode - Papel Natural & Tinta Azul-Profunda) ---
 $color-light-bg: #FAF9F6;              // Papel natural / off-white aquecido
 $color-light-card: #FFFFFF;          // Ficha de estudo em papel puro
+$color-light-card-hover: #F8FAFC;    // Superficie hover sutil
 $color-light-border: #E5E7EB;        // Borda de ficha precisa (1px)
 $color-light-border-strong: #D1D5DB; // Divisores e bordas com enfase
+$color-light-border-hover: #94A3B8;  // Borda hover
 $color-light-ink: #172554;           // Azul tinta caneta-tinteiro profunda (blue-950)
 $color-light-primary: #1E3A8A;       // Azul cobalto nobre (blue-900)
 $color-light-primary-hover: #1D4ED8; // Azul acao (blue-700)
-$color-light-accent: #2563EB;        // Azul cobalto vibrante para elementos interativos
+$color-light-accent: #2563EB;        // Azul cobalto vibrante para acoes
 $color-light-text-primary: #18181B;  // Grafite escuro / preto tinta (Contraste 16.5:1 - AAA)
 $color-light-text-muted: #52525B;    // Grafite medio legivel (Contraste 7.2:1 - AAA)
 $color-light-focus-ring: #2563EB;    // Anel nitido de foco acessivel
@@ -21,27 +23,30 @@ $color-light-success-bg: #F0FDF4;
 $color-light-destructive: #B91C1C;   // Tinta vermelha de revisao (red-700)
 $color-light-destructive-bg: #FEF2F2;
 
-// --- Modo Escuro (Dark Mode - Obsidiana Fosca & Azul Celeste Suave) ---
-$color-dark-bg: #0D1117;             // Obsidiana fosca (papel escuro estilo GitHub/iA Writer)
-$color-dark-card: #161B22;           // Ficha em ardosia fosca
-$color-dark-border: #2D333B;         // Borda de ficha refinada (1px)
-$color-dark-border-strong: #444C56;  // Divisores com enfase
-$color-dark-ink: #E6EDF3;            // Tinta clara suave para titulos
-$color-dark-primary: #60A5FA;        // Azul celeste suave de alto contraste (blue-400)
-$color-dark-primary-hover: #93C5FD;  // Azul celeste claro (blue-300)
-$color-dark-accent: #38BDF8;         // Celeste vivo para elementos interativos
-$color-dark-text-primary: #F0F6FC;   // Texto claro papel (Contraste 16.2:1 - AAA)
-$color-dark-text-muted: #9CA3AF;     // Cinza medio legivel (Contraste 7.8:1 - AAA)
-$color-dark-focus-ring: #60A5FA;     // Anel nitido de foco acessivel
-$color-dark-muted-bg: #21262D;       // Superficie sutil escura
+// --- Modo Escuro (Dark Mode - Deep Midnight Navy Rico) ---
+$color-dark-bg: #0A101D;             // Azul noturno profundo e elegante (Midnight Navy)
+$color-dark-card: #10192A;           // Cartoes e superficies em azul marinho fechado
+$color-dark-card-hover: #15223A;     // Superficie hover azul marinho
+$color-dark-border: #1E2D4A;         // Borda fina e nitida azul marinho escuro
+$color-dark-border-strong: #243657;  // Divisores e bordas com enfase
+$color-dark-border-hover: #2B3F66;   // Borda hover rica
+$color-dark-ink: #F8FAFC;            // Texto de titulos em alto contraste
+$color-dark-primary: #3B82F6;        // Royal / Electric Blue para interatividade
+$color-dark-primary-hover: #60A5FA;  // Sky Blue vibrante
+$color-dark-accent: #60A5FA;         // Sky Blue de alto contraste
+$color-dark-text-primary: #F8FAFC;   // Slate-50 (Contraste 17:1 - AAA)
+$color-dark-text-muted: #94A3B8;     // Slate-400 (Contraste 8.5:1 - AAA)
+$color-dark-focus-ring: #60A5FA;     // Anel nitido de 3px com offset visivel
+$color-dark-muted-bg: #15223A;       // Superficie sutil badges/kbd
+$color-dark-badge-text: #93C5FD;     // Texto azul claro para badges/kbd
 $color-dark-success: #22C55E;        // Verde suave de acerto
-$color-dark-success-bg: rgba(34, 197, 94, 0.12);
+$color-dark-success-bg: rgba(34, 197, 94, 0.14);
 $color-dark-destructive: #F87171;    // Vermelho suave de revisao
-$color-dark-destructive-bg: rgba(248, 113, 113, 0.12);
+$color-dark-destructive-bg: rgba(248, 113, 113, 0.14);
 
-// --- Tipografia Editorial & Acessivel ---
-$font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-$font-family-serif: "Newsreader", "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+// --- Tipografia Poppins (Titulos) & Inter (Corpo e Elementos) ---
+$font-family-heading: var(--font-poppins), system-ui, -apple-system, sans-serif;
+$font-family-base: var(--font-inter), system-ui, -apple-system, sans-serif;
 $font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
 $font-size-2xs: 0.6875rem; // 11px
@@ -74,13 +79,13 @@ $radius-lg: 0.75rem;  // 12px
 $radius-xl: 1rem;     // 16px
 $radius-full: 9999px;
 
-// --- Transições & Sombras Sutis (Sem borrões artificiais exagerados) ---
-$transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-default: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+// --- Transições & Sombras Sutis ---
+$transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-default: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 $shadow-paper: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
-$shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
-$shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-$shadow-kbd: 0 1px 0 1px rgba(0, 0, 0, 0.08);
+$shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+$shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.08);
+$shadow-kbd: 0 1px 0 1px rgba(0, 0, 0, 0.12);
 
 // --- Breakpoints ---
 $breakpoint-sm: 640px;

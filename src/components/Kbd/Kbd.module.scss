@@ -1,0 +1,18 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.kbd {
+  @include kbd-keycap;
+}
+
+.sm {
+  font-size: 0.625rem;
+  padding: 0.08rem 0.3rem;
+  min-width: 1.1rem;
+}
+
+.md {
+  font-size: $font-size-xs;
+  padding: 0.15rem 0.45rem;
+  min-width: 1.5rem;
+}

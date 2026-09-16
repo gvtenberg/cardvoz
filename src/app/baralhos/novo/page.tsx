@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Input, Textarea, Button } from "@/components";
 import styles from "./page.module.scss";
 
 export default function NovoBaralhoPage() {
@@ -57,60 +58,42 @@ export default function NovoBaralhoPage() {
         )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label htmlFor="nome-baralho" className={styles.label}>
-              Nome do Baralho <span className={styles.required}>*</span>
-            </label>
-            <input
-              type="text"
-              id="nome-baralho"
-              name="nome-baralho"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Farmacologia Básica"
-              className={styles.input}
-              aria-required="true"
-            />
-          </div>
+          <Input
+            id="nome-baralho"
+            name="nome-baralho"
+            label="Nome do Baralho"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Farmacologia Básica"
+          />
 
-          <div className={styles.field}>
-            <label htmlFor="categoria-baralho" className={styles.label}>
-              Categoria ou Matéria
-            </label>
-            <input
-              type="text"
-              id="categoria-baralho"
-              name="categoria-baralho"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Ex: Medicina, Idiomas, História"
-              className={styles.input}
-            />
-          </div>
+          <Input
+            id="categoria-baralho"
+            name="categoria-baralho"
+            label="Categoria ou Matéria"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="Ex: Medicina, Idiomas, História"
+          />
 
-          <div className={styles.field}>
-            <label htmlFor="descricao-baralho" className={styles.label}>
-              Descrição da Coleção
-            </label>
-            <textarea
-              id="descricao-baralho"
-              name="descricao-baralho"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Breve resumo dos conceitos e tópicos abordados nestas fichas..."
-              className={styles.textarea}
-            />
-          </div>
+          <Textarea
+            id="descricao-baralho"
+            name="descricao-baralho"
+            label="Descrição da Coleção"
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Breve resumo dos conceitos e tópicos abordados nestas fichas..."
+          />
 
           <div className={styles.actions}>
-            <button type="submit" className={styles.submitBtn}>
+            <Button type="submit" variant="primary">
               Salvar baralho
-            </button>
-            <Link href="/" className={styles.cancelBtn}>
+            </Button>
+            <Button href="/" variant="secondary">
               Cancelar
-            </Link>
+            </Button>
           </div>
         </form>
       </section>

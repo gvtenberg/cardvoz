@@ -1,12 +1,12 @@
-@use "../styles/variables" as *;
-@use "../styles/mixins" as *;
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
 
 .toggleButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.125rem;
+  height: 2.125rem;
   border-radius: $radius-xs;
   border: 1px solid var(--card-border-strong);
   background-color: var(--card-bg);
@@ -15,9 +15,9 @@
   transition: background-color $transition-fast, color $transition-fast, border-color $transition-fast;
 
   &:hover {
-    color: var(--text-primary);
+    color: var(--primary);
     background-color: var(--muted-bg);
-    border-color: var(--text-muted);
+    border-color: var(--card-border-hover);
   }
 
   &:focus-visible {
@@ -30,7 +30,7 @@
   }
 
   svg {
-    width: 0.95rem;
-    height: 0.95rem;
+    width: 1rem;
+    height: 1rem;
   }
 }

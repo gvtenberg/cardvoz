@@ -1,4 +1,7 @@
+import React from "react";
 import { Mic, Volume2 } from "lucide-react";
+import { Badge } from "../Badge";
+import { Kbd } from "../Kbd";
 import styles from "./VoiceCommandHint.module.scss";
 
 export function VoiceCommandHint() {
@@ -49,10 +52,10 @@ export function VoiceCommandHint() {
           </div>
         </div>
 
-        <span className={styles.statusPill}>
+        <Badge variant="success" size="sm" className={styles.statusBadge}>
           <Volume2 aria-hidden="true" />
           <span>Áudio Ativo</span>
-        </span>
+        </Badge>
       </div>
 
       <div className={styles.grid}>
@@ -60,7 +63,7 @@ export function VoiceCommandHint() {
           <div key={cmd.action} className={styles.commandCard}>
             <div className={styles.cardHeader}>
               <span className={styles.actionName}>{cmd.action}</span>
-              <kbd className={styles.kbdKey}>{cmd.key}</kbd>
+              <Kbd size="sm">{cmd.key}</Kbd>
             </div>
             <div className={styles.voicePrompt}>
               <span className={styles.voiceLabel}>Voz:</span>

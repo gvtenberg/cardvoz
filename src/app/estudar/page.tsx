@@ -12,6 +12,7 @@ import {
   Eye,
   CheckCircle2,
 } from "lucide-react";
+import { Button, Badge, Kbd } from "@/components";
 import styles from "./page.module.scss";
 
 interface Card {
@@ -177,10 +178,10 @@ export default function EstudarPage() {
         </Link>
 
         <div className={styles.topRightControls}>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setSpeechEnabled(!speechEnabled)}
-            className={styles.audioToggle}
             aria-label={speechEnabled ? "Desativar leitura de áudio automática" : "Ativar leitura de áudio automática"}
           >
             {speechEnabled ? (
@@ -194,7 +195,7 @@ export default function EstudarPage() {
                 <span>Áudio mudo</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </nav>
 
@@ -225,17 +226,21 @@ export default function EstudarPage() {
           </div>
 
           <div className={styles.finishedActions}>
-            <button
-              type="button"
+            <Button
+              variant="primary"
+              size="md"
               onClick={restartSession}
-              className={styles.primaryAction}
             >
               <RotateCcw aria-hidden="true" />
               <span>Estudar novamente</span>
-            </button>
-            <Link href="/" className={styles.secondaryAction}>
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              href="/"
+            >
               <span>Voltar aos baralhos</span>
-            </Link>
+            </Button>
           </div>
         </section>
       ) : (
@@ -248,7 +253,7 @@ export default function EstudarPage() {
             {/* Index Card Tab / Header */}
             <div className={styles.cardHeader}>
               <div className={styles.deckInfo}>
-                <span className={styles.categoryTag}>{SAMPLE_DECK.category}</span>
+                <Badge variant="category">{SAMPLE_DECK.category}</Badge>
                 <span className={styles.deckName}>{SAMPLE_DECK.title}</span>
               </div>
 
@@ -272,7 +277,7 @@ export default function EstudarPage() {
                   >
                     <RotateCcw aria-hidden="true" />
                     <span>Ouvir novamente</span>
-                    <kbd>R</kbd>
+                    <Kbd size="sm">R</Kbd>
                   </button>
                 </div>
 
@@ -307,39 +312,42 @@ export default function EstudarPage() {
             {/* Bottom Card Action Area */}
             <div className={styles.cardFooter}>
               {!isRevealed ? (
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={handleReveal}
                   className={styles.revealBtn}
                   aria-label="Revelar a resposta desta ficha"
                 >
                   <Eye aria-hidden="true" />
                   <span>Mostrar resposta</span>
-                  <kbd>Espaço</kbd>
-                </button>
+                  <Kbd size="sm">Espaço</Kbd>
+                </Button>
               ) : (
                 <div className={styles.assessmentGrid}>
-                  <button
-                    type="button"
+                  <Button
+                    variant="success"
+                    size="md"
                     onClick={() => handleAnswer(true)}
                     className={styles.correctBtn}
                     aria-label="Marcar que acertei esta ficha (tecla 1)"
                   >
                     <Check aria-hidden="true" />
                     <span>Acertei</span>
-                    <kbd>1</kbd>
-                  </button>
+                    <Kbd size="sm">1</Kbd>
+                  </Button>
 
-                  <button
-                    type="button"
+                  <Button
+                    variant="danger"
+                    size="md"
                     onClick={() => handleAnswer(false)}
                     className={styles.reviewBtn}
                     aria-label="Marcar para revisar novamente depois (tecla 2)"
                   >
                     <RotateCw aria-hidden="true" />
                     <span>Revisar</span>
-                    <kbd>2</kbd>
-                  </button>
+                    <Kbd size="sm">2</Kbd>
+                  </Button>
                 </div>
               )}
             </div>
@@ -350,19 +358,19 @@ export default function EstudarPage() {
             <span className={styles.shortcutsLabel}>Atalhos:</span>
             <div className={styles.shortcutsList}>
               <span className={styles.shortcutItem}>
-                <kbd>Espaço</kbd> <span>virar</span>
+                <Kbd size="sm">Espaço</Kbd> <span>virar</span>
               </span>
               <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
               <span className={styles.shortcutItem}>
-                <kbd>1</kbd> <span>acertei</span>
+                <Kbd size="sm">1</Kbd> <span>acertei</span>
               </span>
               <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
               <span className={styles.shortcutItem}>
-                <kbd>2</kbd> <span>revisar</span>
+                <Kbd size="sm">2</Kbd> <span>revisar</span>
               </span>
               <span className={styles.shortcutSeparator} aria-hidden="true">&bull;</span>
               <span className={styles.shortcutItem}>
-                <kbd>R</kbd> <span>repetir áudio</span>
+                <Kbd size="sm">R</Kbd> <span>repetir áudio</span>
               </span>
             </div>
           </footer>

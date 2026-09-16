@@ -1,5 +1,5 @@
-@use "../styles/variables" as *;
-@use "../styles/mixins" as *;
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
 
 .container {
   @include card-surface;
@@ -52,6 +52,7 @@
 }
 
 .title {
+  font-family: $font-family-heading;
   font-size: $font-size-base;
   font-weight: 700;
   color: var(--ink);
@@ -65,20 +66,7 @@
   line-height: 1.4;
 }
 
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-family: $font-family-mono;
-  font-size: $font-size-2xs;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--success);
-  background-color: var(--success-bg);
-  border: 1px solid var(--card-border);
-  padding: 0.25rem 0.6rem;
-  border-radius: $radius-xs;
+.statusBadge {
   align-self: flex-start;
 
   svg {
@@ -110,10 +98,10 @@
   border-radius: $radius-xs;
   border: 1px solid var(--card-border);
   background-color: var(--muted-bg);
-  transition: border-color $transition-fast;
+  transition: border-color $transition-fast, background-color $transition-fast;
 
   &:hover {
-    border-color: var(--card-border-strong);
+    border-color: var(--card-border-hover);
   }
 }
 
@@ -125,13 +113,10 @@
 }
 
 .actionName {
+  font-family: $font-family-base;
   font-size: $font-size-xs;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
-}
-
-.kbdKey {
-  @include kbd-keycap;
 }
 
 .voicePrompt {

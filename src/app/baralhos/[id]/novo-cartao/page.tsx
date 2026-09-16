@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Textarea, Button } from "@/components";
 import styles from "./page.module.scss";
 
 export default function NovoCartaoPage() {
@@ -60,47 +61,35 @@ export default function NovoCartaoPage() {
         )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label htmlFor="pergunta" className={styles.label}>
-              Frente da Ficha (Pergunta) <span className={styles.required}>*</span>
-            </label>
-            <textarea
-              id="pergunta"
-              name="pergunta"
-              required
-              rows={4}
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Digite o enunciado da pergunta que será lido em voz alta..."
-              className={styles.textarea}
-              aria-required="true"
-            />
-          </div>
+          <Textarea
+            id="pergunta"
+            name="pergunta"
+            label="Frente da Ficha (Pergunta)"
+            required
+            rows={4}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Digite o enunciado da pergunta que será lido em voz alta..."
+          />
 
-          <div className={styles.field}>
-            <label htmlFor="resposta" className={styles.label}>
-              Verso da Ficha (Resposta) <span className={styles.required}>*</span>
-            </label>
-            <textarea
-              id="resposta"
-              name="resposta"
-              required
-              rows={4}
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Digite a resposta correta para conferência e confirmação..."
-              className={styles.textarea}
-              aria-required="true"
-            />
-          </div>
+          <Textarea
+            id="resposta"
+            name="resposta"
+            label="Verso da Ficha (Resposta)"
+            required
+            rows={4}
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Digite a resposta correta para conferência e confirmação..."
+          />
 
           <div className={styles.actions}>
-            <button type="submit" className={styles.submitBtn}>
+            <Button type="submit" variant="primary">
               Salvar ficha
-            </button>
-            <Link href={`/baralhos/${deckId}`} className={styles.cancelBtn}>
+            </Button>
+            <Button href={`/baralhos/${deckId}`} variant="secondary">
               Cancelar
-            </Link>
+            </Button>
           </div>
         </form>
       </section>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Play, Plus } from "lucide-react";
+import { Badge, Button } from "@/components";
 import styles from "./page.module.scss";
 
 interface Props {
@@ -87,7 +88,7 @@ export default async function DeckDetailPage({ params }: Props) {
       <header aria-labelledby="deck-detail-heading" className={styles.deckHeader}>
         <div className={styles.deckMeta}>
           <div className={styles.topMeta}>
-            <span className={styles.categoryTag}>{deck.category}</span>
+            <Badge variant="category">{deck.category}</Badge>
             <span className={styles.cardsCount}>{deck.cards.length} fichas cadastradas</span>
           </div>
 
@@ -98,23 +99,25 @@ export default async function DeckDetailPage({ params }: Props) {
         </div>
 
         <div className={styles.actionsGroup}>
-          <Link
+          <Button
             href={`/estudar?deck=${id}`}
-            className={styles.studyBtn}
+            variant="primary"
+            size="sm"
             aria-label={`Iniciar estudo por voz do baralho ${deck.title}`}
           >
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
             <span>Estudar fichas</span>
-          </Link>
+          </Button>
 
-          <Link
+          <Button
             href={`/baralhos/${id}/novo-cartao`}
-            className={styles.addCardBtn}
+            variant="secondary"
+            size="sm"
             aria-label={`Adicionar nova ficha ao baralho ${deck.title}`}
           >
             <Plus aria-hidden="true" />
             <span>Nova ficha</span>
-          </Link>
+          </Button>
         </div>
       </header>
 

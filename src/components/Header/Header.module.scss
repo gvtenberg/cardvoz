@@ -1,5 +1,5 @@
-@use "../styles/variables" as *;
-@use "../styles/mixins" as *;
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
 
 .header {
   position: sticky;
@@ -42,8 +42,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.125rem;
+  height: 2.125rem;
   border-radius: $radius-xs;
   background-color: var(--card-bg);
   border: 1px solid var(--card-border-strong);
@@ -63,6 +63,7 @@
 }
 
 .brandTitle {
+  font-family: $font-family-heading;
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -103,19 +104,6 @@
 
   @include respond-to(sm) {
     display: inline-flex;
-  }
-}
-
-.newDeckBtn {
-  @include button-secondary;
-  padding: 0.45rem 0.85rem;
-  font-size: $font-size-xs;
-  gap: 0.35rem;
-
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-    color: var(--primary);
   }
 }
 
