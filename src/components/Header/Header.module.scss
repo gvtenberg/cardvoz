@@ -26,57 +26,6 @@
   }
 }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  border-radius: $radius-sm;
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
-.brandMark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.125rem;
-  height: 2.125rem;
-  border-radius: $radius-xs;
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border-strong);
-  color: var(--primary);
-  flex-shrink: 0;
-
-  svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-}
-
-.brandText {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-
-.brandTitle {
-  font-family: $font-family-heading;
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.brandSubtitle {
-  font-size: 0.6875rem;
-  font-family: $font-family-mono;
-  letter-spacing: 0.03em;
-  color: var(--text-muted);
-  text-transform: lowercase;
-}
 
 .nav {
   display: flex;

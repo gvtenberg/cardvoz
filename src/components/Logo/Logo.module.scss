@@ -1,0 +1,103 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  user-select: none;
+}
+
+.isLink {
+  border-radius: $radius-sm;
+  padding: 0.2rem 0.35rem;
+  margin: -0.2rem -0.35rem;
+  transition: opacity $transition-fast;
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconImage {
+  object-fit: contain;
+  height: auto;
+  display: block;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandTitle {
+  font-family: var(--font-nunito), $font-family-heading;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  transition: color $transition-fast;
+}
+
+.brandAccent {
+  color: var(--primary);
+  transition: color $transition-fast;
+}
+
+.brandSubtitle {
+  font-family: $font-family-base;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  transition: color $transition-fast;
+}
+
+// --- Sizes ---
+.sm {
+  gap: 0.5rem;
+
+  .brandTitle {
+    font-size: 1.05rem;
+  }
+
+  .brandSubtitle {
+    font-size: 0.65rem;
+  }
+}
+
+.md {
+  gap: 0.65rem;
+
+  .brandTitle {
+    font-size: 1.3rem;
+  }
+
+  .brandSubtitle {
+    font-size: 0.725rem;
+  }
+}
+
+.lg {
+  gap: 0.85rem;
+
+  .brandTitle {
+    font-size: 1.75rem;
+  }
+
+  .brandSubtitle {
+    font-size: 0.85rem;
+  }
+}

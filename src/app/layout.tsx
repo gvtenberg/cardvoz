@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { Nunito, Inter } from "next/font/google";
 import "@/styles/globals.scss";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SkipLink } from "@/components/SkipLink";
 import { Header } from "@/components/Header";
+import { Logo } from "@/components/Logo";
 
-const poppins = Poppins({
-  weight: ["500", "600", "700"],
+const nunito = Nunito({
+  weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
-  variable: "--font-poppins",
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -33,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${poppins.variable} ${inter.variable}`}
+      className={`${nunito.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
       <body className={inter.className}>
@@ -71,9 +72,7 @@ export default function RootLayout({
                 gap: "1rem",
               }}
             >
-              <p style={{ fontWeight: 500 }}>
-                CardVoz &mdash; Fichas de Estudo e Tecnologia Assistiva
-              </p>
+              <Logo size="sm" withTagline={false} />
               <p style={{ fontSize: "0.75rem", fontFamily: "var(--font-family-mono, monospace)" }}>
                 WCAG 2.1 AAA/AA &bull; Navegação por voz e leitor de tela
               </p>

@@ -10,3 +10,4 @@ export * from "./Header";
 export * from "./DeckCard";
 export * from "./VoiceCommandHint";
 export * from "./ThemeProvider";
+export * from "./Logo";

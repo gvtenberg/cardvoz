@@ -85,11 +85,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// Títulos com Poppins
+// Títulos com Nunito
 h1, h2, h3, h4, h5, h6 {
   font-family: $font-family-heading;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 
