@@ -1,0 +1,101 @@
+@use "./variables" as *;
+
+// --- Acessibilidade: Anel de foco de alto contraste (WCAG AAA) ---
+@mixin focus-ring {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+// --- Screen Readers (Acessibilidade) ---
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@mixin not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+// --- Superfície de Cartão / Container ---
+@mixin card-surface {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: $radius-xl;
+  box-shadow: $shadow-sm;
+  transition: border-color $transition-default, box-shadow $transition-default;
+}
+
+// --- Botões Acessíveis ---
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family-base;
+  font-weight: 600;
+  border-radius: $radius-lg;
+  transition: all $transition-default;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.25;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: var(--primary);
+  color: var(--primary-fg);
+  border: 1px solid transparent;
+  padding: 0.75rem 1.25rem;
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  padding: 0.75rem 1.25rem;
+
+  &:hover:not(:disabled) {
+    background-color: var(--muted-bg);
+    border-color: var(--primary);
+  }
+}
+
+// --- Responsividade ---
+@mixin respond-to($bp) {
+  @if $bp == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  } @else if $bp == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  } @else if $bp == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  } @else if $bp == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+}

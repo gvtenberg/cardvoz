@@ -1,0 +1,219 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.hero {
+  border-bottom: 1px solid var(--card-border);
+  background: linear-gradient(180deg, var(--card-bg) 0%, var(--bg) 100%);
+  padding: 3rem 0;
+
+  @include respond-to(sm) {
+    padding: 4rem 0;
+  }
+}
+
+.heroContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+
+  @include respond-to(sm) {
+    padding: 0 1.5rem;
+  }
+}
+
+.heroContent {
+  max-width: 48rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: $radius-full;
+  background-color: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  color: var(--primary);
+  font-size: $font-size-xs;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  line-height: 1.18;
+
+  @include respond-to(sm) {
+    font-size: 2.75rem;
+  }
+
+  @include respond-to(md) {
+    font-size: 3.25rem;
+  }
+}
+
+.highlight {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: var(--badge-border);
+  text-underline-offset: 8px;
+}
+
+.description {
+  margin-top: 1.25rem;
+  font-size: $font-size-base;
+  color: var(--text-muted);
+  line-height: 1.65;
+
+  @include respond-to(sm) {
+    font-size: $font-size-lg;
+  }
+}
+
+.actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.primaryBtn {
+  @include button-primary;
+  padding: 0.85rem 1.5rem;
+  font-size: $font-size-base;
+  gap: 0.5rem;
+  box-shadow: $shadow-md;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.secondaryBtn {
+  @include button-secondary;
+  padding: 0.85rem 1.5rem;
+  font-size: $font-size-base;
+  gap: 0.5rem;
+  border-width: 2px;
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--primary);
+  }
+}
+
+.trustBadges {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--success);
+  }
+}
+
+.contentWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+
+  @include respond-to(sm) {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.decksSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.decksHeader {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+.decksTitle {
+  font-size: $font-size-2xl;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--primary);
+  }
+}
+
+.decksSubtitle {
+  font-size: $font-size-sm;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.addDeckLink {
+  @include button-secondary;
+  padding: 0.5rem 1rem;
+  font-size: $font-size-sm;
+  gap: 0.4rem;
+  align-self: flex-start;
+
+  @include respond-to(sm) {
+    align-self: auto;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--primary);
+  }
+}
+
+.decksGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @include respond-to(md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,35 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.toggleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: $radius-lg;
+  border: 1px solid var(--card-border);
+  background-color: var(--card-bg);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all $transition-default;
+
+  &:hover {
+    background-color: var(--muted-bg);
+    border-color: var(--primary);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}

@@ -1,0 +1,22 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.skipLink {
+  @include sr-only;
+
+  &:focus {
+    @include not-sr-only;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.75rem 1.25rem;
+    background-color: var(--primary);
+    color: var(--primary-fg);
+    font-weight: 700;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    @include focus-ring;
+    text-decoration: none;
+  }
+}

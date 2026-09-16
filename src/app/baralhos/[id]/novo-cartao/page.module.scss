@@ -1,0 +1,166 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
+.main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  width: 100%;
+
+  @include respond-to(sm) {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: $radius-md;
+  margin-bottom: 1.5rem;
+  transition: color $transition-default;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.card {
+  @include card-surface;
+  padding: 1.5rem;
+
+  @include respond-to(sm) {
+    padding: 2.5rem;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: $radius-xl;
+  background-color: var(--primary);
+  color: var(--primary-fg);
+  flex-shrink: 0;
+
+  svg {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+}
+
+.title {
+  font-size: $font-size-2xl;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.alert {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: $radius-xl;
+  background-color: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  color: var(--primary);
+  font-size: $font-size-sm;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--destructive);
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-lg;
+  border: 1px solid var(--card-border);
+  background-color: var(--bg);
+  color: var(--text-primary);
+  transition: border-color $transition-default;
+  resize: vertical;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.submitBtn {
+  @include button-primary;
+  padding: 0.85rem 1.5rem;
+  font-size: $font-size-base;
+}
+
+.cancelBtn {
+  @include button-secondary;
+  padding: 0.85rem 1.5rem;
+  font-size: $font-size-base;
+}

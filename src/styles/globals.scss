@@ -1,0 +1,116 @@
+@use "./variables" as *;
+@use "./mixins" as *;
+
+// =============================================================================
+// CSS Custom Properties (Light and Dark Mode)
+// =============================================================================
+
+:root {
+  // Modo Claro
+  --bg: #{$color-light-bg};
+  --text-primary: #{$color-light-text-primary};
+  --text-muted: #{$color-light-text-muted};
+  --card-bg: #{$color-light-card};
+  --card-border: #{$color-light-border};
+  --primary: #{$color-light-primary};
+  --primary-hover: #{$color-light-primary-hover};
+  --primary-fg: #FFFFFF;
+  --ring: #{$color-light-focus-ring};
+  --muted-bg: #F1F5F9;
+  --success: #{$color-light-success};
+  --success-fg: #FFFFFF;
+  --destructive: #{$color-light-destructive};
+  --destructive-fg: #FFFFFF;
+  --badge-bg: rgba(29, 78, 216, 0.08);
+  --badge-border: rgba(29, 78, 216, 0.2);
+}
+
+.dark,
+[data-theme="dark"] {
+  // Modo Escuro
+  --bg: #{$color-dark-bg};
+  --text-primary: #{$color-dark-text-primary};
+  --text-muted: #{$color-dark-text-muted};
+  --card-bg: #{$color-dark-card};
+  --card-border: #{$color-dark-border};
+  --primary: #{$color-dark-primary};
+  --primary-hover: #{$color-dark-primary-hover};
+  --primary-fg: #0B0F19;
+  --ring: #{$color-dark-focus-ring};
+  --muted-bg: #1E293B;
+  --success: #{$color-dark-success};
+  --success-fg: #0B0F19;
+  --destructive: #{$color-dark-destructive};
+  --destructive-fg: #FFFFFF;
+  --badge-bg: rgba(56, 189, 248, 0.12);
+  --badge-border: rgba(56, 189, 248, 0.3);
+}
+
+// =============================================================================
+// Reset & Base Styles
+// =============================================================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: $font-family-base;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color $transition-default, color $transition-default;
+}
+
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-fg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+// Foco acessível global (WCAG AAA)
+:focus-visible {
+  @include focus-ring;
+}
+
+// =============================================================================
+// Classes Globais de Acessibilidade
+// =============================================================================
+
+.sr-only {
+  @include sr-only;
+}
+
+.focus\:not-sr-only:focus {
+  @include not-sr-only;
+}

@@ -1,0 +1,379 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
+
+  @include respond-to(sm) {
+    padding: 3rem 1.5rem;
+  }
+}
+
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: $radius-md;
+  transition: color $transition-default;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.audioToggle {
+  @include button-secondary;
+  padding: 0.4rem 0.75rem;
+  font-size: $font-size-xs;
+  gap: 0.35rem;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.sessionCard {
+  @include card-surface;
+  border-width: 2px;
+  padding: 1.5rem;
+  min-height: 20rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  @include respond-to(sm) {
+    padding: 2.5rem;
+  }
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 1.5rem;
+}
+
+.sessionTag {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.deckTitle {
+  font-size: $font-size-xl;
+  font-weight: 800;
+  color: var(--text-primary);
+
+  @include respond-to(sm) {
+    font-size: $font-size-2xl;
+  }
+}
+
+.progressContainer {
+  text-align: right;
+}
+
+.progressText {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.progressBar {
+  width: 6rem;
+  height: 0.5rem;
+  background-color: var(--muted-bg);
+  border-radius: $radius-full;
+  margin-top: 0.35rem;
+  overflow: hidden;
+
+  @include respond-to(sm) {
+    width: 8rem;
+  }
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width 300ms ease;
+}
+
+.questionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: $font-size-xs;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.repeatButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  border-radius: $radius-sm;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+.questionText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.6;
+
+  @include respond-to(sm) {
+    font-size: 1.5rem;
+  }
+}
+
+.answerSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.revealButton {
+  width: 100%;
+  padding: 1.25rem;
+  border-radius: $radius-xl;
+  border: 2px dashed var(--primary);
+  background-color: var(--badge-bg);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: $font-size-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color $transition-default;
+
+  &:hover {
+    background-color: var(--muted-bg);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.answerBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.answerText {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.5;
+
+  @include respond-to(sm) {
+    font-size: 1.35rem;
+  }
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+
+  @include respond-to(sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.btnCorrect {
+  @include button-base;
+  background-color: var(--success);
+  color: var(--success-fg);
+  padding: 1.15rem;
+  font-size: $font-size-lg;
+  gap: 0.6rem;
+  box-shadow: $shadow-md;
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+.btnIncorrect {
+  @include button-base;
+  background-color: var(--destructive);
+  color: var(--destructive-fg);
+  padding: 1.15rem;
+  font-size: $font-size-lg;
+  gap: 0.6rem;
+  box-shadow: $shadow-md;
+
+  &:hover {
+    opacity: 0.92;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+.shortcutsFooter {
+  @include card-surface;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: $font-size-xs;
+  color: var(--text-muted);
+}
+
+.shortcutsList {
+  font-family: $font-family-mono;
+}
+
+.finishedCard {
+  @include card-surface;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+
+  @include respond-to(sm) {
+    padding: 3rem;
+  }
+}
+
+.finishedIcon {
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: $radius-2xl;
+  background-color: var(--badge-bg);
+  color: var(--primary);
+
+  svg {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
+
+.finishedTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.finishedSubtitle {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: $font-size-base;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 20rem;
+  margin: 2rem auto;
+}
+
+.scoreBoxCorrect {
+  padding: 1rem;
+  border-radius: $radius-xl;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  background-color: rgba(22, 163, 74, 0.1);
+}
+
+.scoreBoxIncorrect {
+  padding: 1rem;
+  border-radius: $radius-xl;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+.scoreNum {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 900;
+}
+
+.scoreLabel {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
