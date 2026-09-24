@@ -37,3 +37,10 @@ next-env.d.ts
 
 # Academic course materials download
 /Extens*
+
+# Relatórios individuais de extensão
+Relatorio_Semanal_*
+
+# API Backend (repositório separado)
+/cardvoz-api/
+
