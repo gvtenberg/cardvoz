@@ -40,6 +40,7 @@ next-env.d.ts
 
 # Relatórios individuais de extensão
 Relatorio_Semanal_*
+DOCUMENTO_RELATORIO_*
 
 # API Backend (repositório separado)
 /cardvoz-api/
