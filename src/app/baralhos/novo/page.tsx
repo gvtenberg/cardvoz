@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Input, Textarea, Button } from "@/components";
+import { createDeck } from "@/lib/api";
 import styles from "./page.module.scss";
 
 export default function NovoBaralhoPage() {
@@ -13,17 +14,32 @@ export default function NovoBaralhoPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Geral");
   const [statusMessage, setStatusMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setStatusMessage("Por favor, insira o nome do baralho.");
       return;
     }
-    setStatusMessage("Baralho criado com sucesso! Redirecionando...");
-    setTimeout(() => {
-      router.push("/");
-    }, 800);
+
+    setIsSubmitting(true);
+    try {
+      const created = await createDeck({
+        title: name.trim(),
+        category: category.trim() || "Geral",
+        description: description.trim() || undefined,
+      });
+
+      setStatusMessage("Baralho criado com sucesso! Redirecionando...");
+      setTimeout(() => {
+        router.push(`/baralhos/${created.slug || created.id}`);
+      }, 600);
+    } catch (error) {
+      console.error(error);
+      setIsSubmitting(false);
+      setStatusMessage("Erro ao salvar baralho. Tente novamente.");
+    }
   };
 
   return (
@@ -88,8 +104,8 @@ export default function NovoBaralhoPage() {
           />
 
           <div className={styles.actions}>
-            <Button type="submit" variant="primary">
-              Salvar baralho
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : "Salvar baralho"}
             </Button>
             <Button href="/" variant="secondary">
               Cancelar

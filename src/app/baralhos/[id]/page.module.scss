@@ -249,3 +249,69 @@
   color: var(--text-primary);
   line-height: 1.5;
 }
+
+.emptyState {
+  @include index-card;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background-color: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptySubtitle {
+  font-size: $font-size-xs;
+  color: var(--text-muted);
+  max-width: 20rem;
+}
+
+.deleteConfirmDialog {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+}
+
+.confirmCard {
+  @include index-card;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 1.75rem;
+  max-width: 26rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.confirmTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.confirmMessage {
+  font-size: $font-size-sm;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.confirmActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

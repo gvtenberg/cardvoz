@@ -1,44 +1,14 @@
-import { DeckCard, VoiceCommandHint, Button, type DeckProps } from "@/components";
+import { DeckCard, VoiceCommandHint, Button } from "@/components";
 import { Plus, Play } from "lucide-react";
+import { getDecks } from "@/lib/api";
 import styles from "./page.module.scss";
 
-const INITIAL_DECKS: DeckProps[] = [
-  {
-    id: "biologia-celular",
-    title: "Biologia Celular",
-    category: "Ciências Biológicas",
-    cardCount: 15,
-    description:
-      "Estruturas celulares, organelas, respiração celular, fotossíntese e funções da membrana plasmática.",
-  },
-  {
-    id: "ingles-verbos-irregulares",
-    title: "Inglês - Verbos Irregulares",
-    category: "Idiomas",
-    cardCount: 30,
-    description:
-      "Formas infinitivo, passado simples (Past Simple) e particípio passado (Past Participle) dos verbos mais usados.",
-  },
-  {
-    id: "historia-do-brasil",
-    title: "História do Brasil - República Velha",
-    category: "Humanidades",
-    cardCount: 18,
-    description:
-      "Movimentos sociais, política do café com leite, revoltas populares e a transição para a Era Vargas.",
-  },
-  {
-    id: "acessibilidade-web",
-    title: "Acessibilidade na Web & WCAG",
-    category: "Tecnologia",
-    cardCount: 22,
-    description:
-      "Critérios de conformidade WCAG 2.1 níveis A, AA e AAA, navegação por teclado e semântica WAI-ARIA.",
-  },
-];
+export const revalidate = 0;
 
-export default function HomePage() {
-  const totalCards = INITIAL_DECKS.reduce((acc, d) => acc + d.cardCount, 0);
+export default async function HomePage() {
+  const decks = await getDecks();
+  const totalCards = decks.reduce((acc, d) => acc + (d.cardCount || 0), 0);
+  const firstDeckSlug = decks[0]?.slug || "biologia-celular";
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.main}>
@@ -47,7 +17,7 @@ export default function HomePage() {
         <div className={styles.headerLeft}>
           <h1 className={styles.pageTitle}>Seus baralhos</h1>
           <p className={styles.pageSubtitle}>
-            {INITIAL_DECKS.length} coleções &bull; {totalCards} fichas de estudo &bull; Interação por voz e teclado
+            {decks.length} {decks.length === 1 ? "coleção" : "coleções"} &bull; {totalCards} {totalCards === 1 ? "ficha" : "fichas"} de estudo &bull; Interação por voz e teclado
           </p>
         </div>
 
@@ -62,9 +32,9 @@ export default function HomePage() {
           </Button>
 
           <Button
-            href="/estudar?deck=biologia-celular"
+            href={`/estudar?deck=${firstDeckSlug}`}
             variant="secondary"
-            aria-label="Iniciar estudo rápido do baralho Biologia Celular"
+            aria-label={`Iniciar estudo rápido do baralho ${decks[0]?.title || "principal"}`}
           >
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
             <span>Prática rápida</span>
@@ -91,7 +61,7 @@ export default function HomePage() {
         </div>
 
         <div className={styles.decksGrid}>
-          {INITIAL_DECKS.map((deck) => (
+          {decks.map((deck) => (
             <DeckCard key={deck.id} deck={deck} />
           ))}
         </div>
