@@ -1,0 +1,8 @@
+{
+  "titulo": "Biologia Celular",
+  "fichas": [
+    { "pergunta": "Qual organela produz energia (ATP) na célula?", "resposta": "Mitocôndria" },
+    { "pergunta": "Qual estrutura controla a entrada e saída de substâncias?", "resposta": "Membrana plasmática" },
+    { "pergunta": "Qual organela faz a síntese de proteínas?", "resposta": "Ribossomos" }
+  ]
+}

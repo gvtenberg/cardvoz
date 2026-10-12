@@ -1,71 +1,67 @@
-import { DeckCard, VoiceCommandHint, Button } from "@/components";
-import { Plus, Play } from "lucide-react";
-import { getDecks } from "@/lib/api";
+"use client";
+
+import { useEffect, useState } from "react";
+import { DeckCard, Button } from "@/components";
+import { Plus, Upload } from "lucide-react";
+import { getDecks, type DeckResponse } from "@/lib/api";
+import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
-export const revalidate = 0;
+export default function HomePage() {
+  const [decks, setDecks] = useState<DeckResponse[] | null>(null);
 
-export default async function HomePage() {
-  const decks = await getDecks();
-  const totalCards = decks.reduce((acc, d) => acc + (d.cardCount || 0), 0);
-  const firstDeckSlug = decks[0]?.slug || "biologia-celular";
+  useEffect(() => {
+    getDecks().then(setDecks);
+  }, []);
+
+  const totalCards = decks?.reduce((acc, d) => acc + (d.cardCount || 0), 0) ?? 0;
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.main}>
-      {/* Workspace Header */}
-      <header className={styles.workspaceHeader}>
-        <div className={styles.headerLeft}>
+      <header className={styles.pageHeader}>
+        <div>
           <h1 className={styles.pageTitle}>Seus baralhos</h1>
-          <p className={styles.pageSubtitle}>
-            {decks.length} {decks.length === 1 ? "coleção" : "coleções"} &bull; {totalCards} {totalCards === 1 ? "ficha" : "fichas"} de estudo &bull; Interação por voz e teclado
-          </p>
+          {decks && decks.length > 0 && (
+            <p className={styles.pageSubtitle}>
+              {decks.length} {decks.length === 1 ? "baralho" : "baralhos"} ·{" "}
+              {totalCards} {totalCards === 1 ? "ficha" : "fichas"}
+            </p>
+          )}
         </div>
 
         <div className={styles.headerActions}>
-          <Button
-            href="/baralhos/novo"
-            variant="primary"
-            aria-label="Criar um novo baralho de fichas"
-          >
+          <Button href={routes.newDeck} variant="primary" size="md">
             <Plus aria-hidden="true" />
             <span>Novo baralho</span>
           </Button>
-
-          <Button
-            href={`/estudar?deck=${firstDeckSlug}`}
-            variant="secondary"
-            aria-label={`Iniciar estudo rápido do baralho ${decks[0]?.title || "principal"}`}
-          >
-            <Play style={{ fill: "currentColor" }} aria-hidden="true" />
-            <span>Prática rápida</span>
+          <Button href={routes.importDeck} variant="soft" size="md">
+            <Upload aria-hidden="true" />
+            <span>Importar arquivo</span>
           </Button>
         </div>
       </header>
 
-      {/* Voice & Keyboard Navigation Reference */}
-      <VoiceCommandHint />
-
-      {/* Decks Collection Section */}
-      <section
-        id="meus-baralhos"
-        aria-labelledby="collection-heading"
-        className={styles.collectionSection}
-      >
-        <div className={styles.sectionHeader}>
-          <h2 id="collection-heading" className={styles.sectionTitle}>
-            Coleções de estudo
-          </h2>
-          <span className={styles.sectionMeta}>
-            Selecione uma ficha para iniciar a sessão com leitura em voz alta
-          </span>
+      {decks === null ? (
+        <p role="status" className={styles.loading}>
+          Carregando baralhos...
+        </p>
+      ) : decks.length === 0 ? (
+        <div className={styles.emptyState}>
+          <h2 className={styles.emptyTitle}>Você ainda não tem baralhos</h2>
+          <p className={styles.emptyText}>
+            Crie o primeiro baralho e escreva suas perguntas, ou importe um arquivo
+            com fichas prontas.
+          </p>
         </div>
-
-        <div className={styles.decksGrid}>
+      ) : (
+        <ul className={styles.decksGrid} aria-label="Baralhos">
           {decks.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} />
+            <li key={deck.id}>
+              <DeckCard deck={deck} />
+            </li>
           ))}
-        </div>
-      </section>
+        </ul>
+      )}
     </main>
   );
 }

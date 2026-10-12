@@ -1,38 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { CircleHelp } from "lucide-react";
 import { ThemeToggle } from "../ThemeToggle";
-import { Button } from "../Button";
+import { HelpDialog } from "../HelpDialog";
 import { Logo } from "../Logo";
 import styles from "./Header.module.scss";
 
 export function Header() {
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Logo size="md" withTagline={true} />
+        <Logo size="md" withTagline={false} />
 
         <nav aria-label="Navegação principal" className={styles.nav}>
-          <Link href="/#meus-baralhos" className={styles.navLink}>
-            <span>Meus Baralhos</span>
+          <Link href="/" className={styles.navLink}>
+            Meus baralhos
           </Link>
 
-          <Button
-            href="/baralhos/novo"
-            variant="secondary"
-            size="sm"
-            aria-label="Criar novo baralho de fichas"
+          <button
+            type="button"
+            className={styles.helpButton}
+            onClick={() => setHelpOpen(true)}
+            aria-haspopup="dialog"
           >
-            <Plus aria-hidden="true" />
-            <span>Novo baralho</span>
-          </Button>
-
-          <div className={styles.divider} aria-hidden="true" />
+            <CircleHelp aria-hidden="true" />
+            <span>Ajuda</span>
+          </button>
 
           <ThemeToggle />
         </nav>
       </div>
+
+      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
     </header>
   );
 }

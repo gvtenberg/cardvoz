@@ -2,17 +2,28 @@
 @use "../../styles/mixins" as *;
 
 .kbd {
-  @include kbd-keycap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family-base;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-bottom-width: 4px;
+  border-radius: $radius-sm;
+  vertical-align: middle;
 }
 
 .sm {
-  font-size: 0.625rem;
-  padding: 0.08rem 0.3rem;
-  min-width: 1.1rem;
+  font-size: $font-size-sm;
+  padding: 0.125rem 0.5rem;
+  min-width: 2rem;
 }
 
 .md {
-  font-size: $font-size-xs;
-  padding: 0.15rem 0.45rem;
-  min-width: 1.5rem;
+  font-size: $font-size-base;
+  padding: 0.25rem 0.75rem;
+  min-width: 2.5rem;
 }

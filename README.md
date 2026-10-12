@@ -6,12 +6,15 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
 
 ## 🌟 Pilares de Acessibilidade (WCAG 2.1 AA / AAA)
 
-- **Leitura e Síntese de Voz (TTS)**: Suporte integrado para leitura falada das perguntas e respostas através da Web Speech API.
-- **Navegação por Teclado e Voz**:
-  - `Espaço`: Revelar resposta da pergunta atual.
-  - `Tecla 1`: Marcar que acertou.
-  - `Tecla 2`: Marcar que errou / enviar para revisão.
-  - `Tecla R`: Repetir a leitura de áudio da pergunta/resposta.
+- **Leitor de tela nativo, sem áudio próprio**: O site não fala sozinho, para não sobrepor o TalkBack, NVDA ou VoiceOver. A cada ficha o foco vai para a pergunta (e, ao revelar, para a resposta), então o leitor de tela lê o conteúdo automaticamente.
+- **Botão "Acertei" direto**: Disponível antes mesmo de revelar a resposta e sempre na mesma posição da tela, para avançar rápido nas revisões.
+- **Letras e botões grandes**: Nenhum texto abaixo de 16px, fonte Atkinson Hyperlegible (criada para baixa visão) e botões de estudo com 72px+ de altura.
+- **Atalhos de teclado**:
+  - `Espaço`: Ver a resposta da pergunta atual.
+  - `Tecla 1`: Marcar que acertou (funciona também antes de revelar).
+  - `Tecla 2`: Marcar que errou.
+- **Importação de fichas**: Arquivos TXT, CSV ou JSON (exemplos em `public/modelos/`). TXT aceita uma ficha por linha (`pergunta; resposta`), blocos separados por linha em branco ou linhas `P:`/`R:`; CSV aceita vírgula ou ponto e vírgula, com ou sem cabeçalho; JSON aceita uma lista de fichas ou `{ "titulo": "...", "fichas": [...] }`.
+- **Ajuda contextual**: Botão "Ajuda" no topo abre um diálogo que já mostra a explicação da tela atual.
 - **Skip Link ("Pular para o conteúdo principal")**: Acesso rápido ao `<main id="main-content">` para usuários de tecnologias assistivas e leitores de tela (NVDA, Orca, TalkBack).
 - **Semântica Rigorosa WAI-ARIA**: Uso estruturado de `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, regiões ao vivo `aria-live` e descrições claras em `aria-label`.
 - **Foco Visível de Alto Contraste**: Anéis de foco destacados com offset (`outline: 3px solid var(--ring)` e `outline-offset: 3px`) garantindo identificação imediata do elemento focado.
@@ -23,24 +26,21 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
 Inspirado em práticas modernas de design (21st.dev) e conformidade estrita com as diretrizes WCAG:
 
 ### Modo Claro
-- **Background**: `#F8FAFC` (slate-50)
-- **Superfície / Card**: `#FFFFFF` com borda `#E2E8F0`
-- **Azul Primário**: `#1D4ED8` (blue-700) e `#2563EB` (blue-600)
-- **Texto Principal**: `#0F172A` (slate-900) &mdash; Razão de contraste ~18:1 (AAA)
-- **Texto Secundário / Muted**: `#475569` (slate-600) &mdash; Razão de contraste ~7.4:1 (AAA)
-- **Anel de Foco**: `#2563EB` (anel visível com offset de 3px)
+- **Fundo**: `#F7F4EE` (creme suave, menos ofuscante que branco puro)
+- **Superfície / Ficha**: `#FFFFFF` com borda `#E7E1D6` e cantos de 24–32px
+- **Azul de ação**: `#2846C4` &mdash; 7.6:1 com texto branco (AAA)
+- **Títulos**: `#18215A` &mdash; ~15:1 (AAA)
+- **Texto secundário**: `#4B5165` &mdash; ~7.2:1 (AAA)
 
 ### Modo Escuro
-- **Background**: `#0B0F19` (midnight navy)
-- **Superfície / Card**: `#131C2E` com borda `#1E293B`
-- **Azul Primário**: `#38BDF8` / `#60A5FA` (azul celeste vivo de alto contraste)
-- **Texto Principal**: `#F8FAFC` (slate-50) &mdash; Razão de contraste ~19:1 (AAA)
-- **Texto Secundário / Muted**: `#94A3B8` (slate-400) &mdash; Razão de contraste ~8.5:1 (AAA)
-- **Anel de Foco**: `#38BDF8` (anel visível com offset de 3px)
+- **Fundo**: `#12151F` / **Superfície**: `#1B2030`
+- **Azul de ação**: `#8FA8FF` com texto `#0D1433` &mdash; ~7.9:1 (AAA)
+- **Texto principal**: `#F1F3F9` &mdash; ~16:1 (AAA)
+- **Texto secundário**: `#B7BDD2` &mdash; ~9.7:1 (AAA)
 
 ### Cores de Estado
-- **Sucesso / Acertei**: `#16A34A` (claro) / `#22C55E` (escuro)
-- **Erro / Errei**: `#DC2626` (claro) / `#EF4444` (escuro)
+- **Acertei**: `#1C7543` (claro) / `#6FD39A` (escuro)
+- **Errei**: fundo `#FDE9E7` com texto `#9B1C1C` (claro) / fundo `#3A2225` com texto `#FFC2BD` (escuro)
 
 ---
 
@@ -62,12 +62,24 @@ npm run dev
 
 Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-### Build de Produção
+### Build de Produção (site estático)
+
+O CardVoz é exportado como **site estático** (`output: "export"`): o build gera a pasta `out/`, que pode ser publicada em qualquer hospedagem estática. Os dados vêm da API C# chamada direto pelo navegador.
 
 ```bash
-npm run build
-npm run start
+npm run build      # gera a pasta out/
+npx serve out      # pré-visualização local do resultado
 ```
+
+### Deploy no Render
+
+**Site (Static Site)**
+- Build Command: `npm install && npm run build`
+- Publish Directory: `out`
+- Variável de ambiente: `NEXT_PUBLIC_API_URL=https://<sua-api>.onrender.com/api` (gravada no build; ao mudar, refaça o deploy)
+
+**API (`cardvoz-api`)**
+- Variável de ambiente: `CORS_ALLOWED_ORIGINS=https://<seu-site>.onrender.com` para liberar o site a chamar a API.
 
 ---
 
@@ -89,21 +101,25 @@ cardvoz/
 │   │   ├── estudar/
 │   │   │   ├── page.tsx        # Fluxo de estudo ativo por voz e teclado
 │   │   │   └── page.module.scss# Estilos SCSS do estudo ativo
-│   │   └── baralhos/
-│   │       ├── novo/           # Criação de novo baralho
-│   │       └── [id]/           # Detalhes do baralho e adição de cartões
+│   │   ├── baralhos/
+│   │   │   └── novo/           # Criação de novo baralho (com importação)
+│   │   └── baralho/            # Detalhes do baralho (?id=slug)
+│   │       └── adicionar/      # Adição de fichas e importação (?id=slug)
 │   ├── components/
 │   │   ├── deck-card.tsx       # Card acessível de apresentação de baralho
 │   │   ├── header.tsx          # Cabeçalho semântico com navegação e tema
 │   │   ├── skip-to-content.tsx # Skip-link acessível
 │   │   ├── theme-provider.tsx  # Provedor next-themes
 │   │   ├── theme-toggle.tsx    # Seletor de tema acessível
-│   │   └── voice-command-hint.tsx # Instruções de voz e teclado
+│   │   ├── HelpDialog/         # Ajuda contextual (diálogo nativo)
+│   │   └── FileImport/         # Seleção e prévia de arquivos TXT/CSV/JSON
 │   ├── styles/
 │   │   ├── _variables.scss     # Tokens de cores azul (light/dark), tipografia e raios
 │   │   ├── _mixins.scss        # Mixins SCSS (foco WCAG AAA, botões, cards)
 │   │   └── globals.scss        # CSS Custom Properties dinâmicas e reset
 │   └── lib/
+│       ├── api.ts              # Cliente da API C# com fallback local
+│       ├── importCards.ts      # Leitura de fichas de arquivos TXT/CSV/JSON
 │       └── utils.ts            # Utilitário de classes condicionais (clsx)
 ├── package.json
 ├── tsconfig.json

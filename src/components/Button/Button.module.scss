@@ -2,49 +2,72 @@
 @use "../../styles/mixins" as *;
 
 .button {
-  @include button-base;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: 0.6rem;
   font-family: $font-family-base;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
   text-decoration: none;
+  border-radius: $radius-full;
+  border: 2px solid transparent;
   cursor: pointer;
-  white-space: nowrap;
+  user-select: none;
+  transition: background-color $transition-fast, border-color $transition-fast,
+    color $transition-fast, box-shadow $transition-fast, transform $transition-fast;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 }
 
-// Tamanhos
+.block {
+  width: 100%;
+}
+
+// Tamanhos (área de toque mínima de 48px)
 .sm {
-  font-size: $font-size-xs;
-  padding: 0.375rem 0.75rem;
-  border-radius: $radius-xs;
+  min-height: $touch-sm;
+  font-size: $font-size-base;
+  padding: 0.5rem 1.25rem;
 
   svg {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 1.25rem;
+    height: 1.25rem;
   }
 }
 
 .md {
-  font-size: $font-size-sm;
-  padding: 0.55rem 1.125rem;
-  border-radius: $radius-sm;
+  min-height: $touch-md;
+  font-size: $font-size-lg;
+  padding: 0.75rem 1.75rem;
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 1.5rem;
+    height: 1.5rem;
   }
 }
 
 .lg {
-  font-size: $font-size-base;
-  padding: 0.75rem 1.5rem;
-  border-radius: $radius-sm;
+  min-height: $touch-lg;
+  font-size: $font-size-xl;
+  padding: 1rem 2rem;
+  border-radius: $radius-lg;
 
   svg {
-    width: 1.125rem;
-    height: 1.125rem;
+    width: 1.75rem;
+    height: 1.75rem;
   }
 }
 
@@ -52,74 +75,58 @@
 .primary {
   background-color: var(--primary);
   color: var(--primary-fg);
-  border: 1px solid var(--primary);
+  box-shadow: var(--shadow-soft);
 
   &:hover:not(:disabled) {
     background-color: var(--primary-hover);
-    border-color: var(--primary-hover);
   }
 }
 
 .secondary {
-  background-color: var(--card-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--card-border);
+  background-color: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+  box-shadow: var(--shadow-soft);
 
   &:hover:not(:disabled) {
-    background-color: var(--card-hover);
-    border-color: var(--card-border-hover);
-  }
-
-  :global(.dark) &,
-  :global([data-theme="dark"]) & {
-    background-color: #10192A;
-    border-color: #1E2D4A;
-    color: #F8FAFC;
-
-    &:hover:not(:disabled) {
-      background-color: #15223A;
-      border-color: #3B82F6;
-    }
+    border-color: var(--primary);
   }
 }
 
-.outline {
-  background-color: transparent;
-  color: var(--primary);
-  border: 1px solid var(--primary);
+.soft {
+  background-color: var(--primary-soft);
+  color: var(--primary-soft-text);
 
   &:hover:not(:disabled) {
-    background-color: var(--muted-bg);
+    border-color: var(--primary);
   }
 }
 
 .ghost {
   background-color: transparent;
   color: var(--text-muted);
-  border: 1px solid transparent;
 
   &:hover:not(:disabled) {
-    color: var(--text-primary);
-    background-color: var(--muted-bg);
+    color: var(--ink);
+    background-color: var(--surface);
   }
 }
 
 .danger {
-  background-color: var(--card-bg);
-  color: var(--destructive);
-  border: 1px solid var(--destructive);
+  background-color: var(--danger-soft);
+  color: var(--danger-text);
 
   &:hover:not(:disabled) {
-    background-color: var(--destructive-bg);
+    background-color: var(--danger-soft-hover);
   }
 }
 
 .success {
   background-color: var(--success);
-  color: #FFFFFF;
-  border: 1px solid var(--success);
+  color: var(--success-fg);
+  box-shadow: var(--shadow-soft);
 
   &:hover:not(:disabled) {
-    opacity: 0.93;
+    background-color: var(--success-hover);
   }
 }

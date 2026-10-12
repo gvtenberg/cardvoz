@@ -1,8 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { Play, ArrowUpRight } from "lucide-react";
-import { Card, CardTitle, CardDescription, CardContent, CardFooter } from "../Card";
-import { Badge } from "../Badge";
+import { Play } from "lucide-react";
+import { routes } from "@/lib/routes";
 import { Button } from "../Button";
 import styles from "./DeckCard.module.scss";
 
@@ -16,50 +15,53 @@ export interface DeckProps {
   description?: string | null;
 }
 
+const TONES = [styles.tone0, styles.tone1, styles.tone2, styles.tone3, styles.tone4];
+
 export function DeckCard({ deck }: { deck: DeckProps }) {
   const targetSlug = deck.slug || String(deck.id);
+  const tone = TONES[Math.abs(Number(deck.id) || deck.title.length) % TONES.length];
+  const showCategory = deck.category && deck.category.toLowerCase() !== "geral";
 
   return (
-    <Card as="article" className={styles.deckCard} aria-labelledby={`deck-title-${deck.id}`}>
-      <CardContent className={styles.contentWrapper}>
-        <div className={styles.metaRow}>
-          <Badge variant="category">{deck.category}</Badge>
-          <span className={styles.countIndicator}>{deck.cardCount} fichas</span>
+    <article className={styles.deckCard} aria-labelledby={`deck-title-${deck.id}`}>
+      <div className={styles.top}>
+        <span className={`${styles.avatar} ${tone}`} aria-hidden="true">
+          {deck.title.trim().charAt(0).toUpperCase() || "?"}
+        </span>
+        <div className={styles.info}>
+          <h2 id={`deck-title-${deck.id}`} className={styles.title}>
+            <Link href={routes.deck(targetSlug)} className={styles.titleLink}>
+              {deck.title}
+            </Link>
+          </h2>
+          <p className={styles.meta}>
+            {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
+            {showCategory && ` · ${deck.category}`}
+          </p>
         </div>
+      </div>
 
-        <CardTitle id={`deck-title-${deck.id}`} className={styles.title}>
-          <Link href={`/baralhos/${targetSlug}`} className={styles.titleLink}>
-            {deck.title}
-          </Link>
-        </CardTitle>
-
-        {deck.description && (
-          <CardDescription className={styles.description}>
-            {deck.description}
-          </CardDescription>
-        )}
-      </CardContent>
-
-      <CardFooter className={styles.footer}>
+      <div className={styles.actions}>
         <Button
-          href={`/estudar?deck=${targetSlug}`}
+          href={routes.study(targetSlug)}
           variant="primary"
-          size="sm"
-          aria-label={`Iniciar estudo por voz do baralho ${deck.title} com ${deck.cardCount} fichas`}
+          size="md"
+          block
+          aria-label={`Estudar ${deck.title}`}
         >
           <Play style={{ fill: "currentColor" }} aria-hidden="true" />
-          <span>Estudar ficha</span>
+          <span>Estudar</span>
         </Button>
-
-        <Link
-          href={`/baralhos/${targetSlug}`}
-          className={styles.openLink}
-          aria-label={`Abrir detalhes e gerenciar fichas do baralho ${deck.title}`}
+        <Button
+          href={routes.deck(targetSlug)}
+          variant="secondary"
+          size="md"
+          block
+          aria-label={`Ver fichas de ${deck.title}`}
         >
-          <span>Abrir</span>
-          <ArrowUpRight aria-hidden="true" />
-        </Link>
-      </CardFooter>
-    </Card>
+          Ver fichas
+        </Button>
+      </div>
+    </article>
   );
 }

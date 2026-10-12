@@ -5,32 +5,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.125rem;
-  height: 2.125rem;
-  border-radius: $radius-xs;
-  border: 1px solid var(--card-border);
-  background-color: var(--card-bg);
-  color: var(--text-muted);
+  width: $touch-sm;
+  height: $touch-sm;
+  border-radius: $radius-full;
+  border: 2px solid var(--border);
+  background-color: var(--surface);
+  color: var(--ink);
   cursor: pointer;
   transition: background-color $transition-fast, color $transition-fast, border-color $transition-fast;
 
   &:hover {
+    border-color: var(--primary);
     color: var(--primary);
-    background-color: var(--muted-bg);
-    border-color: var(--card-border-hover);
-  }
-
-  :global(.dark) &,
-  :global([data-theme="dark"]) & {
-    background-color: #10192A;
-    border-color: #1E2D4A;
-    color: #94A3B8;
-
-    &:hover {
-      background-color: #15223A;
-      border-color: #3B82F6;
-      color: #60A5FA;
-    }
   }
 
   &:focus-visible {
@@ -43,7 +29,7 @@
   }
 
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: 1.375rem;
+    height: 1.375rem;
   }
 }

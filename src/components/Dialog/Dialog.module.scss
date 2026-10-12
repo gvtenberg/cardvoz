@@ -1,0 +1,89 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.dialog {
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  width: calc(100% - 2rem);
+  max-width: 36rem;
+  max-height: calc(100dvh - 2rem);
+
+  &::backdrop {
+    background-color: var(--backdrop);
+    backdrop-filter: blur(3px);
+  }
+}
+
+.panel {
+  background-color: var(--surface);
+  border-radius: $radius-xl;
+  box-shadow: var(--shadow-raised);
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+
+  @include respond-to(sm) {
+    padding: 2rem 2.25rem;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-size: $font-size-2xl;
+  padding-top: 0.25rem;
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $touch-sm;
+  height: $touch-sm;
+  border-radius: $radius-full;
+  background-color: var(--surface-soft);
+  border: 2px solid var(--border);
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+.body {
+  font-size: $font-size-base;
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}

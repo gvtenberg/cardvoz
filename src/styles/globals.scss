@@ -2,60 +2,74 @@
 @use "./mixins" as *;
 
 // =============================================================================
-// CSS Custom Properties (Paleta Editorial Tinta & Papel / Deep Midnight Navy)
+// CSS Custom Properties (claro e escuro)
 // =============================================================================
 
 :root {
-  // Modo Claro (Papel Natural e Tinta Azul-Profunda)
+  color-scheme: light;
   --bg: #{$color-light-bg};
-  --text-primary: #{$color-light-text-primary};
-  --text-muted: #{$color-light-text-muted};
-  --card-bg: #{$color-light-card};
-  --card-hover: #{$color-light-card-hover};
-  --card-border: #{$color-light-border};
-  --card-border-strong: #{$color-light-border-strong};
-  --card-border-hover: #{$color-light-border-hover};
+  --surface: #{$color-light-surface};
+  --surface-soft: #{$color-light-surface-soft};
+  --border: #{$color-light-border};
+  --border-strong: #{$color-light-border-strong};
   --ink: #{$color-light-ink};
+  --text-primary: #{$color-light-text};
+  --text-muted: #{$color-light-text-muted};
   --primary: #{$color-light-primary};
   --primary-hover: #{$color-light-primary-hover};
   --primary-fg: #FFFFFF;
-  --accent: #{$color-light-accent};
+  --primary-soft: #{$color-light-primary-soft};
+  --primary-soft-text: #{$color-light-primary-soft-text};
   --ring: #{$color-light-focus-ring};
-  --muted-bg: #{$color-light-muted-bg};
-  --badge-text: #{$color-light-text-muted};
   --success: #{$color-light-success};
-  --success-bg: #{$color-light-success-bg};
-  --destructive: #{$color-light-destructive};
-  --destructive-bg: #{$color-light-destructive-bg};
+  --success-hover: #{$color-light-success-hover};
+  --success-fg: #FFFFFF;
+  --success-soft: #{$color-light-success-soft};
+  --success-soft-text: #{$color-light-success-soft-text};
+  --danger-soft: #{$color-light-danger-soft};
+  --danger-soft-hover: #{$color-light-danger-soft-hover};
+  --danger-text: #{$color-light-danger-text};
+  --answer-bg: #{$color-light-answer-bg};
+  --header-bg: rgba(247, 244, 238, 0.9);
+  --backdrop: rgba(24, 33, 90, 0.35);
+  --shadow-soft: #{$shadow-soft};
+  --shadow-raised: #{$shadow-raised};
 }
 
 .dark,
 [data-theme="dark"] {
-  // Modo Escuro (Deep Midnight Navy Rico)
+  color-scheme: dark;
   --bg: #{$color-dark-bg};
-  --text-primary: #{$color-dark-text-primary};
-  --text-muted: #{$color-dark-text-muted};
-  --card-bg: #{$color-dark-card};
-  --card-hover: #{$color-dark-card-hover};
-  --card-border: #{$color-dark-border};
-  --card-border-strong: #{$color-dark-border-strong};
-  --card-border-hover: #{$color-dark-border-hover};
+  --surface: #{$color-dark-surface};
+  --surface-soft: #{$color-dark-surface-soft};
+  --border: #{$color-dark-border};
+  --border-strong: #{$color-dark-border-strong};
   --ink: #{$color-dark-ink};
+  --text-primary: #{$color-dark-text};
+  --text-muted: #{$color-dark-text-muted};
   --primary: #{$color-dark-primary};
   --primary-hover: #{$color-dark-primary-hover};
-  --primary-fg: #FFFFFF;
-  --accent: #{$color-dark-accent};
+  --primary-fg: #{$color-dark-primary-fg};
+  --primary-soft: #{$color-dark-primary-soft};
+  --primary-soft-text: #{$color-dark-primary-soft-text};
   --ring: #{$color-dark-focus-ring};
-  --muted-bg: #{$color-dark-muted-bg};
-  --badge-text: #{$color-dark-badge-text};
   --success: #{$color-dark-success};
-  --success-bg: #{$color-dark-success-bg};
-  --destructive: #{$color-dark-destructive};
-  --destructive-bg: #{$color-dark-destructive-bg};
+  --success-hover: #{$color-dark-success-hover};
+  --success-fg: #{$color-dark-success-fg};
+  --success-soft: #{$color-dark-success-soft};
+  --success-soft-text: #{$color-dark-success-soft-text};
+  --danger-soft: #{$color-dark-danger-soft};
+  --danger-soft-hover: #{$color-dark-danger-soft-hover};
+  --danger-text: #{$color-dark-danger-text};
+  --answer-bg: #{$color-dark-answer-bg};
+  --header-bg: rgba(18, 21, 31, 0.9);
+  --backdrop: rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 // =============================================================================
-// Reset & Base Styles Editoriais
+// Reset & Base
 // =============================================================================
 
 *,
@@ -67,8 +81,7 @@
 }
 
 html {
-  font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
 }
@@ -77,6 +90,7 @@ body {
   background-color: var(--bg);
   color: var(--text-primary);
   font-family: $font-family-base;
+  font-size: $font-size-base;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -85,11 +99,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// Títulos com Nunito
 h1, h2, h3, h4, h5, h6 {
   font-family: $font-family-heading;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  line-height: 1.25;
   color: var(--ink);
 }
 
@@ -105,25 +118,40 @@ a {
 
 button {
   font-family: inherit;
+  font-size: inherit;
   border: none;
   background: none;
+  color: inherit;
 }
 
 input,
 textarea,
 select {
   font-family: inherit;
-  font-size: 1rem;
+  font-size: $font-size-base;
 }
 
-// Tecla Física Acessível (<kbd>)
-kbd {
-  @include kbd-keycap;
+svg {
+  flex-shrink: 0;
 }
 
-// Foco acessível global estrito (WCAG AAA)
 :focus-visible {
   @include focus-ring;
+}
+
+// Elementos que recebem foco programático (pergunta/resposta) não exibem anel
+// ao serem focados via script, mas mantêm o anel quando navegados por teclado.
+[tabindex="-1"]:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 // =============================================================================
@@ -132,8 +160,4 @@ kbd {
 
 .sr-only {
   @include sr-only;
-}
-
-.focus\:not-sr-only:focus {
-  @include not-sr-only;
 }

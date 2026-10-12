@@ -1,91 +1,86 @@
 // =============================================================================
-// CardVoz Design Tokens - Paleta Editorial "Tinta & Papel" e Deep Midnight Navy
-// WCAG 2.1 AAA / AA - Tipografia Poppins & Inter, Foco Acessivel & Fichas de Estudo
+// CardVoz Design Tokens - Visual leve e amigável, pensado para baixa visão
+// Contraste de texto >= 7:1 (WCAG AAA) em ambos os temas; nenhum texto < 16px
 // =============================================================================
 
-// --- Modo Claro (Light Mode - Papel Natural & Tinta Azul-Profunda) ---
-$color-light-bg: #FAF9F6;              // Papel natural / off-white aquecido
-$color-light-card: #FFFFFF;          // Ficha de estudo em papel puro
-$color-light-card-hover: #F8FAFC;    // Superficie hover sutil
-$color-light-border: #E5E7EB;        // Borda de ficha precisa (1px)
-$color-light-border-strong: #D1D5DB; // Divisores e bordas com enfase
-$color-light-border-hover: #94A3B8;  // Borda hover
-$color-light-ink: #172554;           // Azul tinta caneta-tinteiro profunda (blue-950)
-$color-light-primary: #1E3A8A;       // Azul cobalto nobre (blue-900)
-$color-light-primary-hover: #1D4ED8; // Azul acao (blue-700)
-$color-light-accent: #2563EB;        // Azul cobalto vibrante para acoes
-$color-light-text-primary: #18181B;  // Grafite escuro / preto tinta (Contraste 16.5:1 - AAA)
-$color-light-text-muted: #52525B;    // Grafite medio legivel (Contraste 7.2:1 - AAA)
-$color-light-focus-ring: #2563EB;    // Anel nitido de foco acessivel
-$color-light-muted-bg: #F4F4F5;      // Superficie sutil para tags e caixas de atalho
-$color-light-success: #15803D;       // Tinta verde editorial (green-700)
-$color-light-success-bg: #F0FDF4;
-$color-light-destructive: #B91C1C;   // Tinta vermelha de revisao (red-700)
-$color-light-destructive-bg: #FEF2F2;
+// --- Modo Claro (papel creme e azul acolhedor) ---
+$color-light-bg: #F7F4EE;              // Creme suave, menos ofuscante que branco puro
+$color-light-surface: #FFFFFF;
+$color-light-surface-soft: #FBFAF7;    // Superfície secundária (hover, campos)
+$color-light-border: #E7E1D6;          // Contorno discreto das fichas
+$color-light-border-strong: #CFC7B8;   // Contorno de campos de formulário
+$color-light-ink: #18215A;             // Títulos (14.9:1)
+$color-light-text: #1F2437;            // Texto corrido (14:1)
+$color-light-text-muted: #4B5165;      // Texto secundário (7.2:1)
+$color-light-primary: #2846C4;         // Azul de ação (7.6:1 com branco)
+$color-light-primary-hover: #1F3AA8;
+$color-light-primary-soft: #E8EDFF;    // Fundo azul suave
+$color-light-primary-soft-text: #1F3AA8;
+$color-light-focus-ring: #2846C4;
+$color-light-success: #1C7543;         // Botão "Acertei"
+$color-light-success-hover: #16623A;
+$color-light-success-soft: #E2F4E9;
+$color-light-success-soft-text: #155C33;
+$color-light-danger-soft: #FDE9E7;     // Botão "Errei" (tom suave, sem alarme)
+$color-light-danger-soft-hover: #FAD7D3;
+$color-light-danger-text: #9B1C1C;
+$color-light-answer-bg: #EEF2FF;       // Destaque da resposta revelada
 
-// --- Modo Escuro (Dark Mode - Deep Midnight Navy Rico) ---
-$color-dark-bg: #0A101D;             // Azul noturno profundo e elegante (Midnight Navy)
-$color-dark-card: #10192A;           // Cartoes e superficies em azul marinho fechado
-$color-dark-card-hover: #15223A;     // Superficie hover azul marinho
-$color-dark-border: #1E2D4A;         // Borda fina e nitida azul marinho escuro
-$color-dark-border-strong: #243657;  // Divisores e bordas com enfase
-$color-dark-border-hover: #2B3F66;   // Borda hover rica
-$color-dark-ink: #F8FAFC;            // Texto de titulos em alto contraste
-$color-dark-primary: #3B82F6;        // Royal / Electric Blue para interatividade
-$color-dark-primary-hover: #60A5FA;  // Sky Blue vibrante
-$color-dark-accent: #60A5FA;         // Sky Blue de alto contraste
-$color-dark-text-primary: #F8FAFC;   // Slate-50 (Contraste 17:1 - AAA)
-$color-dark-text-muted: #94A3B8;     // Slate-400 (Contraste 8.5:1 - AAA)
-$color-dark-focus-ring: #60A5FA;     // Anel nitido de 3px com offset visivel
-$color-dark-muted-bg: #15223A;       // Superficie sutil badges/kbd
-$color-dark-badge-text: #93C5FD;     // Texto azul claro para badges/kbd
-$color-dark-success: #22C55E;        // Verde suave de acerto
-$color-dark-success-bg: rgba(34, 197, 94, 0.14);
-$color-dark-destructive: #F87171;    // Vermelho suave de revisao
-$color-dark-destructive-bg: rgba(248, 113, 113, 0.14);
+// --- Modo Escuro (azul-noite suave) ---
+$color-dark-bg: #12151F;
+$color-dark-surface: #1B2030;
+$color-dark-surface-soft: #222839;
+$color-dark-border: #2C3348;
+$color-dark-border-strong: #454E68;
+$color-dark-ink: #F4F6FC;
+$color-dark-text: #F1F3F9;
+$color-dark-text-muted: #B7BDD2;
+$color-dark-primary: #8FA8FF;
+$color-dark-primary-hover: #A9BCFF;
+$color-dark-primary-fg: #0D1433;
+$color-dark-primary-soft: #232B4A;
+$color-dark-primary-soft-text: #C3D0FF;
+$color-dark-focus-ring: #A9BCFF;
+$color-dark-success: #6FD39A;
+$color-dark-success-hover: #8ADDAE;
+$color-dark-success-fg: #08220F;
+$color-dark-success-soft: #1D3328;
+$color-dark-success-soft-text: #9FE6BC;
+$color-dark-danger-soft: #3A2225;
+$color-dark-danger-soft-hover: #48292D;
+$color-dark-danger-text: #FFC2BD;
+$color-dark-answer-bg: #232B4A;
 
-// --- Tipografia Nunito (Titulos) & Inter (Corpo e Elementos) ---
+// --- Tipografia: Nunito (marca e títulos) & Atkinson Hyperlegible (leitura) ---
 $font-family-heading: var(--font-nunito), system-ui, -apple-system, sans-serif;
-$font-family-base: var(--font-inter), system-ui, -apple-system, sans-serif;
-$font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+$font-family-base: var(--font-atkinson), system-ui, -apple-system, sans-serif;
 
-$font-size-2xs: 0.6875rem; // 11px
-$font-size-xs: 0.75rem;    // 12px
-$font-size-sm: 0.875rem;   // 14px
-$font-size-base: 1rem;     // 16px
-$font-size-lg: 1.125rem;   // 18px
-$font-size-xl: 1.25rem;    // 20px
-$font-size-2xl: 1.5rem;    // 24px
-$font-size-3xl: 1.875rem;  // 30px
-$font-size-4xl: 2.25rem;   // 36px
+// Escala sem letras pequenas: o menor tamanho é 16px
+$font-size-sm: 1rem;        // 16px (mínimo absoluto)
+$font-size-base: 1.125rem;  // 18px (texto corrido)
+$font-size-lg: 1.25rem;     // 20px (botões, rótulos)
+$font-size-xl: 1.5rem;      // 24px
+$font-size-2xl: 1.875rem;   // 30px
+$font-size-3xl: 2.25rem;    // 36px
+$font-size-4xl: 2.75rem;    // 44px
 
-// --- Espaçamentos Lineares ---
-$spacing-1: 0.25rem;
-$spacing-2: 0.5rem;
-$spacing-3: 0.75rem;
-$spacing-4: 1rem;
-$spacing-5: 1.25rem;
-$spacing-6: 1.5rem;
-$spacing-8: 2rem;
-$spacing-10: 2.5rem;
-$spacing-12: 3rem;
-$spacing-16: 4rem;
+// --- Áreas de toque ---
+$touch-sm: 3rem;    // 48px
+$touch-md: 3.5rem;  // 56px
+$touch-lg: 4.5rem;  // 72px (ações principais do estudo)
 
-// --- Geometria Tatil (Bordas de Papel e Fichas Reais) ---
-$radius-xs: 0.25rem;  // 4px
-$radius-sm: 0.375rem; // 6px
-$radius-md: 0.5rem;   // 8px
-$radius-lg: 0.75rem;  // 12px
-$radius-xl: 1rem;     // 16px
+// --- Geometria arredondada ---
+$radius-sm: 0.75rem;  // 12px
+$radius-md: 1rem;     // 16px
+$radius-lg: 1.5rem;   // 24px
+$radius-xl: 2rem;     // 32px
 $radius-full: 9999px;
 
-// --- Transições & Sombras Sutis ---
-$transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-default: 180ms cubic-bezier(0.4, 0, 0.2, 1);
-$shadow-paper: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
-$shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-$shadow-card-hover: 0 4px 12px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.08);
-$shadow-kbd: 0 1px 0 1px rgba(0, 0, 0, 0.12);
+// --- Transições & Sombras difusas ---
+$transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-default: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+$shadow-soft: 0 1px 2px rgba(24, 33, 90, 0.04), 0 4px 16px rgba(24, 33, 90, 0.06);
+$shadow-raised: 0 2px 4px rgba(24, 33, 90, 0.05), 0 12px 32px rgba(24, 33, 90, 0.10);
 
 // --- Breakpoints ---
 $breakpoint-sm: 640px;

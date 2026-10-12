@@ -1,0 +1,76 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+.main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 4rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  @include respond-to(sm) {
+    padding: 2rem 1.5rem 5rem;
+  }
+}
+
+.backLink {
+  @include back-link;
+}
+
+.title {
+  font-size: $font-size-3xl;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+  font-size: $font-size-lg;
+  color: var(--text-muted);
+}
+
+.status {
+  padding: 1rem 1.25rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--success-soft-text);
+  background-color: var(--success-soft);
+  border-radius: $radius-md;
+}
+
+.error {
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  color: var(--danger-text);
+  background-color: var(--danger-soft);
+  border-radius: $radius-md;
+}
+
+.panel {
+  @include surface;
+  border-radius: $radius-xl;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  @include respond-to(sm) {
+    padding: 2rem;
+  }
+}
+
+.panelTitle {
+  font-size: $font-size-xl;
+}
+
+.panelText {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

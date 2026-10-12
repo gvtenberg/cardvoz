@@ -1,118 +1,137 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { Input, Textarea, Button } from "@/components";
-import { createDeck } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
+import { Input, Button, FileImport } from "@/components";
+import { createDeck, createCards } from "@/lib/api";
+import type { ImportResult } from "@/lib/importCards";
+import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 export default function NovoBaralhoPage() {
   const router = useRouter();
+  const nameRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Geral");
+  const [nameError, setNameError] = useState("");
+  const [imported, setImported] = useState<ImportResult | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const handleImport = (result: ImportResult | null) => {
+    // Sugere o nome do arquivo se a pessoa ainda não digitou um nome
+    if (result && !name.trim()) {
+      setName(result.title);
+      setNameError("");
+    }
+    setImported(result);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setStatusMessage("Por favor, insira o nome do baralho.");
+    const title = name.trim();
+    if (!title) {
+      setNameError("Escreva um nome para o baralho.");
+      nameRef.current?.focus();
       return;
     }
 
     setIsSubmitting(true);
+    setNameError("");
     try {
-      const created = await createDeck({
-        title: name.trim(),
-        category: category.trim() || "Geral",
-        description: description.trim() || undefined,
-      });
+      const created = await createDeck({ title, category: "Geral" });
 
-      setStatusMessage("Baralho criado com sucesso! Redirecionando...");
+      if (imported && imported.cards.length > 0) {
+        const total = imported.cards.length;
+        setStatusMessage(`Importando ${total} fichas...`);
+        setProgress({ done: 0, total });
+        const saved = await createCards(created.id, imported.cards, {
+          onProgress: (done) => setProgress({ done, total }),
+        });
+        setStatusMessage(
+          saved === total
+            ? `Baralho criado com ${saved} fichas.`
+            : `Baralho criado. ${saved} de ${total} fichas foram importadas.`
+        );
+      } else {
+        setStatusMessage("Baralho criado.");
+      }
+
       setTimeout(() => {
-        router.push(`/baralhos/${created.slug || created.id}`);
-      }, 600);
+        router.push(routes.deck(created.slug || created.id));
+      }, 800);
     } catch (error) {
       console.error(error);
       setIsSubmitting(false);
-      setStatusMessage("Erro ao salvar baralho. Tente novamente.");
+      setProgress(null);
+      setStatusMessage("Não foi possível salvar o baralho. Tente novamente.");
     }
   };
 
+  const count = imported?.cards.length ?? 0;
+  const submitLabel = progress
+    ? `Importando ${progress.done} de ${progress.total}...`
+    : isSubmitting
+      ? "Salvando..."
+      : count > 0
+        ? `Criar baralho com ${count} ${count === 1 ? "ficha" : "fichas"}`
+        : "Criar baralho";
+
   return (
     <main id="main-content" className={styles.main}>
-      <nav aria-label="Navegação estrutural" className={styles.navBar}>
-        <Link href="/" className={styles.backLink}>
+      <nav aria-label="Navegação estrutural">
+        <Link href={routes.home} className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
-          <span>Voltar para meus baralhos</span>
+          <span>Meus baralhos</span>
         </Link>
       </nav>
 
-      <section className={styles.formCard} aria-labelledby="form-heading">
-        <div className={styles.header}>
-          <h1 id="form-heading" className={styles.title}>
-            Criar Novo Baralho
-          </h1>
-          <p className={styles.subtitle}>
-            Organize suas fichas de estudo por matéria ou tópico específico.
-          </p>
-        </div>
+      <h1 className={styles.title}>Novo baralho</h1>
 
-        {/* Live region for screen readers */}
-        <div aria-live="polite" className="sr-only">
-          {statusMessage}
-        </div>
+      <p role="status" className={statusMessage ? styles.status : "sr-only"}>
+        {statusMessage}
+      </p>
 
-        {statusMessage && (
-          <div role="status" className={styles.alert}>
-            <CheckCircle2 style={{ width: "1rem", height: "1rem" }} aria-hidden="true" />
-            <span>{statusMessage}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.form} noValidate>
+        <div className={styles.panel}>
           <Input
+            ref={nameRef}
             id="nome-baralho"
             name="nome-baralho"
-            label="Nome do Baralho"
+            label="Nome do baralho"
             required
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Farmacologia Básica"
+            error={nameError}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (nameError) setNameError("");
+            }}
+            placeholder="Ex.: Farmacologia"
+            autoComplete="off"
           />
+        </div>
 
-          <Input
-            id="categoria-baralho"
-            name="categoria-baralho"
-            label="Categoria ou Matéria"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="Ex: Medicina, Idiomas, História"
-          />
-
-          <Textarea
-            id="descricao-baralho"
-            name="descricao-baralho"
-            label="Descrição da Coleção"
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Breve resumo dos conceitos e tópicos abordados nestas fichas..."
-          />
-
-          <div className={styles.actions}>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar baralho"}
-            </Button>
-            <Button href="/" variant="secondary">
-              Cancelar
-            </Button>
+        <section id="importar" className={styles.panel} aria-labelledby="importar-titulo">
+          <div>
+            <h2 id="importar-titulo" className={styles.panelTitle}>
+              Importar fichas de um arquivo
+            </h2>
+            <p className={styles.panelText}>Opcional. Você também pode escrever as fichas depois.</p>
           </div>
-        </form>
-      </section>
+          <FileImport value={imported} onChange={handleImport} disabled={isSubmitting} />
+        </section>
+
+        <div className={styles.actions}>
+          <Button type="submit" variant="primary" size="lg" block disabled={isSubmitting}>
+            {submitLabel}
+          </Button>
+          <Button href={routes.home} variant="ghost" size="md" block>
+            Cancelar
+          </Button>
+        </div>
+      </form>
     </main>
   );
 }

@@ -1,0 +1,177 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 4rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  @include respond-to(sm) {
+    padding: 2rem 1.5rem 5rem;
+    gap: 2rem;
+  }
+}
+
+.backLink {
+  @include back-link;
+}
+
+.loading {
+  font-size: $font-size-lg;
+  color: var(--text-muted);
+}
+
+.status {
+  padding: 1rem 1.25rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--success-soft-text);
+  background-color: var(--success-soft);
+  border-radius: $radius-md;
+}
+
+.deckHeader {
+  @include surface;
+  border-radius: $radius-xl;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  @include respond-to(sm) {
+    padding: 2.25rem;
+  }
+}
+
+.title {
+  font-size: $font-size-3xl;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  margin-top: 0.25rem;
+  font-size: $font-size-lg;
+  color: var(--text-muted);
+}
+
+.description {
+  margin-top: 0.75rem;
+  font-size: $font-size-base;
+  color: var(--text-muted);
+  max-width: 36rem;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+
+  @include respond-to(sm) {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+.cardsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: $font-size-2xl;
+}
+
+.cardsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.cardItem {
+  @include surface;
+  padding: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  @include respond-to(sm) {
+    padding: 1.5rem;
+  }
+}
+
+.cardNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: var(--primary-soft-text);
+  background-color: var(--primary-soft);
+  border-radius: $radius-full;
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.questionText {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.answerText {
+  font-size: $font-size-base;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.emptyState {
+  @include surface;
+  border-radius: $radius-xl;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.emptyTitle {
+  font-family: $font-family-heading;
+  font-size: $font-size-xl;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.emptyText {
+  font-size: $font-size-base;
+  color: var(--text-muted);
+  max-width: 26rem;
+}
+
+.dangerZone {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+
+  @include respond-to(sm) {
+    justify-content: flex-start;
+  }
+}

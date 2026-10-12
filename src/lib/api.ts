@@ -63,8 +63,16 @@ export interface StudyReviewResponse {
   answeredAt: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+/**
+ * Como o site é estático, o navegador chama a API direto. A URL é gravada no
+ * build (NEXT_PUBLIC_API_URL) e a API precisa liberar o domínio do site no CORS
+ * (variável CORS_ALLOWED_ORIGINS da cardvoz-api). Em produção use HTTPS.
+ */
+function getApiBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api"
+  );
+}
 
 /**
  * Dados padrão de fallback para garantir resiliência e SSR estático caso a API
@@ -287,7 +295,7 @@ let localSessionsMemory: StudySessionResponse[] = [];
  * Função utilitária para requisições seguras à API REST
  */
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -753,4 +761,32 @@ export async function getStudyHistory(
     }
     return localSessionsMemory;
   }
+}
+
+/**
+ * 15. Cadastra várias fichas em sequência (importação de arquivo), preservando a ordem.
+ * Retorna quantas fichas foram salvas; `onProgress` informa o avanço.
+ */
+export async function createCards(
+  deckId: number,
+  cards: { question: string; answer: string }[],
+  options?: { startOrder?: number; onProgress?: (done: number, total: number) => void }
+): Promise<number> {
+  const startOrder = options?.startOrder ?? 1;
+  let saved = 0;
+  for (let i = 0; i < cards.length; i++) {
+    try {
+      await createCard({
+        deckId,
+        question: cards[i].question,
+        answer: cards[i].answer,
+        displayOrder: startOrder + i,
+      });
+      saved++;
+    } catch (error) {
+      console.warn(`CardVoz: Falha ao importar a ficha ${i + 1}:`, error);
+    }
+    options?.onProgress?.(i + 1, cards.length);
+  }
+  return saved;
 }

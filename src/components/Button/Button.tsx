@@ -5,7 +5,7 @@ import styles from "./Button.module.scss";
 export type ButtonVariant =
   | "primary"
   | "secondary"
-  | "outline"
+  | "soft"
   | "ghost"
   | "danger"
   | "success";
@@ -16,6 +16,8 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Ocupa toda a largura disponível */
+  block?: boolean;
   href?: string;
   className?: string;
   children: React.ReactNode;
@@ -28,6 +30,7 @@ export const Button = React.forwardRef<
   {
     variant = "primary",
     size = "md",
+    block = false,
     href,
     className = "",
     children,
@@ -40,6 +43,7 @@ export const Button = React.forwardRef<
     styles.button,
     styles[variant],
     styles[size],
+    block && styles.block,
     className,
   ]
     .filter(Boolean)

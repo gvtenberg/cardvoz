@@ -1,0 +1,107 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.intro {
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section {
+  background-color: var(--surface-soft);
+  border: 2px solid var(--border);
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  &[open] {
+    border-color: var(--primary);
+  }
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: $touch-md;
+  padding: 0.75rem 1.25rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+  border-radius: $radius-lg;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  // Indicador +/− grande, independente de ícones
+  &::after {
+    content: "+";
+    font-size: $font-size-2xl;
+    line-height: 1;
+    color: var(--primary);
+  }
+
+  .section[open] > &::after {
+    content: "−";
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline-offset: -3px;
+  }
+}
+
+.steps,
+.shortcuts {
+  padding: 0 1.25rem 1.25rem 2.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.shortcuts {
+  list-style: none;
+  padding-left: 1.25rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}
+
+.text {
+  padding: 0 1.25rem 1rem;
+}
+
+.example {
+  margin: 0 1.25rem 1rem;
+  padding: 0.875rem 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: $font-size-base;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-md;
+}
+
+.link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
