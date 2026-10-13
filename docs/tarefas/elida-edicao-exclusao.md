@@ -146,8 +146,8 @@ Para um formulário dentro do `Dialog`, coloque o `<form id="...">` no conteúdo
 O fluxo atual está em `handleDelete` na página do baralho. Ajuste:
 
 1. `deleteDeck(deck.id)` com o ID em texto. Erro (exceto 404) mantém o diálogo aberto com a mensagem.
-2. **Sucesso:** vá para a página inicial e anuncie lá **"Baralho excluído."**. Como a página muda, passe a mensagem por `sessionStorage` (ex.: chave `cardvoz.aviso`) e mostre/limpe na página inicial num `role="status"`. **Por quê:** hoje a mensagem aparece por 600ms antes de trocar de página, e o leitor de tela geralmente não tem tempo de ler.
-3. **404:** o baralho já foi excluído (ex.: em outra aba). Trate como sucesso: vá para a página inicial.
+2. **Sucesso:** vá para a lista de baralhos (`routes.decks`) e anuncie lá **"Baralho excluído."**. Como a página muda, passe a mensagem por `sessionStorage` (ex.: chave `cardvoz.aviso`) e mostre/limpe na lista de baralhos num `role="status"`. **Por quê:** hoje a mensagem aparece por 600ms antes de trocar de página, e o leitor de tela geralmente não tem tempo de ler.
+3. **404:** o baralho já foi excluído (ex.: em outra aba). Trate como sucesso: vá para a lista de baralhos.
 
 ---
 
@@ -170,7 +170,7 @@ O fluxo atual está em `handleDelete` na página do baralho. Ajuste:
 - [ ] Renomear: sucesso; nome vazio (erro no campo, nada enviado); nome com 201 caracteres; sem mudança (só fecha).
 - [ ] Editar ficha: sucesso; pergunta ou resposta vazia; texto longo; 404 (exclua a ficha em outra aba e tente editar na primeira).
 - [ ] Excluir ficha: do meio, a última e a única da lista. **Confira para onde o foco vai em cada caso.**
-- [ ] Excluir baralho: sucesso com aviso na página inicial; 404 tratado.
+- [ ] Excluir baralho: sucesso com aviso na lista de baralhos; 404 tratado.
 - [ ] API fora do ar: mensagem de erro clara, nada some da tela.
 - [ ] Teclado: tudo alcançável com `Tab`; `Esc` fecha os diálogos; `Enter` no campo do nome salva.
 - [ ] **TalkBack e NVDA:** rótulos "Editar ficha 3" lidos corretamente; anúncios de sucesso e erro; foco depois de excluir.

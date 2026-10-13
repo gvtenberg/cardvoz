@@ -12,5 +12,6 @@ export * from "./Dialog";
 export * from "./HelpDialog";
 export * from "./FileImport";
 export * from "./Skeleton";
+export * from "./LandingDemo";
 export * from "./ThemeProvider";
 export * from "./Logo";

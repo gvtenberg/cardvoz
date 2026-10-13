@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CircleHelp } from "lucide-react";
 import { ThemeToggle } from "../ThemeToggle";
 import { HelpDialog } from "../HelpDialog";
+import { routes } from "@/lib/routes";
 import { Logo } from "../Logo";
 import styles from "./Header.module.scss";
 
@@ -17,7 +18,7 @@ export function Header() {
         <Logo size="md" withTagline={false} />
 
         <nav aria-label="Navegação principal" className={styles.nav}>
-          <Link href="/" className={styles.navLink}>
+          <Link href={routes.decks} className={styles.navLink}>
             Meus baralhos
           </Link>
 

@@ -10,7 +10,10 @@ function idParam(idOrSlug: string | number): string {
 }
 
 export const routes = {
+  /** Página de apresentação (landing page), pública */
   home: "/",
+  /** Lista de baralhos de quem usa o app */
+  decks: "/baralhos/",
   newDeck: "/baralhos/novo/",
   importDeck: "/baralhos/novo/#importar",
   deck: (idOrSlug: string | number) => `/baralho/?id=${idParam(idOrSlug)}`,

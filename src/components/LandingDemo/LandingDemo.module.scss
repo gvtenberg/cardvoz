@@ -1,0 +1,322 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// As barras de voz ficam numa coluna reservada à direita da pilha, sem cobrir a ficha
+.demo {
+  --ondas-w: clamp(2.5rem, 6vw, 4.5rem);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+
+  @media (min-width: 30rem) {
+    padding-right: calc(var(--ondas-w) + 1rem);
+  }
+}
+
+.rotulo {
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+// Margem lateral para as fichas giradas do fundo não saírem da tela no celular
+.pilha {
+  position: relative;
+  isolation: isolate;
+  margin-inline: 1rem;
+}
+
+.fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: $radius-xl;
+}
+
+// Tons da pilha (exceção de cor documentada, como nos cartões de baralho)
+.fundo1 {
+  background: #E6E1FA;
+  transform: rotate(-5deg) translate(-0.6rem, 0.6rem);
+}
+
+.fundo2 {
+  background: #FFEBD2;
+  transform: rotate(3.5deg) translate(0.9rem, 0.4rem);
+}
+
+:global(.dark) {
+  .fundo1 { background: #2F2752; }
+  .fundo2 { background: #3E2E1A; }
+}
+
+.ficha {
+  container: ficha / inline-size;
+  position: relative;
+  min-height: 22rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: $radius-xl;
+  box-shadow: var(--shadow-raised);
+}
+
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.tema {
+  padding: 0.25rem 0.8rem;
+  border-radius: $radius-full;
+  background: var(--primary-soft);
+  color: var(--primary-soft-text);
+}
+
+.progresso {
+  height: 0.5rem;
+  background: var(--primary-soft);
+  border-radius: $radius-full;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--primary);
+    border-radius: $radius-full;
+    transition: width $transition-default;
+  }
+}
+
+.face {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-family: $font-family-base;
+  font-weight: 400;
+  border-radius: $radius-md;
+}
+
+.faceRotulo {
+  @include soft-label;
+}
+
+.pergunta {
+  font-size: clamp(1.5rem, 1.2vw + 1.2rem, 1.9rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.resposta {
+  padding: 1rem 1.25rem;
+  background: var(--answer-bg);
+  border-radius: $radius-lg;
+
+  .faceRotulo {
+    color: var(--primary-soft-text);
+  }
+}
+
+.respostaTexto {
+  font-size: $font-size-xl;
+  color: var(--text-primary);
+}
+
+.acoes {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.acao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 5rem;
+  padding: 0.6rem;
+  font-family: $font-family-base;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  border: 2px solid transparent;
+  border-radius: $radius-lg;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: background-color $transition-fast, transform $transition-fast;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+// Ícone ao lado do texto só quando a própria ficha é larga o bastante
+@container ficha (min-width: 30rem) {
+  .acao {
+    flex-direction: row;
+    gap: 0.6rem;
+  }
+}
+
+.ver {
+  background: var(--primary);
+  color: var(--primary-fg);
+
+  &:hover {
+    background: var(--primary-hover);
+  }
+}
+
+.errei {
+  background: var(--danger-soft);
+  color: var(--danger-text);
+  border-color: var(--danger-text);
+
+  &:hover {
+    background: var(--danger-soft-hover);
+  }
+}
+
+.acertei {
+  background: var(--success);
+  color: var(--success-fg);
+
+  &:hover {
+    background: var(--success-hover);
+  }
+}
+
+.fim {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+
+  h3 {
+    font-size: $font-size-2xl;
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  .acao {
+    min-height: $touch-md;
+    padding-inline: 1.75rem;
+  }
+}
+
+.dica {
+  font-size: $font-size-sm;
+  color: var(--text-muted);
+}
+
+// Barras de voz (símbolo da marca)
+.ondas {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: var(--ondas-w);
+  height: 7rem;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+
+  @media (min-width: 30rem) {
+    display: flex;
+  }
+
+  span {
+    display: block;
+    width: 18%;
+    border-radius: $radius-full;
+    background: var(--primary);
+    transform-origin: center;
+  }
+
+  span:nth-child(1) { height: 40%; }
+  span:nth-child(2) { height: 95%; }
+  span:nth-child(3) { height: 65%; }
+  span:nth-child(4) { height: 30%; }
+}
+
+// Saída e entrada das fichas ao responder
+.saindo {
+  animation: sair 260ms ease-in forwards;
+}
+
+.entrando {
+  animation: entrar 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes sair {
+  to {
+    transform: translateX(14%) rotate(6deg);
+    opacity: 0;
+  }
+}
+
+@keyframes entrar {
+  from {
+    transform: translateY(0.75rem) scale(0.97);
+    opacity: 0;
+  }
+}
+
+// Abertura: as fichas se abrem em leque e as barras "falam" por 3 segundos e param
+// (movimento automático com mais de 5s precisaria de botão de pausa, WCAG 2.2.2)
+@media (prefers-reduced-motion: no-preference) {
+  .fundo1 {
+    animation: leque 700ms 150ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .fundo2 {
+    animation: leque 700ms 250ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .ondas span {
+    animation: falar 500ms ease-in-out 6 alternate;
+  }
+
+  .ondas span:nth-child(2) { animation-delay: 120ms; }
+  .ondas span:nth-child(3) { animation-delay: 240ms; }
+  .ondas span:nth-child(4) { animation-delay: 360ms; }
+}
+
+@keyframes leque {
+  from {
+    transform: none;
+  }
+}
+
+@keyframes falar {
+  to {
+    transform: scaleY(0.55);
+  }
+}

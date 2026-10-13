@@ -52,8 +52,9 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 src/
 ├── app/                        # Páginas (todas "use client")
 │   ├── layout.tsx              # <html lang="pt-BR">, fontes, ThemeProvider, SkipLink, Header
-│   ├── page.tsx                # /                      Lista de baralhos
-│   ├── baralhos/novo/          # /baralhos/novo/        Criar baralho (nome + importação opcional)
+│   ├── page.tsx                # /                      Landing page (apresentação do produto, pública)
+│   ├── baralhos/               # /baralhos/             Lista de baralhos de quem usa o app
+│   │   └── novo/               # /baralhos/novo/        Criar baralho (nome + importação opcional)
 │   ├── baralho/                # /baralho/?id=slug      Detalhe do baralho e lista de fichas
 │   │   └── adicionar/          # /baralho/adicionar/?id=slug   Escrever fichas ou importar arquivo
 │   └── estudar/                # /estudar/?deck=slug    Sessão de estudo
@@ -76,13 +77,14 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 
 | Rota | Página | Parâmetro |
 |---|---|---|
-| `/` | Lista de baralhos | — |
+| `/` | Landing page (apresentação do produto) | — |
+| `/baralhos/` | Lista de baralhos | — |
 | `/baralhos/novo/` | Novo baralho (âncora `#importar` leva à importação) | — |
 | `/baralho/?id=<slug>` | Detalhe do baralho | `id` = slug ou id |
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
 | `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.home`. Não escreva caminhos à mão.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos) e `routes.home` (landing page). Não escreva caminhos à mão.
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
 - Nova página: crie `src/app/<rota>/page.tsx` + `page.module.scss` e adicione o endereço em `routes.ts`.
@@ -146,7 +148,7 @@ import styles from "./page.module.scss";
 function BackLink() {
   return (
     <nav aria-label="Navegação estrutural">
-      <Link href={routes.home} className={styles.backLink}>
+      <Link href={routes.decks} className={styles.backLink}>
         <ArrowLeft aria-hidden="true" />
         <span>Meus baralhos</span>
       </Link>
@@ -183,7 +185,7 @@ function ExemploContent() {
       <main id="main-content" className={styles.main}>
         <BackLink />
         <h1 className={styles.title}>Baralho não encontrado</h1>
-        <Button href={routes.home} variant="primary">Voltar aos meus baralhos</Button>
+        <Button href={routes.decks} variant="primary">Voltar aos meus baralhos</Button>
       </main>
     );
   }
@@ -263,7 +265,7 @@ export default function ExemploPage() {
 | `--ring` | Anel de foco (3px, com afastamento de 3px) |
 | `--skeleton`, `--skeleton-shine` | Blocos de carregamento |
 
-- **Nunca** coloque cores hexadecimais em componentes; use as variáveis. Exceções já existentes: tons das iniciais de baralho (`DeckCard`) e o logotipo.
+- **Nunca** coloque cores hexadecimais em componentes; use as variáveis. Exceções já existentes: tons das iniciais de baralho (`DeckCard`), a ficha de trás do logotipo (`Logo`) e os tons decorativos da landing page (`page.tsx` da raiz e `LandingDemo`).
 - Todo estilo novo precisa funcionar nos **dois temas**.
 
 **Mixins** (`_mixins.scss`): `surface` (painel arredondado com borda e sombra), `soft-label` (rótulos como "Pergunta"), `back-link`, `focus-ring`, `sr-only`, `respond-to($bp)`.
@@ -279,11 +281,13 @@ export default function ExemploPage() {
 | `Dialog` | Modal nativo com título, conteúdo e `footer` de ações |
 | `HelpDialog` | Ajuda com seções recolhíveis; abre na seção da tela atual |
 | `Header` | Logo, "Meus baralhos", botão Ajuda e troca de tema |
-| `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da página inicial e sua versão de carregamento |
+| `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
+| `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
 | `FileImport` | Seleção de arquivo TXT/CSV/JSON com prévia; não salva nada (a página decide) |
 | `Skeleton`, `LoadingStatus` | Bloco de carregamento decorativo + texto anunciado ao leitor de tela |
 | `Kbd` | Tecla de atalho — usado só dentro da Ajuda |
-| `Logo`, `SkipLink`, `ThemeToggle`, `ThemeProvider` | Estrutura global |
+| `Logo`, `LogoIcon` | Marca: pilha de fichas com barras de voz. O vão entre as fichas é uma máscara SVG, então funciona sobre qualquer fundo e em uma cor só. Arquivos da marca em `docs/logo/` |
+| `SkipLink`, `ThemeToggle`, `ThemeProvider` | Estrutura global |
 | `Badge`, `Card`, `cn()` (`lib/utils`) | Existem, mas **não são usados**; prefira o mixin `surface` e template strings |
 
 ---

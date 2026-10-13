@@ -32,7 +32,7 @@ function EstudarLoading() {
   return (
     <main id="main-content" className={`${styles.main} ${styles.studyMain}`}>
       <div className={styles.topBar}>
-        <BackLink href={routes.home} label="Sair" />
+        <BackLink href={routes.decks} label="Sair" />
         <Skeleton width="5.5rem" height="2.875rem" radius="9999px" />
       </div>
       <LoadingStatus>Preparando as fichas...</LoadingStatus>
@@ -251,13 +251,13 @@ function EstudarContent() {
   if (!deck) {
     return (
       <main id="main-content" className={styles.main}>
-        <BackLink href={routes.home} label="Meus baralhos" />
+        <BackLink href={routes.decks} label="Meus baralhos" />
         <section className={styles.messageCard}>
           <h1 className={styles.messageTitle}>Baralho não encontrado</h1>
           <p className={styles.messageText}>
             Não foi possível carregar as fichas deste baralho.
           </p>
-          <Button href={routes.home} variant="primary" size="lg">
+          <Button href={routes.decks} variant="primary" size="lg">
             Voltar aos baralhos
           </Button>
         </section>
@@ -331,7 +331,7 @@ function EstudarContent() {
               <RotateCcw aria-hidden="true" />
               <span>Estudar de novo</span>
             </Button>
-            <Button variant="secondary" size="md" block href={routes.home}>
+            <Button variant="secondary" size="md" block href={routes.decks}>
               Voltar aos baralhos
             </Button>
           </div>

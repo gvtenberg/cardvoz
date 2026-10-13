@@ -82,7 +82,7 @@ export default function NovoBaralhoPage() {
   return (
     <main id="main-content" className={styles.main}>
       <nav aria-label="Navegação estrutural">
-        <Link href={routes.home} className={styles.backLink}>
+        <Link href={routes.decks} className={styles.backLink}>
           <ArrowLeft aria-hidden="true" />
           <span>Meus baralhos</span>
         </Link>
@@ -127,7 +127,7 @@ export default function NovoBaralhoPage() {
           <Button type="submit" variant="primary" size="lg" block disabled={isSubmitting}>
             {submitLabel}
           </Button>
-          <Button href={routes.home} variant="ghost" size="md" block>
+          <Button href={routes.decks} variant="ghost" size="md" block>
             Cancelar
           </Button>
         </div>

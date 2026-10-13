@@ -96,12 +96,12 @@ cardvoz/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx          # RootLayout, ThemeProvider e SkipLink
-│   │   ├── page.tsx            # Página inicial com baralhos e atalhos
-│   │   ├── page.module.scss    # Estilos SCSS da página inicial
+│   │   ├── page.tsx            # Landing page (apresentação do produto)
+│   │   ├── page.module.scss    # Estilos SCSS da landing page
 │   │   ├── estudar/
 │   │   │   ├── page.tsx        # Fluxo de estudo ativo por voz e teclado
 │   │   │   └── page.module.scss# Estilos SCSS do estudo ativo
-│   │   ├── baralhos/
+│   │   ├── baralhos/           # Lista de baralhos
 │   │   │   └── novo/           # Criação de novo baralho (com importação)
 │   │   └── baralho/            # Detalhes do baralho (?id=slug)
 │   │       └── adicionar/      # Adição de fichas e importação (?id=slug)

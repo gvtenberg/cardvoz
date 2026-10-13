@@ -12,7 +12,7 @@ import styles from "./page.module.scss";
 function BackLink() {
   return (
     <nav aria-label="Navegação estrutural">
-      <Link href={routes.home} className={styles.backLink}>
+      <Link href={routes.decks} className={styles.backLink}>
         <ArrowLeft aria-hidden="true" />
         <span>Meus baralhos</span>
       </Link>
@@ -96,7 +96,7 @@ function DeckDetailContent() {
       setShowConfirmDelete(false);
       setStatusMessage("Baralho excluído.");
       setTimeout(() => {
-        router.push(routes.home);
+        router.push(routes.decks);
       }, 600);
     } catch (error) {
       console.error(error);
@@ -119,7 +119,7 @@ function DeckDetailContent() {
           <p className={styles.emptyText}>
             Este baralho não existe mais ou o endereço está incorreto.
           </p>
-          <Button href={routes.home} variant="primary">
+          <Button href={routes.decks} variant="primary">
             Voltar aos meus baralhos
           </Button>
         </div>

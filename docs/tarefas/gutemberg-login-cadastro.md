@@ -249,16 +249,16 @@ Siga a composição de página do `AGENTS.md` (seção 8): `main` de `40rem`, `h
 - `429`: mostre a mensagem que vem da API (ela já diz quantos minutos esperar).
 - Enquanto envia: botão desabilitado com "Entrando..." / "Criando conta...", para evitar envio duplo.
 
-**Depois de entrar:** vá para o endereço em `?voltar=`, se for seguro (veja abaixo), ou para a página inicial.
+**Depois de entrar:** vá para o endereço em `?voltar=`, se for seguro (veja abaixo), ou para a lista de baralhos (`routes.decks`).
 
 **Links:** "Ainda não tem conta? **Criar conta**" no login e "Já tem conta? **Entrar**" no cadastro.
 
 **Endereço de retorno seguro (contra "open redirect"):**
 
 ```ts
-/** Só aceita caminhos internos do site; qualquer outra coisa volta para a página inicial. */
+/** Só aceita caminhos internos do site; qualquer outra coisa vai para a lista de baralhos. */
 export function destinoSeguro(voltar: string | null): string {
-  return voltar && /^\/(?![\\/])/.test(voltar) ? voltar : routes.home;
+  return voltar && /^\/(?![\\/])/.test(voltar) ? voltar : routes.decks;
 }
 ```
 
@@ -268,9 +268,10 @@ export function destinoSeguro(voltar: string | null): string {
 
 No `layout.tsx`, dentro do `AuthProvider`:
 
-- Rotas **públicas**: `/entrar/` e `/cadastro/`.
+- Rotas **públicas**: `/` (landing page), `/entrar/` e `/cadastro/`.
 - Em qualquer outra rota: com `status === "carregando"`, mostre um skeleton da página (padrão `Skeleton` + `LoadingStatus` com "Verificando sua sessão..."). Com `"deslogado"`, redirecione para `/entrar/?voltar=<caminho + query atual>`.
-- Se alguém **já logado** abrir `/entrar/` ou `/cadastro/`, mande para a página inicial.
+- Se alguém **já logado** abrir `/entrar/` ou `/cadastro/`, mande para a lista de baralhos (`routes.decks`).
+- Na landing page (`src/app/page.tsx`), os botões "Começar a estudar" e "Começar agora" hoje levam para `routes.decks`. Troque para o cadastro (`/cadastro/`) quando ele existir.
 
 **Importante:** essa proteção é só **experiência de uso**. Quem protege os dados de verdade é a API (sem token não há dados, e o baralho de outra pessoa responde 404). Nunca confie na checagem do frontend como segurança.
 
@@ -349,7 +350,7 @@ No `layout.tsx`, dentro do `AuthProvider`:
 - [ ] Recarregar a página continua logado; fechar e abrir o navegador também.
 - [ ] Renovação: force um accessToken inválido e veja se a próxima chamada renova sozinha. Dica: em desenvolvimento, exponha `window.__cardvozInvalidarToken = () => { accessToken = "invalido"; }` só quando `process.env.NODE_ENV === "development"`.
 - [ ] Duas abas abertas: as duas continuam funcionando depois de 15 minutos; logout numa desloga a outra.
-- [ ] `/entrar/?voltar=https://exemplo.com` vai para a página inicial depois do login.
+- [ ] `/entrar/?voltar=https://exemplo.com` vai para a lista de baralhos depois do login.
 - [ ] Logout: o refreshToken antigo não funciona mais (teste no Swagger, em `/api/auth/refresh`).
 - [ ] Menu: abre, fecha com `Esc` (foco volta ao botão), fecha ao navegar; leitor de tela anuncia "expandido/recolhido".
 - [ ] **TalkBack (Android) e NVDA (Windows)**: formulário lido na ordem certa, erros anunciados, foco no campo com erro.

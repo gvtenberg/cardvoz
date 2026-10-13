@@ -25,51 +25,33 @@
   }
 }
 
-.iconContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.iconSvg {
+  display: block;
   flex-shrink: 0;
 }
 
-.iconSvg {
-  display: block;
-  height: auto;
-  overflow: visible;
-}
-
-// --- Cores Dinâmicas do Ícone Vetorial (WCAG AAA) ---
-.backCard {
-  fill: #0F172A;
-  stroke: transparent;
-  stroke-width: 2px;
-  transition: fill $transition-fast, stroke $transition-fast;
-
-  :global(.dark) &,
-  :global([data-theme="dark"]) & {
-    fill: #1E2D4A;
-    stroke: #2B3F66;
-  }
-}
-
-.frontCard {
-  fill: #2846C4;
+// --- Cores do ícone (acompanham o tema) ---
+// Exceção documentada no AGENTS.md: a ficha de trás usa um azul-claro próprio da marca.
+.back {
+  fill: #C9D5FF;
   transition: fill $transition-fast;
 
   :global(.dark) &,
   :global([data-theme="dark"]) & {
-    fill: #3B82F6;
+    fill: #3A4A86;
   }
 }
 
-.soundArc {
-  fill: #0F172A;
+.front {
+  fill: var(--primary);
   transition: fill $transition-fast;
+}
 
-  :global(.dark) &,
-  :global([data-theme="dark"]) & {
-    fill: #60A5FA;
-  }
+.bars {
+  fill: none;
+  stroke: var(--primary-fg);
+  stroke-width: 4.5;
+  stroke-linecap: round;
 }
 
 // --- Tipografia Nunito da Marca ---

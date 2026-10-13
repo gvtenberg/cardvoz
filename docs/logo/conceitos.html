@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logo do CardVoz: conceitos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Nunito:wght@800;900&display=swap">
+<style>
+/* Página de comparação: cada conceito numa faixa, testado nos mesmos tamanhos, temas e usos */
+:root {
+  color-scheme: light;
+  --bg: #F7F4EE; --surface: #FFFFFF; --border: #E7E1D6;
+  --ink: #18215A; --text: #1F2437; --muted: #4B5165;
+  --primary: #2846C4; --soft: #C9D5FF;
+  --dark-bg: #12151F; --dark-surface: #1B2030; --dark-ink: #F4F6FC; --dark-primary: #8FA8FF; --dark-soft: #3A4A86;
+  --font-display: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 1.125rem; line-height: 1.6; padding: 2rem clamp(1rem, 4vw, 3rem) 4rem; }
+h1, h2 { font-family: var(--font-display); color: var(--ink); line-height: 1.15; }
+h1 { font-size: clamp(2rem, 3vw + 1rem, 3rem); font-weight: 900; }
+.intro { max-width: 46rem; color: var(--muted); margin-top: 0.75rem; }
+.conceito { margin-top: 3rem; background: var(--surface); border: 1px solid var(--border); border-radius: 2rem; padding: clamp(1.25rem, 3vw, 2rem); display: grid; gap: 1.5rem; }
+.conceito header { display: flex; flex-direction: column; gap: 0.35rem; }
+.conceito h2 { font-size: 1.75rem; font-weight: 900; }
+.conceito header p { color: var(--muted); max-width: 48rem; }
+.etiqueta { align-self: flex-start; font-weight: 700; font-size: 1rem; padding: 0.15rem 0.75rem; border-radius: 999px; background: #E8EDFF; color: #1F3AA8; }
+.etiqueta.atual { background: #FDE9E7; color: #9B1C1C; }
+.grade { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.quadro { border-radius: 1.25rem; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start; min-width: 0; }
+.quadro small { font-size: 1rem; font-weight: 700; }
+.claro { background: var(--bg); color: var(--muted); --c-main: var(--primary); --c-soft: var(--soft); --c-ink: var(--ink); --c-on: #FFFFFF; }
+.escuro { background: var(--dark-bg); color: #B7BDD2; --c-main: var(--dark-primary); --c-soft: var(--dark-soft); --c-ink: var(--dark-ink); --c-on: #0D1433; }
+.mono { background: #FFFFFF; color: var(--muted); border: 1px solid var(--border); --c-main: #000000; --c-soft: #000000; --c-ink: #000000; --c-on: #FFFFFF; }
+.tamanhos { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+.tamanhos figure { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+.tamanhos figcaption { font-size: 1rem; }
+.marca { display: inline-flex; align-items: center; gap: 0.6rem; }
+.marca span { font-family: var(--font-display); font-weight: 900; font-size: 1.9rem; letter-spacing: -0.01em; color: var(--c-ink); }
+.marca b { color: var(--c-main); }
+/* Ícone de app: desenho claro sobre o fundo da cor principal. Só variáveis de cor
+   atravessam o <use>, então a troca de cores é feita nelas, não em seletores. */
+.app { --app-bg: var(--c-main); --app-fg: var(--c-on); border-radius: 22%; background: var(--app-bg); display: inline-flex; align-items: center; justify-content: center; }
+.app svg { --c-main: var(--app-fg); --c-soft: color-mix(in srgb, var(--app-fg) 55%, transparent); --c-ink: var(--app-fg); --c-on: var(--app-bg); }
+.aba { display: inline-flex; align-items: center; gap: 0.5rem; background: #DEE1E6; color: #1F2437; border-radius: 0.6rem 0.6rem 0 0; padding: 0.4rem 0.9rem; font-size: 1rem; }
+.aba svg { --c-main: #2846C4; --c-soft: #8FA0E6; --c-ink: #18215A; }
+/* As peças do ícone pegam as cores do quadro onde estão */
+.f-main { fill: var(--c-main); }
+.f-soft { fill: var(--c-soft); }
+.f-ink { fill: var(--c-ink); }
+.s-main { stroke: var(--c-main); fill: none; stroke-linecap: round; }
+.s-on { stroke: var(--c-on); fill: none; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<h1>Logo do CardVoz: conceitos</h1>
+<p class="intro">Três propostas ao lado da logo atual, todas testadas do mesmo jeito: em tamanho grande, como ícone de aba (16 e 32px), nos temas claro e escuro, em uma cor só (para impressão e alto contraste) e como ícone de aplicativo. Para quem tem baixa visão, uma logo boa continua reconhecível pequena e sem cor.</p>
+
+<!-- Ícones reutilizáveis -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Atual: duas fichas e arcos traçados (polígonos) -->
+    <symbol id="atual" viewBox="0 0 673 409">
+      <rect x="40" y="40" width="368" height="262" rx="34" class="f-ink"/>
+      <rect x="111" y="111" width="369" height="263" rx="34" class="f-main"/>
+      <path class="f-ink" d="M 517,166 L 525,168 L 533,178 L 539,190 L 544,211 L 542,237 L 539,246 L 529,264 L 522,270 L 515,270 L 509,265 L 508,262 L 509,254 L 519,238 L 523,218 L 519,198 L 508,179 L 509,172 L 511,169 L 516,167 Z"/>
+      <path class="f-ink" d="M 550,133 L 557,135 L 563,141 L 577,164 L 584,183 L 589,212 L 588,235 L 582,260 L 572,282 L 560,299 L 554,303 L 547,303 L 540,295 L 542,286 L 557,265 L 563,250 L 567,232 L 567,204 L 564,190 L 554,166 L 541,148 L 542,138 L 549,134 Z"/>
+      <path class="f-ink" d="M 581,101 L 587,101 L 592,104 L 603,118 L 615,138 L 627,169 L 633,200 L 633,236 L 626,271 L 614,300 L 593,331 L 588,335 L 579,335 L 573,328 L 573,322 L 589,300 L 603,272 L 611,240 L 612,205 L 609,185 L 603,164 L 591,139 L 575,118 L 573,113 L 575,105 L 580,102 Z"/>
+    </symbol>
+    <!-- A: uma ficha arredondada que "fala" (dois arcos de som saindo dela) -->
+    <symbol id="conceito-a" viewBox="0 0 64 64">
+      <rect x="5" y="14" width="34" height="36" rx="8" class="f-main"/>
+      <path class="s-on" stroke-width="4" d="M13 26h18M13 36h11"/>
+      <path class="s-main" stroke-width="5.5" d="M45.5 25.6a9 9 0 0 1 0 12.8"/>
+      <path class="s-main" stroke-width="5.5" d="M51.2 19.9a17 17 0 0 1 0 24.2"/>
+    </symbol>
+    <!-- B: pilha de fichas com barras de voz (nível de áudio) na ficha da frente -->
+    <symbol id="conceito-b" viewBox="0 0 64 64">
+      <rect x="15" y="7" width="42" height="32" rx="8" class="f-soft"/>
+      <rect x="7" y="19" width="46" height="38" rx="9" class="f-main"/>
+      <path class="s-on" stroke-width="4.5" d="M19 35v6M26 31v14M33 33v10M40 36v4"/>
+    </symbol>
+    <!-- C: a letra C (de Card) aberta para a direita, com ondas de som passando pela abertura -->
+    <symbol id="conceito-c" viewBox="0 0 64 64">
+      <path class="s-main" stroke-width="9" d="M35.3 20.7a16 16 0 1 0 0 22.6"/>
+      <circle cx="24" cy="32" r="4.5" class="f-main"/>
+      <path class="s-main" stroke-width="5.5" d="M44.4 19.3a24 24 0 0 1 0 25.4"/>
+      <path class="s-main" stroke-width="5.5" d="M50.3 15.6a31 31 0 0 1 0 32.8"/>
+    </symbol>
+  </defs>
+</svg>
+
+<template id="modelo">
+  <div class="grade">
+    <div class="quadro claro">
+      <small>Tema claro</small>
+      <div class="marca"><svg data-icone width="56" height="56" aria-hidden="true"><use/></svg><span>Card<b>Voz</b></span></div>
+      <div class="tamanhos">
+        <figure><svg data-icone width="64" height="64" aria-hidden="true"><use/></svg><figcaption>64</figcaption></figure>
+        <figure><svg data-icone width="32" height="32" aria-hidden="true"><use/></svg><figcaption>32</figcaption></figure>
+        <figure><svg data-icone width="16" height="16" aria-hidden="true"><use/></svg><figcaption>16</figcaption></figure>
+      </div>
+    </div>
+    <div class="quadro escuro">
+      <small>Tema escuro</small>
+      <div class="marca"><svg data-icone width="56" height="56" aria-hidden="true"><use/></svg><span>Card<b>Voz</b></span></div>
+      <div class="tamanhos">
+        <figure><svg data-icone width="64" height="64" aria-hidden="true"><use/></svg><figcaption>64</figcaption></figure>
+        <figure><svg data-icone width="32" height="32" aria-hidden="true"><use/></svg><figcaption>32</figcaption></figure>
+        <figure><svg data-icone width="16" height="16" aria-hidden="true"><use/></svg><figcaption>16</figcaption></figure>
+      </div>
+    </div>
+    <div class="quadro mono">
+      <small>Uma cor só</small>
+      <div class="marca"><svg data-icone width="56" height="56" aria-hidden="true"><use/></svg><span>Card<b>Voz</b></span></div>
+      <div class="tamanhos">
+        <figure><svg data-icone width="32" height="32" aria-hidden="true"><use/></svg><figcaption>32</figcaption></figure>
+        <figure><svg data-icone width="16" height="16" aria-hidden="true"><use/></svg><figcaption>16</figcaption></figure>
+      </div>
+    </div>
+    <div class="quadro claro">
+      <small>Ícone de app e aba</small>
+      <div class="tamanhos">
+        <figure><span class="app" style="width:72px;height:72px"><svg data-icone width="52" height="52" aria-hidden="true"><use/></svg></span><figcaption>app</figcaption></figure>
+      </div>
+      <span class="aba"><svg data-icone width="16" height="16" aria-hidden="true"><use/></svg>CardVoz</span>
+    </div>
+  </div>
+</template>
+
+<section class="conceito" data-simbolo="atual" aria-labelledby="t-atual">
+  <header>
+    <span class="etiqueta atual">Logo atual</span>
+    <h2 id="t-atual">Duas fichas e ondas traçadas</h2>
+    <p>Arcos desenhados como polígonos (bordas serrilhadas quando ampliados). Em 16px, fichas e arcos se misturam, e a ficha escura de trás pesa no tema claro.</p>
+  </header>
+</section>
+
+<section class="conceito" data-simbolo="conceito-a" aria-labelledby="t-a">
+  <header>
+    <span class="etiqueta">Conceito A</span>
+    <h2 id="t-a">A ficha que fala</h2>
+    <p>Uma única ficha arredondada, com duas linhas de texto, e duas ondas de som saindo dela. É a ideia do produto em um desenho só: fichas de estudo que você ouve. Curvas de verdade e traços grossos, que continuam nítidos pequenos.</p>
+  </header>
+</section>
+
+<section class="conceito" data-simbolo="conceito-b" aria-labelledby="t-b">
+  <header>
+    <span class="etiqueta">Conceito B</span>
+    <h2 id="t-b">Pilha com voz</h2>
+    <p>Mantém a pilha de fichas da logo atual, mais leve (a de trás em azul-claro), e troca os arcos por barras de áudio dentro da ficha. Fica mais próxima do que já foi aprovado e funciona bem como ícone quadrado de app.</p>
+  </header>
+</section>
+
+<section class="conceito" data-simbolo="conceito-c" aria-labelledby="t-c">
+  <header>
+    <span class="etiqueta">Conceito C</span>
+    <h2 id="t-c">O C que fala</h2>
+    <p>A letra C, de Card, aberta para a direita, com ondas de som passando pela abertura. É o mais simples e o mais marcante dos três: reconhecível até em 16px e em uma cor só, como um símbolo.</p>
+  </header>
+</section>
+
+<script>
+  // Monta as mesmas provas para cada conceito a partir do modelo
+  const modelo = document.getElementById("modelo");
+  document.querySelectorAll(".conceito").forEach((secao) => {
+    const copia = modelo.content.cloneNode(true);
+    copia.querySelectorAll("svg[data-icone]").forEach((svg) => {
+      svg.setAttribute("viewBox", secao.dataset.simbolo === "atual" ? "0 0 673 409" : "0 0 64 64");
+      svg.querySelector("use").setAttribute("href", "#" + secao.dataset.simbolo);
+    });
+    secao.appendChild(copia);
+  });
+</script>
+</body>
+</html>
