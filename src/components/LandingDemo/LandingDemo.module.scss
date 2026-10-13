@@ -23,11 +23,12 @@
   color: var(--text-muted);
 }
 
-// Margem lateral para as fichas giradas do fundo não saírem da tela no celular
+// Margens para as fichas giradas do fundo não saírem da tela no celular nem
+// cobrirem o título acima e a dica abaixo (o canto girado desce até ~2rem)
 .pilha {
   position: relative;
   isolation: isolate;
-  margin-inline: 1rem;
+  margin: 0.75rem 1rem 2.25rem;
 }
 
 .fundo {

@@ -1,32 +1,32 @@
-import { ALargeSmall, CircleCheck, Lock, Volume2 } from "lucide-react";
+import { Headphones, PencilLine, Trophy, Upload } from "lucide-react";
 import { Button, LandingDemo } from "@/components";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 const RECURSOS = [
   {
-    icone: Volume2,
+    icone: PencilLine,
     tom: styles.tom1,
-    titulo: "Com o leitor de tela que você já usa",
-    texto: "Cada pergunta é lida assim que aparece, na voz e na velocidade que você já conhece. Sem uma segunda voz falando por cima.",
+    titulo: "Crie seus próprios cartões",
+    texto: "Escreva cada pergunta e a resposta do seu jeito, para a matéria ou a prova que você quiser.",
   },
   {
-    icone: CircleCheck,
+    icone: Headphones,
     tom: styles.tom2,
-    titulo: "“Acertei” sempre no mesmo lugar",
-    texto: "Os botões grandes ficam sempre embaixo, na mesma posição. Depois de algumas fichas, a mão encontra “Acertei” sem precisar procurar.",
+    titulo: "Estude ouvindo ou lendo",
+    texto: "Ouça as perguntas com o leitor de tela do celular ou do computador, ou leia em letras grandes.",
   },
   {
-    icone: ALargeSmall,
+    icone: Upload,
     tom: styles.tom3,
-    titulo: "Letras grandes, tela limpa",
-    texto: "A pergunta aparece em destaque, com letra grande e fácil de ler, sem nada piscando em volta. Você escolhe o fundo claro ou escuro.",
+    titulo: "Traga suas perguntas prontas",
+    texto: "Já tem uma lista ou planilha? Importe tudo de uma vez, e cada linha vira um cartão.",
   },
   {
-    icone: Lock,
+    icone: Trophy,
     tom: styles.tom4,
-    titulo: "Seus baralhos são só seus",
-    texto: "Com a sua conta, suas fichas ficam guardadas para a próxima vez, e ninguém mais vê o que você estuda.",
+    titulo: "Veja quanto você acertou",
+    texto: "No fim de cada rodada, você vê quantas acertou e pode estudar de novo.",
   },
 ];
 
@@ -43,10 +43,9 @@ const PASSOS = [
 
 const DUVIDAS = [
   { pergunta: "Preciso instalar alguma coisa?", resposta: "Não. O CardVoz abre direto no navegador do celular ou do computador." },
-  { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack no Android, o NVDA no Windows e o VoiceOver no iPhone e no Mac." },
+  { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack, no Android, e com o NVDA, no Windows." },
   { pergunta: "Dá para usar no computador?", resposta: "Sim. No computador, dá para estudar só com o teclado: a barra de espaço mostra a resposta, a tecla 1 marca “Acertei” e a tecla 2 marca “Errei”." },
-  { pergunta: "Minhas fichas ficam salvas?", resposta: "Ficam. Elas ficam na sua conta, e você continua de onde parou em qualquer aparelho." },
-  { pergunta: "Já tenho minhas perguntas numa lista. Preciso digitar tudo de novo?", resposta: "Não. Dá para trazer uma lista ou planilha inteira de uma vez, e cada linha vira uma ficha." },
+  { pergunta: "Meus cartões ficam salvos?", resposta: "Sim. Seus baralhos ficam guardados para você estudar quando quiser." },
 ];
 
 export default function LandingPage() {
@@ -76,7 +75,6 @@ export default function LandingPage() {
                 <ul>
                   <li>TalkBack</li>
                   <li>NVDA</li>
-                  <li>VoiceOver</li>
                 </ul>
               </div>
             </div>
@@ -88,8 +86,8 @@ export default function LandingPage() {
         <section className={styles.secao} aria-labelledby="para-quem-titulo">
           <div className={styles.wrap}>
             <div className={styles.cabeca}>
-              <h2 id="para-quem-titulo">Feito para quem estuda ouvindo</h2>
-              <p>Cada detalhe foi pensado para quem usa leitor de tela ou enxerga pouco.</p>
+              <h2 id="para-quem-titulo">Tudo o que você precisa para estudar</h2>
+              <p>Simples de usar, no celular ou no computador.</p>
             </div>
             <div className={styles.recursos}>
               {RECURSOS.map(({ icone: Icone, tom, titulo, texto }) => (
@@ -157,7 +155,7 @@ export default function LandingPage() {
           <div className={styles.wrap}>
             <div className={styles.chamada}>
               <h2 id="comecar-titulo">Monte seu primeiro baralho hoje</h2>
-              <p>Escreva algumas fichas e faça a primeira revisão com o leitor de tela que você já conhece.</p>
+              <p>Crie seus cartões e comece a estudar.</p>
               <Button href={routes.decks} size="md" className={styles.chamadaBotao}>
                 Começar agora
               </Button>

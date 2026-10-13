@@ -157,7 +157,7 @@ export function LandingDemo() {
         </article>
       </div>
 
-      <p className={styles.dica}>&ldquo;Acertei&rdquo; fica sempre no mesmo lugar, e funciona até sem abrir a resposta.</p>
+      <p className={styles.dica}>Toque em &ldquo;Ver resposta&rdquo; para conferir, ou em &ldquo;Acertei&rdquo; se já souber.</p>
 
       {/* Barras de voz da marca, ao lado da pilha */}
       <div className={styles.ondas} aria-hidden="true">
