@@ -11,5 +11,6 @@ export * from "./DeckCard";
 export * from "./Dialog";
 export * from "./HelpDialog";
 export * from "./FileImport";
+export * from "./Skeleton";
 export * from "./ThemeProvider";
 export * from "./Logo";

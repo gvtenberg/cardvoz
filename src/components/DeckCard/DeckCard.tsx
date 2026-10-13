@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 import { routes } from "@/lib/routes";
 import { Button } from "../Button";
+import { Skeleton } from "../Skeleton";
 import styles from "./DeckCard.module.scss";
 
 export interface DeckProps {
@@ -63,5 +64,24 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
         </Button>
       </div>
     </article>
+  );
+}
+
+/** Versão de carregamento do cartão, com o mesmo tamanho do cartão real. */
+export function DeckCardSkeleton() {
+  return (
+    <div className={styles.deckCard} aria-hidden="true">
+      <div className={styles.top}>
+        <Skeleton width="3.5rem" height="3.5rem" radius="1.5rem" />
+        <div className={`${styles.info} ${styles.skeletonInfo}`}>
+          <Skeleton width="70%" height="1.5rem" />
+          <Skeleton width="40%" height="1.125rem" />
+        </div>
+      </div>
+      <div className={styles.actions}>
+        <Skeleton height="3.5rem" radius="9999px" />
+        <Skeleton height="3.5rem" radius="9999px" />
+      </div>
+    </div>
   );
 }

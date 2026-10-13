@@ -4,7 +4,7 @@ import React, { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Textarea, Button, FileImport } from "@/components";
+import { Textarea, Button, FileImport, Skeleton } from "@/components";
 import { getDeck, createCard, createCards, type DeckDetailResponse } from "@/lib/api";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
@@ -17,6 +17,7 @@ function NovoCartaoContent() {
   const questionRef = useRef<HTMLTextAreaElement>(null);
 
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
+  const [deckLoading, setDeckLoading] = useState(Boolean(deckIdOrSlug));
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [formError, setFormError] = useState("");
@@ -30,9 +31,11 @@ function NovoCartaoContent() {
 
   useEffect(() => {
     if (deckIdOrSlug) {
-      getDeck(deckIdOrSlug).then((data) => {
-        if (data) setDeck(data);
-      });
+      getDeck(deckIdOrSlug)
+        .then((data) => {
+          if (data) setDeck(data);
+        })
+        .finally(() => setDeckLoading(false));
     }
   }, [deckIdOrSlug]);
 
@@ -109,6 +112,7 @@ function NovoCartaoContent() {
 
       <div>
         <h1 className={styles.title}>Adicionar fichas</h1>
+        {deckLoading && <Skeleton width="14rem" height="1.25rem" className={styles.subtitleSkeleton} />}
         {deck && <p className={styles.subtitle}>Em {deck.title}</p>}
       </div>
 

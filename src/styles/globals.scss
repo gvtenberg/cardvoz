@@ -30,6 +30,8 @@
   --danger-soft-hover: #{$color-light-danger-soft-hover};
   --danger-text: #{$color-light-danger-text};
   --answer-bg: #{$color-light-answer-bg};
+  --skeleton: #E4DCCE;
+  --skeleton-shine: #F2ECE2;
   --header-bg: rgba(247, 244, 238, 0.9);
   --backdrop: rgba(24, 33, 90, 0.35);
   --shadow-soft: #{$shadow-soft};
@@ -62,6 +64,8 @@
   --danger-soft-hover: #{$color-dark-danger-soft-hover};
   --danger-text: #{$color-dark-danger-text};
   --answer-bg: #{$color-dark-answer-bg};
+  --skeleton: #262C3F;
+  --skeleton-shine: #313950;
   --header-bg: rgba(18, 21, 31, 0.9);
   --backdrop: rgba(0, 0, 0, 0.6);
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -151,6 +155,7 @@ svg {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 

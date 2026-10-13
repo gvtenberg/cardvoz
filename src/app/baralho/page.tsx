@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
-import { Button, Dialog } from "@/components";
+import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
 import { getDeck, deleteDeck, type DeckDetailResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -24,9 +24,35 @@ function DeckLoading() {
   return (
     <main id="main-content" className={styles.main}>
       <BackLink />
-      <p role="status" className={styles.loading}>
-        Carregando baralho...
-      </p>
+      <LoadingStatus>Carregando baralho...</LoadingStatus>
+
+      <div aria-hidden="true" className={styles.skeletonGroup}>
+        <div className={styles.deckHeader}>
+          <div className={styles.skeletonLines}>
+            <Skeleton width="65%" height="2.5rem" />
+            <Skeleton width="6rem" height="1.25rem" />
+          </div>
+          <div className={styles.actions}>
+            <Skeleton height="4.5rem" radius="1.5rem" className={styles.skeletonButton} />
+            <Skeleton height="4.5rem" radius="1.5rem" className={styles.skeletonButton} />
+          </div>
+        </div>
+
+        <div className={styles.cardsSection}>
+          <Skeleton width="6rem" height="2rem" />
+          <div className={styles.cardsList}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className={styles.cardItem}>
+                <Skeleton width="2.5rem" height="2.5rem" radius="9999px" />
+                <div className={`${styles.cardContent} ${styles.skeletonLines}`}>
+                  <Skeleton width="85%" height="1.25rem" />
+                  <Skeleton width="50%" height="1.125rem" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

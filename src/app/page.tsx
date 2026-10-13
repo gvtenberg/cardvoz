@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DeckCard, Button } from "@/components";
+import { DeckCard, DeckCardSkeleton, Button, Skeleton, LoadingStatus } from "@/components";
 import { Plus, Upload } from "lucide-react";
 import { getDecks, type DeckResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
@@ -21,6 +21,7 @@ export default function HomePage() {
       <header className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Seus baralhos</h1>
+          {decks === null && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
           {decks && decks.length > 0 && (
             <p className={styles.pageSubtitle}>
               {decks.length} {decks.length === 1 ? "baralho" : "baralhos"} ·{" "}
@@ -42,9 +43,16 @@ export default function HomePage() {
       </header>
 
       {decks === null ? (
-        <p role="status" className={styles.loading}>
-          Carregando baralhos...
-        </p>
+        <>
+          <LoadingStatus>Carregando baralhos...</LoadingStatus>
+          <ul className={styles.decksGrid} aria-hidden="true">
+            {Array.from({ length: 4 }, (_, i) => (
+              <li key={i}>
+                <DeckCardSkeleton />
+              </li>
+            ))}
+          </ul>
+        </>
       ) : decks.length === 0 ? (
         <div className={styles.emptyState}>
           <h2 className={styles.emptyTitle}>Você ainda não tem baralhos</h2>

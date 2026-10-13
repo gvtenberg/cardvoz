@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from "react
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-react";
-import { Button } from "@/components";
+import { Button, Skeleton, LoadingStatus } from "@/components";
 import {
   getDeck,
   startStudySession,
@@ -30,11 +30,30 @@ function BackLink({ href, label }: { href: string; label: string }) {
 
 function EstudarLoading() {
   return (
-    <main id="main-content" className={styles.main}>
-      <BackLink href={routes.home} label="Meus baralhos" />
-      <p role="status" className={styles.loading}>
-        Preparando as fichas...
-      </p>
+    <main id="main-content" className={`${styles.main} ${styles.studyMain}`}>
+      <div className={styles.topBar}>
+        <BackLink href={routes.home} label="Sair" />
+        <Skeleton width="5.5rem" height="2.875rem" radius="9999px" />
+      </div>
+      <LoadingStatus>Preparando as fichas...</LoadingStatus>
+
+      <div className={styles.progressTrack} aria-hidden="true" />
+
+      <div className={styles.studyCard} aria-hidden="true">
+        <Skeleton width="45%" height="1.25rem" />
+        <div className={styles.skeletonLines}>
+          <Skeleton width="6rem" height="1rem" />
+          <Skeleton width="95%" height="2.25rem" />
+          <Skeleton width="70%" height="2.25rem" />
+        </div>
+      </div>
+
+      <div className={styles.actionBar} aria-hidden="true">
+        <div className={styles.actionGrid}>
+          <Skeleton radius="1.5rem" className={styles.skeletonAction} />
+          <Skeleton radius="1.5rem" className={styles.skeletonAction} />
+        </div>
+      </div>
     </main>
   );
 }

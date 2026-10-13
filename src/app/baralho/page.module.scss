@@ -20,9 +20,29 @@
   @include back-link;
 }
 
-.loading {
-  font-size: $font-size-lg;
-  color: var(--text-muted);
+// --- Skeleton de carregamento (mesmo layout da página pronta) ---
+.skeletonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  @include respond-to(sm) {
+    gap: 2rem;
+  }
+}
+
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// No celular os botões ocupam a largura toda, como os de verdade
+// (seletor composto para vencer o width: 100% padrão do Skeleton)
+.actions .skeletonButton {
+  @include respond-to(sm) {
+    width: 13rem;
+  }
 }
 
 .status {

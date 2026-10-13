@@ -61,6 +61,12 @@
   min-width: 0;
 }
 
+.skeletonInfo {
+  flex: 1;
+  gap: 0.625rem;
+  padding-top: 0.25rem;
+}
+
 .title {
   font-size: $font-size-xl;
   line-height: 1.3;

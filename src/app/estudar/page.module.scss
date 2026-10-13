@@ -29,9 +29,19 @@
   @include back-link;
 }
 
-.loading {
-  font-size: $font-size-lg;
-  color: var(--text-muted);
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// Mesma altura dos botões de ação reais (seletor composto vence o padrão do Skeleton)
+.actionGrid .skeletonAction {
+  height: 5.5rem;
+
+  @include respond-to(sm) {
+    height: 5rem;
+  }
 }
 
 // --- Barra superior e progresso ---

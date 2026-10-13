@@ -58,9 +58,10 @@
   }
 }
 
-.loading {
-  font-size: $font-size-lg;
-  color: var(--text-muted);
+// Ocupa a mesma altura do subtítulo "N baralhos · N fichas"
+.subtitleSkeleton {
+  margin-top: 0.625rem;
+  margin-bottom: 0.375rem;
 }
 
 .decksGrid {
