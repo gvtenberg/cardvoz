@@ -22,7 +22,7 @@ const atkinson = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-  title: "CardVoz — Fichas de Estudo Acessíveis",
+  title: "CardVoz - Fichas de Estudo Acessíveis",
   description:
     "Fichas de estudo e memorização ativa projetadas para pessoas cegas e com baixa visão, compatíveis com leitores de tela (TalkBack, NVDA e VoiceOver).",
 };
