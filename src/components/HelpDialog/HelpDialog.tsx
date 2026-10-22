@@ -7,13 +7,14 @@ import { Button } from "../Button";
 import { Kbd } from "../Kbd";
 import styles from "./HelpDialog.module.scss";
 
-type SectionId = "estudar" | "criar" | "importar" | "teclado";
+type SectionId = "estudar" | "criar" | "importar" | "teclado" | "conta";
 
 /** Escolhe a seção que já abre expandida conforme a tela em que a pessoa está. */
 function sectionForPath(pathname: string): SectionId {
   const path = pathname.replace(/\/+$/, "");
   if (path.startsWith("/estudar")) return "estudar";
   if (path.endsWith("/novo") || path.endsWith("/adicionar")) return "criar";
+  if (path.startsWith("/entrar") || path.startsWith("/perfil")) return "conta";
   return "estudar";
 }
 
@@ -64,8 +65,8 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
           <summary className={styles.summary}>Criar baralhos e fichas</summary>
           <ol className={styles.steps}>
             <li>
-              Na página inicial, toque em <strong>Novo baralho</strong> e dê um
-              nome.
+              Em <strong>Meus baralhos</strong>, toque em <strong>Novo baralho</strong>{" "}
+              e dê um nome.
             </li>
             <li>
               Dentro do baralho, toque em <strong>Adicionar fichas</strong> e
@@ -98,6 +99,29 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               JSON
             </a>
             .
+          </p>
+        </details>
+
+        <details className={styles.section} open={current === "conta"}>
+          <summary className={styles.summary}>Entrar e sair da conta</summary>
+          <ol className={styles.steps}>
+            <li>
+              Toque em <strong>Entrar com Google</strong> e escolha sua conta. Na
+              primeira vez, sua conta no CardVoz é criada sozinha.
+            </li>
+            <li>
+              Você continua conectado neste aparelho por até 30 dias, mesmo fechando o
+              navegador.
+            </li>
+            <li>
+              Para sair, abra o <strong>Menu</strong> e toque em{" "}
+              <strong>Sair da conta</strong>. No computador, essa opção fica no{" "}
+              <strong>Perfil</strong>.
+            </li>
+          </ol>
+          <p className={styles.text}>
+            Se o Google mostrar um erro ao abrir o CardVoz de dentro de outro
+            aplicativo, como o Instagram, abra o endereço no Chrome.
           </p>
         </details>
 

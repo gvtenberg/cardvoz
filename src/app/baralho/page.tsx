@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
 import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
-import { getDeck, deleteDeck, type DeckDetailResponse } from "@/lib/api";
+import { getDeck, deleteDeck, errorMessage, type DeckDetailResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -64,6 +64,7 @@ function DeckDetailContent() {
 
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -74,11 +75,12 @@ function DeckDetailContent() {
       return;
     }
     setLoading(true);
+    setLoadError("");
     try {
       const data = await getDeck(deckIdOrSlug);
       setDeck(data);
     } catch (err) {
-      console.error("Erro ao carregar baralho:", err);
+      setLoadError(errorMessage(err, "Não foi possível carregar o baralho. Tente de novo."));
     } finally {
       setLoading(false);
     }
@@ -110,6 +112,23 @@ function DeckDetailContent() {
     return <DeckLoading />;
   }
 
+  if (loadError) {
+    return (
+      <main id="main-content" className={styles.main}>
+        <BackLink />
+        <div className={styles.emptyState}>
+          <h1 className={styles.emptyTitle}>O baralho não carregou</h1>
+          <p role="alert" className={styles.emptyText}>
+            {loadError}
+          </p>
+          <Button variant="primary" onClick={loadDeck}>
+            Tentar de novo
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   if (!deck) {
     return (
       <main id="main-content" className={styles.main}>
@@ -127,7 +146,7 @@ function DeckDetailContent() {
     );
   }
 
-  const targetSlug = deck.slug || String(deck.id);
+  const targetSlug = deck.slug || deck.id;
   const cardList = deck.cards || [];
   const showCategory = deck.category && deck.category.toLowerCase() !== "geral";
 

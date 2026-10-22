@@ -20,21 +20,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
 
   @include respond-to(sm) {
     padding: 0 2rem;
   }
 }
 
-.nav {
+.tools {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.navLink {
+// --- Links em linha: só a partir de md (no celular e com zoom de 200%, vão para o menu) ---
+.inlineNav {
   display: none;
+
+  @include respond-to(md) {
+    display: block;
+  }
+}
+
+.inlineList {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.inlineOnly {
+  display: none;
+
+  @include respond-to(md) {
+    display: inline-flex;
+  }
+}
+
+.navLink {
+  display: inline-flex;
   align-items: center;
   min-height: $touch-sm;
   padding: 0.5rem 1rem;
@@ -44,7 +68,8 @@
   border-radius: $radius-full;
   transition: color $transition-fast, background-color $transition-fast;
 
-  &:hover {
+  &:hover,
+  &[aria-current="page"] {
     color: var(--ink);
     background-color: var(--surface);
   }
@@ -52,22 +77,17 @@
   &:focus-visible {
     @include focus-ring;
   }
-
-  @include respond-to(sm) {
-    display: inline-flex;
-  }
 }
 
-.helpButton {
+.helpButton,
+.menuButton {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   min-height: $touch-sm;
-  padding: 0.5rem 1.125rem 0.5rem 0.875rem;
+  padding: 0.5rem 1rem 0.5rem 0.75rem;
   font-size: $font-size-base;
   font-weight: 700;
-  color: var(--primary-soft-text);
-  background-color: var(--primary-soft);
   border: 2px solid transparent;
   border-radius: $radius-full;
   cursor: pointer;
@@ -84,5 +104,91 @@
   svg {
     width: 1.375rem;
     height: 1.375rem;
+    flex-shrink: 0;
+  }
+}
+
+.helpButton {
+  color: var(--primary-soft-text);
+  background-color: var(--primary-soft);
+}
+
+.menuButton {
+  color: var(--ink);
+  background-color: var(--surface);
+  border-color: var(--border);
+
+  @include respond-to(md) {
+    display: none;
+  }
+}
+
+// --- Menu do celular ---
+.menuPanel {
+  @include surface;
+  position: absolute;
+  top: calc(100% - 0.25rem);
+  right: 1rem;
+  left: 1rem;
+  padding: 0.5rem;
+  border-radius: $radius-lg;
+  box-shadow: var(--shadow-raised);
+
+  &[hidden] {
+    display: none;
+  }
+
+  @include respond-to(sm) {
+    left: auto;
+    right: 2rem;
+    width: 22rem;
+  }
+
+  @include respond-to(md) {
+    display: none;
+  }
+}
+
+.menuList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: $touch-md;
+  padding: 0.5rem 1rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background-color: var(--surface-soft);
+  }
+
+  &[aria-current="page"] {
+    color: var(--primary-soft-text);
+    background-color: var(--primary-soft);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline-offset: -3px;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
   }
 }

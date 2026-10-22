@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Input, Button, FileImport } from "@/components";
-import { createDeck, createCards } from "@/lib/api";
+import { createDeck, createCards, errorMessage } from "@/lib/api";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -66,7 +66,7 @@ export default function NovoBaralhoPage() {
       console.error(error);
       setIsSubmitting(false);
       setProgress(null);
-      setStatusMessage("Não foi possível salvar o baralho. Tente novamente.");
+      setStatusMessage(errorMessage(error, "Não foi possível salvar o baralho. Tente novamente."));
     }
   };
 

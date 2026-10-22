@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-react";
 import { Button, Skeleton, LoadingStatus } from "@/components";
 import {
+  errorMessage,
   getDeck,
   startStudySession,
   recordStudyReview,
@@ -67,12 +68,13 @@ function isInteractiveTarget(el: Element | null): boolean {
 
 function EstudarContent() {
   const searchParams = useSearchParams();
-  const deckSlug = searchParams.get("deck") || "biologia-celular";
+  const deckSlug = searchParams.get("deck") || "";
 
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
   const [cards, setCards] = useState<CardResponse[]>([]);
   const [session, setSession] = useState<StudySessionResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -113,7 +115,12 @@ function EstudarContent() {
 
   // Inicializa o baralho e abre a sessão na API C#
   const initSession = useCallback(async () => {
+    if (!deckSlug) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setLoadError("");
     try {
       const loadedDeck = await getDeck(deckSlug);
       if (loadedDeck) {
@@ -122,15 +129,19 @@ function EstudarContent() {
         setCards(deckCards);
 
         if (deckCards.length > 0) {
+          // Se só a sessão falhar, dá para estudar mesmo assim (o resultado não é salvo)
           const newSession = await startStudySession({
             deckSlug: loadedDeck.slug,
             deckId: loadedDeck.id,
+          }).catch((err) => {
+            console.warn("CardVoz: falha ao iniciar a sessão de estudo:", err);
+            return null;
           });
           setSession(newSession);
         }
       }
     } catch (err) {
-      console.error("Erro ao iniciar sessão de estudos:", err);
+      setLoadError(errorMessage(err, "Não foi possível carregar as fichas. Tente de novo."));
     } finally {
       setLoading(false);
     }
@@ -248,6 +259,23 @@ function EstudarContent() {
     return <EstudarLoading />;
   }
 
+  if (loadError) {
+    return (
+      <main id="main-content" className={styles.main}>
+        <BackLink href={routes.decks} label="Meus baralhos" />
+        <section className={styles.messageCard}>
+          <h1 className={styles.messageTitle}>As fichas não carregaram</h1>
+          <p role="alert" className={styles.messageText}>
+            {loadError}
+          </p>
+          <Button variant="primary" size="lg" onClick={initSession}>
+            Tentar de novo
+          </Button>
+        </section>
+      </main>
+    );
+  }
+
   if (!deck) {
     return (
       <main id="main-content" className={styles.main}>
@@ -255,7 +283,7 @@ function EstudarContent() {
         <section className={styles.messageCard}>
           <h1 className={styles.messageTitle}>Baralho não encontrado</h1>
           <p className={styles.messageText}>
-            Não foi possível carregar as fichas deste baralho.
+            Este baralho não existe mais ou o endereço está incorreto.
           </p>
           <Button href={routes.decks} variant="primary" size="lg">
             Voltar aos baralhos

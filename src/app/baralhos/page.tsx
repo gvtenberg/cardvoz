@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DeckCard, DeckCardSkeleton, Button, Skeleton, LoadingStatus } from "@/components";
 import { Plus, Upload } from "lucide-react";
-import { getDecks, type DeckResponse } from "@/lib/api";
+import { errorMessage, getDecks, type DeckResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 export default function HomePage() {
   const [decks, setDecks] = useState<DeckResponse[] | null>(null);
+  const [loadError, setLoadError] = useState("");
+
+  const loadDecks = useCallback(() => {
+    setLoadError("");
+    getDecks()
+      .then(setDecks)
+      .catch((error) =>
+        setLoadError(errorMessage(error, "Não foi possível carregar seus baralhos. Tente de novo."))
+      );
+  }, []);
 
   useEffect(() => {
-    getDecks().then(setDecks);
-  }, []);
+    loadDecks();
+  }, [loadDecks]);
 
   const totalCards = decks?.reduce((acc, d) => acc + (d.cardCount || 0), 0) ?? 0;
 
@@ -21,7 +31,7 @@ export default function HomePage() {
       <header className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Seus baralhos</h1>
-          {decks === null && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
+          {decks === null && !loadError && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
           {decks && decks.length > 0 && (
             <p className={styles.pageSubtitle}>
               {decks.length} {decks.length === 1 ? "baralho" : "baralhos"} ·{" "}
@@ -42,7 +52,17 @@ export default function HomePage() {
         </div>
       </header>
 
-      {decks === null ? (
+      {loadError ? (
+        <div className={styles.emptyState}>
+          <h2 className={styles.emptyTitle}>Seus baralhos não carregaram</h2>
+          <p role="alert" className={styles.emptyText}>
+            {loadError}
+          </p>
+          <Button variant="primary" size="md" onClick={loadDecks}>
+            Tentar de novo
+          </Button>
+        </div>
+      ) : decks === null ? (
         <>
           <LoadingStatus>Carregando baralhos...</LoadingStatus>
           <ul className={styles.decksGrid} aria-hidden="true">

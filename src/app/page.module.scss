@@ -426,4 +426,28 @@
   padding-block: 2.5rem 3rem;
   font-size: $font-size-sm;
   color: var(--text-muted);
+
+  p + p {
+    margin-top: 0.25rem;
+  }
+}
+
+// Área de toque de 48px sem aumentar o texto do rodapé
+.rodapeLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-sm;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    border-radius: 0.25rem;
+  }
 }

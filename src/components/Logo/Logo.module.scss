@@ -106,3 +106,11 @@
     font-size: $font-size-3xl;
   }
 }
+
+.compactText {
+  display: none;
+
+  @include respond-to(sm) {
+    display: flex;
+  }
+}

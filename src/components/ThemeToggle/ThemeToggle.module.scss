@@ -33,3 +33,43 @@
     height: 1.375rem;
   }
 }
+
+// Linha do menu do celular: mesma aparência dos outros itens do menu
+.menuButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: $touch-md;
+  padding: 0.5rem 1rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background-color: var(--surface-soft);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline-offset: -3px;
+  }
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+  }
+}
+
+.menuState {
+  margin-left: auto;
+  font-size: $font-size-base;
+  font-weight: 400;
+  color: var(--text-muted);
+}
