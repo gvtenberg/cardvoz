@@ -9,7 +9,7 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
 - **Leitor de tela nativo, sem áudio próprio**: O site não fala sozinho, para não sobrepor o TalkBack, NVDA ou VoiceOver. A cada ficha o foco vai para a pergunta (e, ao revelar, para a resposta), então o leitor de tela lê o conteúdo automaticamente.
 - **Botão "Acertei" direto**: Disponível antes mesmo de revelar a resposta e sempre na mesma posição da tela, para avançar rápido nas revisões.
 - **Letras e botões grandes**: Nenhum texto abaixo de 16px, fonte Atkinson Hyperlegible (criada para baixa visão) e botões de estudo com 72px+ de altura.
-- **Atalhos de teclado**:
+- **Atalhos de teclado (opcionais)**: desligados por padrão, porque o leitor de tela também usa teclas soltas (WCAG 2.1.4). A pessoa liga na Ajuda, em "Atalhos do teclado", e a escolha fica salva no aparelho. Sem eles, o estudo funciona com Tab e Enter nos botões.
   - `Espaço`: Ver a resposta da pergunta atual.
   - `Tecla 1`: Marcar que acertou (funciona também antes de revelar).
   - `Tecla 2`: Marcar que errou.

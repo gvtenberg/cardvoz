@@ -138,7 +138,7 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 - **"Acertei" fica sempre no mesmo lugar** (direita, presos ao rodapé), antes e depois de revelar, para ser achado pelo toque. O botão da esquerda alterna entre "Ver resposta" e "Errei".
 - "Acertei" funciona **sem revelar** a resposta (avanço rápido em revisões).
 - Há uma trava de 400ms entre ações (`ACTION_LOCK_MS`) para um toque duplo não marcar "Errei" ou pular uma ficha.
-- Atalhos: `Espaço` (ver resposta), `1` (acertei), `2` (errei). Eles são ignorados quando o foco está num controle interativo (`isInteractiveTarget`), para não sequestrar o Espaço de um botão.
+- Atalhos: `Espaço` (ver resposta), `1` (acertei), `2` (errei). Ficam **desligados por padrão**: o leitor de tela também usa teclas soltas (no NVDA, o Espaço pode chegar à página durante a leitura e revelar a resposta sem querer), e a WCAG 2.1.4 exige que atalhos de uma tecla possam ser desligados. A pessoa liga na Ajuda (seção "Atalhos do teclado"); a escolha fica no `localStorage` (`useShortcutsEnabled`/`setShortcutsEnabled` em `src/lib/shortcuts.ts`). Ligados, são ignorados quando o foco está num controle interativo (`isInteractiveTarget`), para não sequestrar o Espaço de um botão. Não crie atalhos de uma tecla novos sem passar por essa preferência.
 
 **Anúncios e estados**
 - Mensagens de status usam `role="status"`. Para o leitor anunciar de novo, o texto precisa mudar (ex.: "1ª ficha salva", "2ª ficha salva").

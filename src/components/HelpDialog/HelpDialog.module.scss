@@ -105,3 +105,42 @@
     @include focus-ring;
   }
 }
+
+// Caixa de seleção grande: área de toque de 56px e quadrado de 28px
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: $touch-md;
+  margin: 0 1.25rem 1rem;
+  padding: 0.5rem 1rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: $radius-md;
+  cursor: pointer;
+
+  &:has(input:checked) {
+    border-color: var(--primary);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+
+  input {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0;
+    accent-color: var(--primary);
+    cursor: pointer;
+
+    // O anel fica no rótulo inteiro, mais fácil de ver
+    &:focus-visible {
+      outline: none;
+    }
+  }
+}

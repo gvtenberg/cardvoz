@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Dialog } from "../Dialog";
 import { Button } from "../Button";
 import { Kbd } from "../Kbd";
+import { setShortcutsEnabled, useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./HelpDialog.module.scss";
 
 type SectionId = "estudar" | "criar" | "importar" | "teclado" | "conta";
@@ -26,6 +27,7 @@ export interface HelpDialogProps {
 export function HelpDialog({ open, onClose }: HelpDialogProps) {
   const pathname = usePathname() || "/";
   const current = sectionForPath(pathname);
+  const shortcutsEnabled = useShortcutsEnabled();
 
   return (
     <Dialog
@@ -127,6 +129,18 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
 
         <details className={styles.section}>
           <summary className={styles.summary}>Atalhos do teclado</summary>
+          <p className={styles.text}>
+            Vêm desligados porque o leitor de tela também usa essas teclas. Sem
+            eles, use Tab e Enter nos botões.
+          </p>
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={shortcutsEnabled}
+              onChange={(e) => setShortcutsEnabled(e.target.checked)}
+            />
+            <span>Usar atalhos de uma tecla no estudo</span>
+          </label>
           <ul className={styles.shortcuts}>
             <li>
               <Kbd>Espaço</Kbd> <span>Ver resposta</span>
@@ -138,6 +152,10 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               <Kbd>2</Kbd> <span>Errei</span>
             </li>
           </ul>
+          <p className={styles.text}>
+            No NVDA, os atalhos funcionam no modo de foco (NVDA + Espaço liga e
+            desliga).
+          </p>
         </details>
       </div>
     </Dialog>
