@@ -16,6 +16,7 @@ import {
   type StudySessionResponse,
 } from "@/lib/api";
 import { routes } from "@/lib/routes";
+import { useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./page.module.scss";
 
 const ACTION_LOCK_MS = 400;
@@ -74,6 +75,7 @@ function EstudarContent() {
   const [cards, setCards] = useState<CardResponse[]>([]);
   const [session, setSession] = useState<StudySessionResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const shortcutsEnabled = useShortcutsEnabled();
   const [loadError, setLoadError] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -233,8 +235,10 @@ function EstudarContent() {
     }
   };
 
-  // Atalhos: Espaço (ver resposta), 1 (acertei), 2 (errei)
+  // Atalhos: Espaço (ver resposta), 1 (acertei), 2 (errei). Só quando a pessoa
+  // os liga na Ajuda (ver lib/shortcuts.ts)
   useEffect(() => {
+    if (!shortcutsEnabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       if (isFinished || isInteractiveTarget(document.activeElement)) return;
@@ -253,7 +257,7 @@ function EstudarContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRevealed, isFinished, handleReveal, handleAnswer]);
+  }, [shortcutsEnabled, isRevealed, isFinished, handleReveal, handleAnswer]);
 
   if (loading) {
     return <EstudarLoading />;
