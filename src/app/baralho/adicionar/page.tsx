@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Textarea, Button, FileImport, Skeleton } from "@/components";
-import { getDeck, createCard, createCards, type DeckDetailResponse } from "@/lib/api";
+import {
+  getDeck,
+  createCard,
+  createCards,
+  errorMessage,
+  type DeckDetailResponse,
+} from "@/lib/api";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -18,6 +24,7 @@ function NovoCartaoContent() {
 
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
   const [deckLoading, setDeckLoading] = useState(Boolean(deckIdOrSlug));
+  const [loadError, setLoadError] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [formError, setFormError] = useState("");
@@ -34,8 +41,14 @@ function NovoCartaoContent() {
       getDeck(deckIdOrSlug)
         .then((data) => {
           if (data) setDeck(data);
+          else setLoadError("Este baralho não existe mais ou o endereço está incorreto.");
         })
+        .catch((error) =>
+          setLoadError(errorMessage(error, "Não foi possível carregar o baralho. Volte e tente de novo."))
+        )
         .finally(() => setDeckLoading(false));
+    } else {
+      setLoadError("Este baralho não existe mais ou o endereço está incorreto.");
     }
   }, [deckIdOrSlug]);
 
@@ -72,7 +85,7 @@ function NovoCartaoContent() {
       questionRef.current?.focus();
     } catch (error) {
       console.error(error);
-      setStatusMessage("Não foi possível salvar a ficha. Tente novamente.");
+      setStatusMessage(errorMessage(error, "Não foi possível salvar a ficha. Tente novamente."));
     } finally {
       setIsSubmitting(false);
     }
@@ -115,6 +128,12 @@ function NovoCartaoContent() {
         {deckLoading && <Skeleton width="14rem" height="1.25rem" className={styles.subtitleSkeleton} />}
         {deck && <p className={styles.subtitle}>Em {deck.title}</p>}
       </div>
+
+      {loadError && (
+        <p role="alert" className={styles.error}>
+          {loadError}
+        </p>
+      )}
 
       <p role="status" className={statusMessage ? styles.status : "sr-only"}>
         {statusMessage}

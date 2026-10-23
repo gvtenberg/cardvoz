@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-react";
 import { Button, Skeleton, LoadingStatus } from "@/components";
 import {
+  errorMessage,
   getDeck,
   startStudySession,
   recordStudyReview,
@@ -15,6 +16,7 @@ import {
   type StudySessionResponse,
 } from "@/lib/api";
 import { routes } from "@/lib/routes";
+import { useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./page.module.scss";
 
 const ACTION_LOCK_MS = 400;
@@ -67,12 +69,14 @@ function isInteractiveTarget(el: Element | null): boolean {
 
 function EstudarContent() {
   const searchParams = useSearchParams();
-  const deckSlug = searchParams.get("deck") || "biologia-celular";
+  const deckSlug = searchParams.get("deck") || "";
 
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
   const [cards, setCards] = useState<CardResponse[]>([]);
   const [session, setSession] = useState<StudySessionResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const shortcutsEnabled = useShortcutsEnabled();
+  const [loadError, setLoadError] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -113,7 +117,12 @@ function EstudarContent() {
 
   // Inicializa o baralho e abre a sessão na API C#
   const initSession = useCallback(async () => {
+    if (!deckSlug) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setLoadError("");
     try {
       const loadedDeck = await getDeck(deckSlug);
       if (loadedDeck) {
@@ -122,15 +131,19 @@ function EstudarContent() {
         setCards(deckCards);
 
         if (deckCards.length > 0) {
+          // Se só a sessão falhar, dá para estudar mesmo assim (o resultado não é salvo)
           const newSession = await startStudySession({
             deckSlug: loadedDeck.slug,
             deckId: loadedDeck.id,
+          }).catch((err) => {
+            console.warn("CardVoz: falha ao iniciar a sessão de estudo:", err);
+            return null;
           });
           setSession(newSession);
         }
       }
     } catch (err) {
-      console.error("Erro ao iniciar sessão de estudos:", err);
+      setLoadError(errorMessage(err, "Não foi possível carregar as fichas. Tente de novo."));
     } finally {
       setLoading(false);
     }
@@ -222,8 +235,10 @@ function EstudarContent() {
     }
   };
 
-  // Atalhos: Espaço (ver resposta), 1 (acertei), 2 (errei)
+  // Atalhos: Espaço (ver resposta), 1 (acertei), 2 (errei). Só quando a pessoa
+  // os liga na Ajuda (ver lib/shortcuts.ts)
   useEffect(() => {
+    if (!shortcutsEnabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       if (isFinished || isInteractiveTarget(document.activeElement)) return;
@@ -242,10 +257,27 @@ function EstudarContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRevealed, isFinished, handleReveal, handleAnswer]);
+  }, [shortcutsEnabled, isRevealed, isFinished, handleReveal, handleAnswer]);
 
   if (loading) {
     return <EstudarLoading />;
+  }
+
+  if (loadError) {
+    return (
+      <main id="main-content" className={styles.main}>
+        <BackLink href={routes.decks} label="Meus baralhos" />
+        <section className={styles.messageCard}>
+          <h1 className={styles.messageTitle}>As fichas não carregaram</h1>
+          <p role="alert" className={styles.messageText}>
+            {loadError}
+          </p>
+          <Button variant="primary" size="lg" onClick={initSession}>
+            Tentar de novo
+          </Button>
+        </section>
+      </main>
+    );
   }
 
   if (!deck) {
@@ -255,7 +287,7 @@ function EstudarContent() {
         <section className={styles.messageCard}>
           <h1 className={styles.messageTitle}>Baralho não encontrado</h1>
           <p className={styles.messageText}>
-            Não foi possível carregar as fichas deste baralho.
+            Este baralho não existe mais ou o endereço está incorreto.
           </p>
           <Button href={routes.decks} variant="primary" size="lg">
             Voltar aos baralhos

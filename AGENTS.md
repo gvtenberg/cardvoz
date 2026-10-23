@@ -30,6 +30,8 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 - O frontend chama a API em `NEXT_PUBLIC_API_URL` (ex.: `https://cardvoz-api.onrender.com/api`). Essa variável é **gravada no build**: mudou, precisa gerar o site de novo.
 - A API libera o domínio do site pela variável `CORS_ALLOWED_ORIGINS` (sem barra no final).
 - **A API exige login.** Todas as rotas, exceto `/api/auth/*`, pedem `Authorization: Bearer <accessToken>`, e cada pessoa só acessa os próprios baralhos, fichas e sessões (recurso de outra pessoa responde 404). O fluxo de tokens (acesso de 15 min + renovação de 30 dias com rotação) está documentado no README da `cardvoz-api`, seção "Como o frontend deve usar".
+- **O site só usa login com Google** (fluxo *authorization code* + PKCE, com redirecionamento). O Google devolve a pessoa para `/entrar/` com um código; a API troca o código em `POST /api/auth/google` (o segredo do cliente fica só na API) e devolve os mesmos tokens próprios. As rotas de e-mail e senha continuam na API, mas não têm tela. Configuração do Google: README, seção "Login com Google".
+- **Os baralhos são privados** de quem os cria. Compartilhar baralhos (por link, criando uma cópia) é evolução futura, fora do escopo atual.
 - **Todos os IDs são UUID (texto)**, não números.
 - Mudança de tabela/coluna começa em **cardvoz-db** (nova migration) e precisa bater com o modelo do Entity Framework da **cardvoz-api**. Os nomes no banco são PascalCase (`"Decks"`, `"Cards"`, `"StudySessions"`, `"StudyReviews"`).
 
@@ -51,8 +53,11 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 ```
 src/
 ├── app/                        # Páginas (todas "use client")
-│   ├── layout.tsx              # <html lang="pt-BR">, fontes, ThemeProvider, SkipLink, Header
+│   ├── layout.tsx              # <html lang="pt-BR">, fontes, ThemeProvider, AuthProvider, SkipLink, Header, AuthGate
 │   ├── page.tsx                # /                      Landing page (apresentação do produto, pública)
+│   ├── entrar/                 # /entrar/               Entrar com Google e volta do Google (pública)
+│   ├── privacidade/            # /privacidade/          Política de privacidade (pública)
+│   ├── perfil/                 # /perfil/               Dados da conta e "Sair da conta"
 │   ├── baralhos/               # /baralhos/             Lista de baralhos de quem usa o app
 │   │   └── novo/               # /baralhos/novo/        Criar baralho (nome + importação opcional)
 │   ├── baralho/                # /baralho/?id=slug      Detalhe do baralho e lista de fichas
@@ -60,8 +65,12 @@ src/
 │   └── estudar/                # /estudar/?deck=slug    Sessão de estudo
 ├── components/                 # Um componente por pasta + barrel em index.ts
 ├── lib/
-│   ├── api.ts                  # Cliente da API C# (com fallback local)
-│   ├── routes.ts               # Todos os endereços internos
+│   ├── api.ts                  # Cliente da API C# (token, renovação no 401, ApiError)
+│   ├── http.ts                 # URL da API, ApiError, errorMessage
+│   ├── auth/session.ts         # Tokens, renovação (uma por vez, entre abas), logout
+│   ├── auth/google.ts          # Ida ao Google (PKCE + state) e leitura da volta
+│   ├── notice.ts               # Aviso que sobrevive a uma troca de página (sessionStorage)
+│   ├── routes.ts               # Endereços internos, páginas públicas e safeRedirect
 │   └── importCards.ts          # Leitura de fichas de arquivos TXT/CSV/JSON
 └── styles/
     ├── _variables.scss         # Tokens SCSS (tipografia, toque, raios, sombras, breakpoints)
@@ -77,14 +86,19 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 
 | Rota | Página | Parâmetro |
 |---|---|---|
-| `/` | Landing page (apresentação do produto) | — |
+| `/` | Landing page (apresentação do produto), pública | — |
+| `/entrar/` | Entrar com Google, pública. Também recebe a volta do Google (`?code=&state=` ou `?error=`) | `voltar` = caminho interno para depois de entrar |
+| `/privacidade/` | Política de privacidade, pública | — |
+| `/perfil/` | Dados da conta e "Sair da conta" | — |
 | `/baralhos/` | Lista de baralhos | — |
 | `/baralhos/novo/` | Novo baralho (âncora `#importar` leva à importação) | — |
 | `/baralho/?id=<slug>` | Detalhe do baralho | `id` = slug ou id |
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
 | `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos) e `routes.home` (landing page). Não escreva caminhos à mão.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
+- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/privacidade/`). Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
+- Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
 - Nova página: crie `src/app/<rota>/page.tsx` + `page.module.scss` e adicione o endereço em `routes.ts`.
@@ -94,11 +108,22 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 ## 6. Dados (`src/lib/api.ts`)
 
 - Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `createCards` (lote, em sequência, preservando a ordem), `updateCard`, `deleteCard`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
-- Os tipos (`DeckResponse`, `DeckDetailResponse`, `CardResponse`, `StudySessionResponse`...) espelham os DTOs da API em camelCase. **Desatualizado:** os campos `id`/`deckId`/`cardId` ainda estão como `number`, mas a API devolve UUID em texto (`string`).
-- Padrão de cada função: `try { fetchApi(...) } catch { fallback local }`. Se a API falhar, o app usa dados de exemplo em memória (`FALLBACK_DECKS`). **Atenção:** isso esconde erros; uma tela "funcionando" pode não estar salvando nada. Para verificar a conexão real, crie algo e recarregue a página.
+- Os tipos (`DeckResponse`, `DeckDetailResponse`, `CardResponse`, `StudySessionResponse`...) espelham os DTOs da API em camelCase. Todos os IDs são `string` (UUID).
+- `fetchApi` envia o `accessToken`; num `401`, renova a sessão **uma vez** e repete a chamada. Se a sessão acabou, o `AuthProvider` fica sabendo e o `AuthGate` leva a pessoa para `/entrar/?voltar=<página atual>`.
+- **Não há dados de exemplo nem fallback local.** Toda falha vira `ApiError` (`status`, `message`, `fieldErrors` com as chaves da API, como `Title`). `status` 0 = a API nem respondeu. Nunca trate falha como sucesso.
+- `getDeck` devolve `null` para 404 (não existe ou não é seu) e lança erro nos outros casos: mostre "não encontrado" e "não carregou" (com "Tentar de novo") como estados diferentes.
+- Para a mensagem na tela, use `errorMessage(error, "Texto padrão.")`: ela mostra a mensagem da API quando é falta de conexão ou limite de tentativas, e o texto padrão no resto.
 - A API exige `category` ao criar baralho; o frontend envia `"Geral"` e só **exibe** a categoria quando ela for diferente de `"Geral"`.
-- O campo `voiceNotes` existe na API, mas **não é exibido** (nos dados de exemplo ele entrega a resposta).
+- O campo `voiceNotes` existe na API, mas **não é exibido** (costumava repetir a resposta como "dica").
 - A sessão de estudo é **otimista**: a tela avança na hora e as chamadas à API entram numa fila (`enqueue` em `estudar/page.tsx`).
+
+**Login e sessão** (`src/lib/auth/`, `AuthProvider`, `AuthGate`)
+- `accessToken` **só em memória**; `refreshToken` no `localStorage` (`cardvoz.refreshToken`). Nunca coloque token em URL, `console.log` ou mensagem de erro, e não use `dangerouslySetInnerHTML` (um XSS leria o `localStorage`).
+- `refreshSession()` garante **uma renovação por vez, inclusive entre abas** (`navigator.locks`), lendo o token dentro da trava. Duas renovações com o mesmo token fazem a API encerrar todas as sessões da pessoa. Não chame `/auth/refresh` por fora dela.
+- Sem internet na renovação **não desloga**: o status vira `"erro"` e o `AuthGate` mostra a mensagem com "Tentar de novo".
+- `useAuth()` dá `status` (`"carregando" | "logado" | "deslogado" | "erro"`), `user` e `logout()`. Sair numa aba sai em todas (evento `storage`).
+- Avisos que precisam aparecer na página seguinte ("Você saiu da sua conta.") vão por `setNotice()`/`takeNotice()` (`src/lib/notice.ts`), e não por `setTimeout` antes de navegar.
+- A proteção de páginas no frontend é só experiência de uso; quem protege os dados é a API.
 
 ---
 
@@ -113,12 +138,13 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 - **"Acertei" fica sempre no mesmo lugar** (direita, presos ao rodapé), antes e depois de revelar, para ser achado pelo toque. O botão da esquerda alterna entre "Ver resposta" e "Errei".
 - "Acertei" funciona **sem revelar** a resposta (avanço rápido em revisões).
 - Há uma trava de 400ms entre ações (`ACTION_LOCK_MS`) para um toque duplo não marcar "Errei" ou pular uma ficha.
-- Atalhos: `Espaço` (ver resposta), `1` (acertei), `2` (errei). Eles são ignorados quando o foco está num controle interativo (`isInteractiveTarget`), para não sequestrar o Espaço de um botão.
+- Atalhos: `Espaço` (ver resposta), `1` (acertei), `2` (errei). Ficam **desligados por padrão**: o leitor de tela também usa teclas soltas (no NVDA, o Espaço pode chegar à página durante a leitura e revelar a resposta sem querer), e a WCAG 2.1.4 exige que atalhos de uma tecla possam ser desligados. A pessoa liga na Ajuda (seção "Atalhos do teclado"); a escolha fica no `localStorage` (`useShortcutsEnabled`/`setShortcutsEnabled` em `src/lib/shortcuts.ts`). Ligados, são ignorados quando o foco está num controle interativo (`isInteractiveTarget`), para não sequestrar o Espaço de um botão. Não crie atalhos de uma tecla novos sem passar por essa preferência.
 
 **Anúncios e estados**
 - Mensagens de status usam `role="status"`. Para o leitor anunciar de novo, o texto precisa mudar (ex.: "1ª ficha salva", "2ª ficha salva").
 - Erros de formulário usam a prop `error` de `Input`/`Textarea` (renderiza `role="alert"`) e o foco vai para o campo com problema. Formulários usam `noValidate` com mensagens próprias em português.
 - **Carregamento:** skeleton visual com `aria-hidden` + `<LoadingStatus>` com o texto anunciado ("Carregando baralho..."). O skeleton imita o layout final para a tela não "pular".
+- **Login:** botão próprio "Entrar com Google" (variante `primary`, `lg`) e redirecionamento da página inteira. Não use o botão oficial do Google (iframe que não controlamos) nem o One Tap (abre sozinho e atrapalha o leitor de tela).
 - **Diálogos:** use sempre o componente `<Dialog>` (elemento nativo `<dialog>` com `showModal`): foco preso, `Esc` e anúncio corretos. Não crie modais com `div role="dialog"`.
 
 **Rótulos**
@@ -141,7 +167,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button, LoadingStatus, Skeleton } from "@/components";
-import { getDeck, type DeckDetailResponse } from "@/lib/api";
+import { errorMessage, getDeck, type DeckDetailResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -175,11 +201,26 @@ function ExemploContent() {
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
 
+  const [loadError, setLoadError] = useState("");
+
   useEffect(() => {
-    getDeck(id).then(setDeck).finally(() => setLoading(false));
+    getDeck(id)
+      .then(setDeck)
+      .catch((error) => setLoadError(errorMessage(error, "Não foi possível carregar o baralho.")))
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <ExemploLoading />;
+  if (loadError) {
+    return (
+      <main id="main-content" className={styles.main}>
+        <BackLink />
+        <h1 className={styles.title}>O baralho não carregou</h1>
+        <p role="alert">{loadError}</p>
+        <Button onClick={() => window.location.reload()} variant="primary">Tentar de novo</Button>
+      </main>
+    );
+  }
   if (!deck) {
     return (
       <main id="main-content" className={styles.main}>
@@ -231,7 +272,8 @@ export default function ExemploPage() {
 - Link de voltar (`@include back-link`) no topo, `<h1>` logo abaixo.
 - Conteúdo agrupado em painéis com `@include surface` e `border-radius: $radius-xl`.
 - Ações empilhadas em largura total no celular (`block`); lado a lado a partir de `sm`.
-- **Estados obrigatórios** de qualquer tela com dados: carregando (skeleton), vazio (mensagem + ação para começar), não encontrado (mensagem + voltar) e feedback de sucesso/erro em `role="status"`.
+- **Estados obrigatórios** de qualquer tela com dados: carregando (skeleton), vazio (mensagem + ação para começar), não encontrado (mensagem + voltar), erro ao carregar (mensagem em `role="alert"` + "Tentar de novo") e feedback de sucesso/erro em `role="status"`.
+- A página não precisa checar login: o `AuthGate` só a mostra com a pessoa logada (use `useAuth().user` se precisar dos dados da conta).
 - Na tela de estudo, `main` ocupa a altura da tela (`.studyMain`) e os botões ficam em uma barra `position: sticky; bottom: 0`.
 
 ---
@@ -280,14 +322,16 @@ export default function ExemploPage() {
 | `Input`, `Textarea` | Campo com `label`, `error` (alerta) e `hint` |
 | `Dialog` | Modal nativo com título, conteúdo e `footer` de ações |
 | `HelpDialog` | Ajuda com seções recolhíveis; abre na seção da tela atual |
-| `Header` | Logo, "Meus baralhos", botão Ajuda e troca de tema |
+| `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
+| `AuthProvider`, `useAuth` | Contexto da sessão: `status`, `user`, `logout()`, `retry()`. Restaura a sessão ao abrir o site |
+| `AuthGate` | No layout: protege as páginas fora de `PUBLIC_PATHS` (skeleton enquanto confere, redireciona para `/entrar/`, erro com "Tentar de novo") |
 | `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
 | `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
 | `FileImport` | Seleção de arquivo TXT/CSV/JSON com prévia; não salva nada (a página decide) |
 | `Skeleton`, `LoadingStatus` | Bloco de carregamento decorativo + texto anunciado ao leitor de tela |
 | `Kbd` | Tecla de atalho — usado só dentro da Ajuda |
-| `Logo`, `LogoIcon` | Marca: pilha de fichas com barras de voz. O vão entre as fichas é uma máscara SVG, então funciona sobre qualquer fundo e em uma cor só. Arquivos da marca em `docs/logo/` |
-| `SkipLink`, `ThemeToggle`, `ThemeProvider` | Estrutura global |
+| `Logo`, `LogoIcon` | Marca: pilha de fichas com barras de voz. `compact` mostra só o ícone abaixo de `sm` (usado no cabeçalho). O vão entre as fichas é uma máscara SVG, então funciona sobre qualquer fundo e em uma cor só. Arquivos da marca em `docs/logo/` |
+| `SkipLink`, `ThemeToggle`, `ThemeProvider` | Estrutura global. `ThemeToggle variant="menu"` é a linha "Tema escuro" (com `aria-pressed`) do menu do celular |
 | `Badge`, `Card`, `cn()` (`lib/utils`) | Existem, mas **não são usados**; prefira o mixin `surface` e template strings |
 
 ---
@@ -331,15 +375,18 @@ npm run build         # gera o site estático em out/
 npx serve out         # pré-visualiza o resultado do build
 ```
 
-- Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e a `cardvoz-api` rodando.
-- **Antes de concluir uma mudança:** lint, tipos e build passando; tela conferida em **375px** de largura e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
+- Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
+- **Antes de concluir uma mudança:** lint, tipos e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
 
 ---
 
 ## 15. Pontos de atenção conhecidos
 
-- **O frontend ainda não tem login.** Como a API exige token, hoje todas as chamadas recebem 401 e o app cai nos dados de exemplo locais. Falta implementar: telas de cadastro/login, guardar e enviar os tokens, renovar no 401 e trocar os tipos de ID para `string`.
-- **Fallback silencioso** em `api.ts`: falha de rede mostra dados de exemplo sem avisar (ver seção 6).
-- **Preflight de CORS em toda chamada:** `fetchApi` envia `Content-Type: application/json` até em `GET`, o que faz o navegador mandar um `OPTIONS` antes de cada requisição.
+- **Ordem de publicação de mudanças de login:** migration no `cardvoz-db` → API → site. O site chama rotas que precisam existir na API.
+- **Google em modo de teste:** se o app OAuth estiver "Em teste" no Google Cloud, só entram os e-mails cadastrados como usuários de teste. Publique o app ou cadastre cada participante antes dos testes.
+- **Navegadores dentro de apps** (Instagram e parecidos) são bloqueados pelo Google (`disallowed_useragent`). A Ajuda orienta abrir no Chrome.
+- **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
+- **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
+- **Excluir conta e exportar dados** ainda não existem (a política de privacidade orienta pedir à equipe).
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.

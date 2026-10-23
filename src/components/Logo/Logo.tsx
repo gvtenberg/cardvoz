@@ -7,6 +7,11 @@ export interface LogoProps {
   withTagline?: boolean;
   href?: string;
   asLink?: boolean;
+  /**
+   * Só o ícone abaixo de 640px: no cabeçalho do celular (e com zoom de 200%) o
+   * nome não cabe ao lado de Ajuda e Menu. O link continua com o nome no aria-label.
+   */
+  compact?: boolean;
   className?: string;
 }
 
@@ -51,12 +56,13 @@ export function Logo({
   withTagline = true,
   href = "/",
   asLink = true,
+  compact = false,
   className = "",
 }: LogoProps) {
   const content = (
     <>
       <LogoIcon size={SIZE_MAP[size] || SIZE_MAP.md} />
-      <div className={styles.textContainer}>
+      <div className={`${styles.textContainer} ${compact ? styles.compactText : ""}`}>
         <span className={styles.brandTitle}>
           Card<span className={styles.brandAccent}>Voz</span>
         </span>

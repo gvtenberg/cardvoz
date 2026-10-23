@@ -4,6 +4,8 @@ import "@/styles/globals.scss";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SkipLink } from "@/components/SkipLink";
 import { Header } from "@/components/Header";
+import { AuthProvider } from "@/components/AuthProvider";
+import { AuthGate } from "@/components/AuthGate";
 import styles from "./layout.module.scss";
 
 const nunito = Nunito({
@@ -45,9 +47,13 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <SkipLink />
-          <Header />
-          <div className={styles.content}>{children}</div>
+          <AuthProvider>
+            <SkipLink />
+            <Header />
+            <div className={styles.content}>
+              <AuthGate>{children}</AuthGate>
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

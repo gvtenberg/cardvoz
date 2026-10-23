@@ -2,7 +2,7 @@
 
 **Responsável:** Élida
 **Repositório:** CardVoz (frontend)
-**Depende de:** Passos 1 a 3 da tarefa do Gutemberg ([`gutemberg-login-cadastro.md`](./gutemberg-login-cadastro.md)): IDs como texto, fim dos dados de exemplo e `fetchApi` enviando o token e lançando `ApiError`. Combine com o Gutemberg. Enquanto isso não entra, você já pode montar a parte visual (diálogos e botões).
+**Depende de:** login com Google (já implementado): IDs como texto, fim dos dados de exemplo e `fetchApi` enviando o token e lançando `ApiError`. Veja a seção 6 do [`AGENTS.md`](../../AGENTS.md) ("Dados" e "Login e sessão").
 
 Antes de começar, leia o [`AGENTS.md`](../../AGENTS.md) da raiz: regras de acessibilidade, estilo, componentes (`Dialog`, `Button`, `Input`, `Textarea`) e composição de páginas.
 
@@ -31,7 +31,7 @@ Lembre-se de quem usa o CardVoz: pessoas cegas ou com baixa visão, com **TalkBa
 
 ## 3. Contrato da API
 
-Respostas reais da API, conferidas em teste. Todas exigem login (o `fetchApi` do Gutemberg cuida do token e do `401`).
+Respostas reais da API, conferidas em teste. Todas exigem login (o `fetchApi` de `src/lib/api.ts` cuida do token e do `401`).
 
 | Ação | Rota | Corpo | Sucesso |
 |---|---|---|---|
@@ -57,7 +57,7 @@ Exemplo de `PUT /api/decks/{id}`:
    - `404`: `{ "message": "Cartão com ID ... não foi encontrado." }`. Acontece quando o item já foi excluído (ex.: em outra aba) ou não é seu.
 5. Todos os IDs são **texto** (UUID), ex.: `"48bc5ab4-ca20-4aaf-b77c-bb48698d284e"`.
 
-No `src/lib/api.ts` já existem `updateDeck`, `deleteDeck`, `updateCard` e `deleteCard`. Depois do Passo 1 do Gutemberg, elas recebem `id: string` e **lançam erro** em vez de fingir sucesso localmente. Mantenha assim: nunca trate falha como sucesso.
+No `src/lib/api.ts` já existem `updateDeck`, `deleteDeck`, `updateCard` e `deleteCard`. Elas recebem `id: string` e **lançam `ApiError`** em vez de fingir sucesso localmente; para o texto na tela, use `errorMessage(erro, "Texto padrão.")`. Mantenha assim: nunca trate falha como sucesso.
 
 ---
 
@@ -146,7 +146,7 @@ Para um formulário dentro do `Dialog`, coloque o `<form id="...">` no conteúdo
 O fluxo atual está em `handleDelete` na página do baralho. Ajuste:
 
 1. `deleteDeck(deck.id)` com o ID em texto. Erro (exceto 404) mantém o diálogo aberto com a mensagem.
-2. **Sucesso:** vá para a lista de baralhos (`routes.decks`) e anuncie lá **"Baralho excluído."**. Como a página muda, passe a mensagem por `sessionStorage` (ex.: chave `cardvoz.aviso`) e mostre/limpe na lista de baralhos num `role="status"`. **Por quê:** hoje a mensagem aparece por 600ms antes de trocar de página, e o leitor de tela geralmente não tem tempo de ler.
+2. **Sucesso:** vá para a lista de baralhos (`routes.decks`) e anuncie lá **"Baralho excluído."**. Como a página muda, use `setNotice("Baralho excluído.")` antes de navegar e `takeNotice()` na lista de baralhos, mostrando o texto num `role="status"` (como faz a página `/entrar/`; ver `src/lib/notice.ts`). **Por quê:** hoje a mensagem aparece por 600ms antes de trocar de página, e o leitor de tela geralmente não tem tempo de ler.
 3. **404:** o baralho já foi excluído (ex.: em outra aba). Trate como sucesso: vá para a lista de baralhos.
 
 ---
@@ -163,7 +163,7 @@ O fluxo atual está em `handleDelete` na página do baralho. Ajuste:
 ## 7. Como testar localmente
 
 1. Rode a `cardvoz-api` localmente (README dela) e o frontend com `npm run dev`.
-2. Com o login do Gutemberg pronto, crie uma conta pela tela de cadastro. Antes disso, dá para criar conta e testar as rotas pelo Swagger (`http://localhost:5000/swagger`): use `POST /api/auth/register` e cole o `accessToken` no botão **Authorize**.
+2. Entre com sua conta Google em `/entrar/` (veja no README como configurar o Google localmente). Para testar só as rotas, dá para criar conta pelo Swagger (`http://localhost:5000/swagger`): use `POST /api/auth/register` e cole o `accessToken` no botão **Authorize**.
 
 ## 8. Checklist antes do PR
 
@@ -179,6 +179,6 @@ O fluxo atual está em `handleDelete` na página do baralho. Ajuste:
 
 ## 9. Entrega
 
-- Branch próprio (ex.: `feat/editar-excluir-fichas`), a partir da `main` já com os Passos 1 a 3 do Gutemberg.
+- Branch próprio (ex.: `feat/editar-excluir-fichas`), a partir da `main` já com o login com Google.
 - Commits no padrão do projeto (Conventional Commits em português, ex.: `feat: permitir editar fichas`), **sem menções a IA**.
 - **Push na `main` publica o site**: só junte depois de revisado e com os testes passando.

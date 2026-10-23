@@ -15,3 +15,5 @@ export * from "./Skeleton";
 export * from "./LandingDemo";
 export * from "./ThemeProvider";
 export * from "./Logo";
+export * from "./AuthProvider";
+export * from "./AuthGate";

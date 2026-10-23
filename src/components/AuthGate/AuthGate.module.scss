@@ -1,0 +1,41 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  width: 100%;
+
+  @include respond-to(sm) {
+    padding: 2.5rem 1.5rem 5rem;
+  }
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.panel {
+  @include surface;
+  border-radius: $radius-xl;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  @include respond-to(sm) {
+    padding: 2rem;
+  }
+}
+
+.title {
+  font-size: $font-size-2xl;
+}
+
+.text {
+  font-size: $font-size-lg;
+  color: var(--text-muted);
+}
