@@ -42,7 +42,6 @@ export default function PerfilPage() {
             <dd>{dateFormat.format(new Date(user.createdAt))}</dd>
           </div>
         </dl>
-        <p className={styles.text}>Você entra com a sua conta Google.</p>
       </section>
 
       <Button variant="secondary" size="lg" block onClick={handleLogout}>

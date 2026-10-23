@@ -12,10 +12,14 @@ function idParam(idOrSlug: string): string {
 export const routes = {
   /** Página de apresentação (landing page), pública */
   home: "/",
-  /** Entrar com Google; também recebe a volta do Google. Pública */
+  /** Entrar com e-mail e senha ou com Google; também recebe a volta do Google. Pública */
   login: "/entrar/",
   /** Entrar e depois voltar para `voltar` (caminho interno) */
   loginThenReturn: (voltar: string) => `/entrar/?voltar=${encodeURIComponent(voltar)}`,
+  /** Criar conta com nome, e-mail e senha. Pública */
+  register: "/cadastro/",
+  /** Criar conta e depois voltar para `voltar` (caminho interno) */
+  registerThenReturn: (voltar: string) => `/cadastro/?voltar=${encodeURIComponent(voltar)}`,
   /** Política de privacidade, pública */
   privacy: "/privacidade/",
   profile: "/perfil/",
@@ -29,7 +33,7 @@ export const routes = {
 };
 
 /** Páginas que abrem sem login. As demais mandam para /entrar/. */
-export const PUBLIC_PATHS = [routes.home, routes.login, routes.privacy];
+export const PUBLIC_PATHS = [routes.home, routes.login, routes.register, routes.privacy];
 
 /** Compara caminhos ignorando a barra final ("/entrar" e "/entrar/"). */
 export function samePath(a: string, b: string): boolean {

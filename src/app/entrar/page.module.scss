@@ -78,3 +78,36 @@
   background-color: var(--danger-soft);
   border-radius: $radius-md;
 }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// "ou" entre o formulário e o Google, com uma linha de cada lado
+.or {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background-color: var(--border);
+  }
+}
+
+.other {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.otherTitle {
+  font-size: $font-size-xl;
+}
