@@ -15,7 +15,9 @@ function sectionForPath(pathname: string): SectionId {
   const path = pathname.replace(/\/+$/, "");
   if (path.startsWith("/estudar")) return "estudar";
   if (path.endsWith("/novo") || path.endsWith("/adicionar")) return "criar";
-  if (path.startsWith("/entrar") || path.startsWith("/perfil")) return "conta";
+  if (path.startsWith("/entrar") || path.startsWith("/cadastro") || path.startsWith("/perfil")) {
+    return "conta";
+  }
   return "estudar";
 }
 
@@ -108,8 +110,16 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
           <summary className={styles.summary}>Entrar e sair da conta</summary>
           <ol className={styles.steps}>
             <li>
-              Toque em <strong>Entrar com Google</strong> e escolha sua conta. Na
-              primeira vez, sua conta no CardVoz é criada sozinha.
+              Para criar sua conta, toque em <strong>Criar conta</strong> e escreva
+              seu nome, seu e-mail e uma senha. Depois, entre com o mesmo e-mail e a
+              mesma senha.
+            </li>
+            <li>
+              Se preferir, toque em <strong>Entrar com Google</strong> e escolha sua
+              conta. Na primeira vez, sua conta no CardVoz é criada sozinha.
+            </li>
+            <li>
+              Marque <strong>Mostrar senha</strong> para conferir o que você digitou.
             </li>
             <li>
               Você continua conectado neste aparelho por até 30 dias, mesmo fechando o

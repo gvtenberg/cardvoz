@@ -43,7 +43,7 @@ const PASSOS = [
 ];
 
 const DUVIDAS = [
-  { pergunta: "Preciso criar uma conta?", resposta: "Não precisa criar senha. Você entra com a sua conta Google e, na primeira vez, sua conta no CardVoz é criada sozinha." },
+  { pergunta: "Preciso criar uma conta?", resposta: "Sim. Crie a conta com seu nome, seu e-mail e uma senha, ou entre direto com a sua conta Google." },
   { pergunta: "Preciso instalar alguma coisa?", resposta: "Não. O CardVoz abre direto no navegador do celular ou do computador." },
   { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack, no Android, e com o NVDA, no Windows." },
   { pergunta: "Dá para usar no computador?", resposta: "Sim. No computador, dá para estudar só com o teclado, usando Tab e Enter nos botões. Se preferir, ligue na Ajuda os atalhos de uma tecla: a barra de espaço mostra a resposta, a tecla 1 marca “Acertei” e a tecla 2 marca “Errei”." },

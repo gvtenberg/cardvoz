@@ -14,7 +14,7 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
   - `Tecla 1`: Marcar que acertou (funciona também antes de revelar).
   - `Tecla 2`: Marcar que errou.
 - **Importação de fichas**: Arquivos TXT, CSV ou JSON (exemplos em `public/modelos/`). TXT aceita uma ficha por linha (`pergunta; resposta`), blocos separados por linha em branco ou linhas `P:`/`R:`; CSV aceita vírgula ou ponto e vírgula, com ou sem cabeçalho; JSON aceita uma lista de fichas ou `{ "titulo": "...", "fichas": [...] }`.
-- **Login com Google, sem senha**: a pessoa toca em "Entrar com Google", escolhe a conta e pronto; na primeira vez a conta no CardVoz é criada sozinha. Usamos nosso próprio botão e a página inteira do Google (nada de janela que abre sozinha), e a sessão dura 30 dias no aparelho.
+- **Conta com e-mail e senha ou com Google**: a pessoa cria a conta com nome, e-mail e senha (com "Mostrar senha", porque o leitor de tela não lê o que foi digitado num campo de senha) ou toca em "Entrar com Google" e escolhe a conta; nesse caso, na primeira vez a conta no CardVoz é criada sozinha. Usamos nosso próprio botão e a página inteira do Google (nada de janela que abre sozinha), e a sessão dura 30 dias no aparelho.
 - **Ajuda contextual**: Botão "Ajuda" no topo abre um diálogo que já mostra a explicação da tela atual.
 - **Skip Link ("Pular para o conteúdo principal")**: Acesso rápido ao `<main id="main-content">` para usuários de tecnologias assistivas e leitores de tela (NVDA, Orca, TalkBack).
 - **Semântica Rigorosa WAI-ARIA**: Uso estruturado de `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, regiões ao vivo `aria-live` e descrições claras em `aria-label`.
@@ -70,7 +70,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api          # cardvoz-api rodando loc
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=<id>.apps.googleusercontent.com
 ```
 
-Todas as páginas, exceto a inicial, `/entrar/` e `/privacidade/`, pedem login. Sem a API e o Google configurados, só essas três funcionam.
+Todas as páginas, exceto a inicial, `/entrar/`, `/cadastro/` e `/privacidade/`, pedem login. Sem a API, só essas quatro funcionam. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, o site funciona só com e-mail e senha.
 
 ### Build de Produção (site estático)
 
@@ -131,7 +131,7 @@ Mudanças no Google podem levar alguns minutos para valer. Os erros mais comuns:
 | "Acesso bloqueado" ou "app bloqueado pelo administrador" | A instituição bloqueia apps de terceiros nas contas de estudante. Entre com uma conta Gmail pessoal |
 | `disallowed_useragent` | O link foi aberto dentro de um app que o Google bloqueia (ex.: Instagram). Abra no Chrome |
 
-Se o site mostrar "O login com Google ainda não foi configurado", falta `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build. Se a API responder 503, faltam as variáveis dela.
+Se o botão "Entrar com Google" não aparecer, falta `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build. Se a API responder 503, faltam as variáveis dela.
 
 ---
 
@@ -146,7 +146,8 @@ cardvoz/
 │   ├── app/                    # Páginas (todas "use client")
 │   │   ├── layout.tsx          # Fontes, tema, sessão (AuthProvider + AuthGate) e cabeçalho
 │   │   ├── page.tsx            # Landing page (pública)
-│   │   ├── entrar/             # Entrar com Google; recebe a volta do Google (pública)
+│   │   ├── entrar/             # Entrar com e-mail e senha ou Google; recebe a volta do Google (pública)
+│   │   ├── cadastro/           # Criar conta com nome, e-mail e senha (pública)
 │   │   ├── privacidade/        # Política de privacidade (pública)
 │   │   ├── perfil/             # Dados da conta e "Sair da conta"
 │   │   ├── baralhos/           # Lista de baralhos (+ novo/)

@@ -18,8 +18,15 @@ export default function PrivacidadePage() {
       <section className={styles.panel} aria-labelledby="o-que">
         <h2 id="o-que" className={styles.panelTitle}>O que guardamos</h2>
         <ul className={styles.list}>
-          <li>Seu nome e seu e-mail, que o Google envia quando você entra.</li>
-          <li>Um código da sua conta Google, para reconhecer você na próxima vez.</li>
+          <li>Seu nome e seu e-mail.</li>
+          <li>
+            Se você criou uma senha, só uma versão embaralhada dela, que não pode ser
+            desfeita: ninguém da equipe consegue ver a sua senha.
+          </li>
+          <li>
+            Se você entra com o Google, um código da sua conta Google, para reconhecer
+            você na próxima vez.
+          </li>
           <li>Os baralhos e as fichas que você cria.</li>
           <li>Os resultados das suas sessões de estudo (acertos e erros).</li>
         </ul>

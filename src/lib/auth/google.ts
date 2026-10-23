@@ -26,6 +26,11 @@ export function getGoogleClientId(): string {
   return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || "";
 }
 
+/** O site foi gerado com o ID do cliente do Google? Sem ele, só há login com senha. */
+export function isGoogleConfigured(): boolean {
+  return Boolean(getGoogleClientId());
+}
+
 /** Endereço de volta do Google. Precisa estar cadastrado no Google Cloud, igual. */
 export function getGoogleRedirectUri(): string {
   return `${window.location.origin}${routes.login}`;

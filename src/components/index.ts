@@ -17,3 +17,5 @@ export * from "./ThemeProvider";
 export * from "./Logo";
 export * from "./AuthProvider";
 export * from "./AuthGate";
+export * from "./PasswordInput";
+export * from "./GoogleButton";

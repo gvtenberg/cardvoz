@@ -3,15 +3,18 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button, LoadingStatus, Skeleton, useAuth } from "@/components";
-import { ApiError } from "@/lib/http";
-import { loginWithGoogleCode } from "@/lib/auth/session";
 import {
-  getGoogleClientId,
-  getGoogleRedirectUri,
-  readGoogleCallback,
-  startGoogleLogin,
-} from "@/lib/auth/google";
+  Button,
+  GoogleButton,
+  Input,
+  LoadingStatus,
+  PasswordInput,
+  Skeleton,
+  useAuth,
+} from "@/components";
+import { ApiError, errorMessage } from "@/lib/http";
+import { loginWithGoogleCode, loginWithPassword } from "@/lib/auth/session";
+import { getGoogleRedirectUri, isGoogleConfigured, readGoogleCallback } from "@/lib/auth/google";
 import { takeNotice } from "@/lib/notice";
 import { routes, safeRedirect } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -24,8 +27,11 @@ function EntrarLoading({ message }: { message: string }) {
         <Skeleton width="70%" height="2.5rem" />
         <Skeleton width="90%" height="1.25rem" />
         <div className={styles.panel}>
+          <Skeleton width="30%" height="1.25rem" />
+          <Skeleton height="3.5rem" />
+          <Skeleton width="30%" height="1.25rem" />
+          <Skeleton height="3.5rem" />
           <Skeleton height="4.5rem" radius="9999px" />
-          <Skeleton width="80%" height="1.125rem" />
         </div>
       </div>
     </main>
@@ -42,11 +48,17 @@ function EntrarContent() {
   const [exchanging, setExchanging] = useState(
     () => searchParams.has("code") || searchParams.has("error")
   );
-  const [redirecting, setRedirecting] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const handledRef = useRef(false);
-  const isConfigured = Boolean(getGoogleClientId());
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const hasGoogle = isGoogleConfigured();
 
   useEffect(() => {
     // Roda uma vez só: o código do Google vale para uma única troca
@@ -91,18 +103,52 @@ function EntrarContent() {
     if (status === "logado") router.replace(safeRedirect(voltar));
   }, [status, voltar, router]);
 
-  const handleGoogle = () => {
+  const clearMessages = () => {
     setError("");
     setNotice("");
-    setRedirecting(true);
-    startGoogleLogin(voltar).catch(() => {
-      setRedirecting(false);
-      setError("Não foi possível abrir o Google. Tente de novo.");
-    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+    clearMessages();
+
+    const typedEmail = email.trim();
+    const nextEmailError = typedEmail ? "" : "Escreva seu e-mail.";
+    const nextPasswordError = password ? "" : "Escreva sua senha.";
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+    if (nextEmailError) {
+      emailRef.current?.focus();
+      return;
+    }
+    if (nextPasswordError) {
+      passwordRef.current?.focus();
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Ao dar certo, o AuthProvider fica logado e o efeito acima segue para "voltar"
+      await loginWithPassword({ email: typedEmail, password });
+    } catch (err) {
+      setSubmitting(false);
+      if (err instanceof ApiError && err.status === 401) {
+        setError(
+          hasGoogle
+            ? "E-mail ou senha incorretos. Se você criou a conta com o Google, toque em Entrar com Google."
+            : "E-mail ou senha incorretos."
+        );
+        // Leva à senha para digitar de novo
+        passwordRef.current?.focus();
+      } else {
+        setError(errorMessage(err, "Não foi possível entrar. Tente de novo."));
+      }
+    }
   };
 
   if (exchanging || status === "logado") {
-    return <EntrarLoading message="Entrando com o Google..." />;
+    return <EntrarLoading message="Entrando..." />;
   }
   if (status === "carregando") {
     return <EntrarLoading message="Verificando sua sessão..." />;
@@ -113,7 +159,9 @@ function EntrarContent() {
       <div>
         <h1 className={styles.title}>Entrar no CardVoz</h1>
         <p className={styles.lead}>
-          Use sua conta Google. Você não precisa criar uma senha.
+          {hasGoogle
+            ? "Use seu e-mail e sua senha ou a sua conta Google."
+            : "Use seu e-mail e sua senha."}
         </p>
       </div>
 
@@ -128,25 +176,69 @@ function EntrarContent() {
       )}
 
       <div className={styles.panel}>
-        {isConfigured ? (
-          <Button variant="primary" size="lg" block onClick={handleGoogle} disabled={redirecting}>
-            {redirecting ? "Abrindo o Google..." : "Entrar com Google"}
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <Input
+            ref={emailRef}
+            label="E-mail"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) setEmailError("");
+            }}
+            error={emailError}
+          />
+          <PasswordInput
+            ref={passwordRef}
+            label="Senha"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (passwordError) setPasswordError("");
+            }}
+            error={passwordError}
+          />
+          {/* aria-disabled em vez de disabled: botão desativado perde o foco, e o
+              leitor de tela ficaria sem saber onde está se der erro */}
+          <Button type="submit" variant="primary" size="lg" block aria-disabled={submitting || undefined}>
+            {submitting ? "Entrando..." : "Entrar"}
           </Button>
-        ) : (
-          <p role="alert" className={styles.error}>
-            O login com Google ainda não foi configurado neste site.
-          </p>
-        )}
+        </form>
 
-        <p className={styles.text}>
-          Na primeira vez, sua conta no CardVoz é criada sozinha. Recebemos só o seu
-          nome e o seu e-mail do Google. Veja a{" "}
-          <Link href={routes.privacy} className={styles.link}>
-            política de privacidade
-          </Link>
-          .
-        </p>
+        {hasGoogle && (
+          <>
+            <p className={styles.or}>ou</p>
+            <GoogleButton voltar={voltar} onStart={clearMessages} onError={setError} />
+          </>
+        )}
       </div>
+
+      <section className={styles.other} aria-labelledby="sem-conta">
+        <h2 id="sem-conta" className={styles.otherTitle}>
+          Ainda não tem conta?
+        </h2>
+        <Button
+          href={voltar ? routes.registerThenReturn(voltar) : routes.register}
+          variant="soft"
+          size="md"
+          block
+        >
+          Criar conta
+        </Button>
+      </section>
+
+      <p className={styles.text}>
+        Saiba o que guardamos na{" "}
+        <Link href={routes.privacy} className={styles.link}>
+          política de privacidade
+        </Link>
+        .
+      </p>
     </main>
   );
 }

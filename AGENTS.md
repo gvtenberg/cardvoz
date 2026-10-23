@@ -30,7 +30,8 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 - O frontend chama a API em `NEXT_PUBLIC_API_URL` (ex.: `https://cardvoz-api.onrender.com/api`). Essa variável é **gravada no build**: mudou, precisa gerar o site de novo.
 - A API libera o domínio do site pela variável `CORS_ALLOWED_ORIGINS` (sem barra no final).
 - **A API exige login.** Todas as rotas, exceto `/api/auth/*`, pedem `Authorization: Bearer <accessToken>`, e cada pessoa só acessa os próprios baralhos, fichas e sessões (recurso de outra pessoa responde 404). O fluxo de tokens (acesso de 15 min + renovação de 30 dias com rotação) está documentado no README da `cardvoz-api`, seção "Como o frontend deve usar".
-- **O site só usa login com Google** (fluxo *authorization code* + PKCE, com redirecionamento). O Google devolve a pessoa para `/entrar/` com um código; a API troca o código em `POST /api/auth/google` (o segredo do cliente fica só na API) e devolve os mesmos tokens próprios. As rotas de e-mail e senha continuam na API, mas não têm tela. Configuração do Google: README, seção "Login com Google".
+- **Duas formas de entrar:** e-mail e senha (`/entrar/` chama `POST /api/auth/login`; `/cadastro/` chama `POST /api/auth/register`) e Google (fluxo *authorization code* + PKCE, com redirecionamento: o Google devolve a pessoa para `/entrar/` com um código, e a API o troca em `POST /api/auth/google`, com o segredo do cliente que fica só na API). As três devolvem os mesmos tokens próprios. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build, o botão do Google some e só o login com senha aparece. Configuração do Google: README, seção "Login com Google".
+- **A API não junta contas:** se o e-mail do Google já tem uma conta criada com senha, `/api/auth/google` responde `409` e a pessoa entra com a senha. O cadastro com senha não confirma o e-mail, então juntar as contas deixaria quem cadastrou o e-mail de outra pessoa entrar na conta dela com a própria senha.
 - **Os baralhos são privados** de quem os cria. Compartilhar baralhos (por link, criando uma cópia) é evolução futura, fora do escopo atual.
 - **Todos os IDs são UUID (texto)**, não números.
 - Mudança de tabela/coluna começa em **cardvoz-db** (nova migration) e precisa bater com o modelo do Entity Framework da **cardvoz-api**. Os nomes no banco são PascalCase (`"Decks"`, `"Cards"`, `"StudySessions"`, `"StudyReviews"`).
@@ -55,7 +56,8 @@ src/
 ├── app/                        # Páginas (todas "use client")
 │   ├── layout.tsx              # <html lang="pt-BR">, fontes, ThemeProvider, AuthProvider, SkipLink, Header, AuthGate
 │   ├── page.tsx                # /                      Landing page (apresentação do produto, pública)
-│   ├── entrar/                 # /entrar/               Entrar com Google e volta do Google (pública)
+│   ├── entrar/                 # /entrar/               Entrar com e-mail e senha ou Google; volta do Google (pública)
+│   ├── cadastro/               # /cadastro/             Criar conta com nome, e-mail e senha (pública)
 │   ├── privacidade/            # /privacidade/          Política de privacidade (pública)
 │   ├── perfil/                 # /perfil/               Dados da conta e "Sair da conta"
 │   ├── baralhos/               # /baralhos/             Lista de baralhos de quem usa o app
@@ -87,7 +89,8 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 | Rota | Página | Parâmetro |
 |---|---|---|
 | `/` | Landing page (apresentação do produto), pública | — |
-| `/entrar/` | Entrar com Google, pública. Também recebe a volta do Google (`?code=&state=` ou `?error=`) | `voltar` = caminho interno para depois de entrar |
+| `/entrar/` | Entrar com e-mail e senha ou com Google, pública. Também recebe a volta do Google (`?code=&state=` ou `?error=`) | `voltar` = caminho interno para depois de entrar |
+| `/cadastro/` | Criar conta com nome, e-mail e senha, pública | `voltar`, como em `/entrar/` |
 | `/privacidade/` | Política de privacidade, pública | — |
 | `/perfil/` | Dados da conta e "Sair da conta" | — |
 | `/baralhos/` | Lista de baralhos | — |
@@ -96,8 +99,8 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
 | `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
-- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/privacidade/`). Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
+- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/`). Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
 - Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
@@ -144,7 +147,9 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 - Mensagens de status usam `role="status"`. Para o leitor anunciar de novo, o texto precisa mudar (ex.: "1ª ficha salva", "2ª ficha salva").
 - Erros de formulário usam a prop `error` de `Input`/`Textarea` (renderiza `role="alert"`) e o foco vai para o campo com problema. Formulários usam `noValidate` com mensagens próprias em português.
 - **Carregamento:** skeleton visual com `aria-hidden` + `<LoadingStatus>` com o texto anunciado ("Carregando baralho..."). O skeleton imita o layout final para a tela não "pular".
-- **Login:** botão próprio "Entrar com Google" (variante `primary`, `lg`) e redirecionamento da página inteira. Não use o botão oficial do Google (iframe que não controlamos) nem o One Tap (abre sozinho e atrapalha o leitor de tela).
+- **Login:** formulário de e-mail e senha primeiro ("Entrar", variante `primary`, `lg`), depois "ou" e o `GoogleButton` (variante `secondary`, `lg`, redirecionamento da página inteira). Não use o botão oficial do Google (iframe que não controlamos) nem o One Tap (abre sozinho e atrapalha o leitor de tela).
+- **Senha:** sempre com `PasswordInput`, que tem "Mostrar senha" (o leitor de tela não lê o que foi digitado num campo de senha). Use `autoComplete="current-password"` para entrar e `"new-password"` para criar a conta, para o gerenciador de senhas funcionar. Sem campo "confirmar senha": o "Mostrar senha" cumpre esse papel.
+- **Botão de enviar do login e do cadastro:** `aria-disabled` e uma trava no envio, em vez de `disabled`. Um botão desativado perde o foco, e o leitor de tela ficaria sem posição se der erro.
 - **Diálogos:** use sempre o componente `<Dialog>` (elemento nativo `<dialog>` com `showModal`): foco preso, `Esc` e anúncio corretos. Não crie modais com `div role="dialog"`.
 
 **Rótulos**
@@ -320,6 +325,8 @@ export default function ExemploPage() {
 |---|---|
 | `Button` | Botão ou link (`href`). Variantes: `primary`, `secondary`, `soft`, `ghost`, `danger`, `success`. Tamanhos: `sm` 48px, `md` 56px, `lg` 72px. `block` = largura total |
 | `Input`, `Textarea` | Campo com `label`, `error` (alerta) e `hint` |
+| `PasswordInput` | `Input` de senha com a caixa "Mostrar senha" |
+| `GoogleButton` | "Entrar com Google" de `/entrar/` e `/cadastro/`. Não aparece sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
 | `Dialog` | Modal nativo com título, conteúdo e `footer` de ações |
 | `HelpDialog` | Ajuda com seções recolhíveis; abre na seção da tela atual |
 | `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
@@ -389,4 +396,5 @@ npx serve out         # pré-visualiza o resultado do build
 - **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
 - **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
 - **Excluir conta e exportar dados** ainda não existem (a política de privacidade orienta pedir à equipe).
+- **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.

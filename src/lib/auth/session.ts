@@ -130,13 +130,9 @@ async function renew(): Promise<AuthResponse | null> {
   return auth;
 }
 
-/** Entra com o código que o Google devolveu (ver lib/auth/google.ts). */
-export async function loginWithGoogleCode(data: {
-  code: string;
-  codeVerifier: string;
-  redirectUri: string;
-}): Promise<AuthResponse> {
-  const response = await safeFetch(`${getApiBaseUrl()}/auth/google`, {
+/** Chama uma rota de entrada da API e, se der certo, guarda a sessão. */
+async function authenticate(path: string, data: object): Promise<AuthResponse> {
+  const response = await safeFetch(`${getApiBaseUrl()}/auth/${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(data),
@@ -148,6 +144,28 @@ export async function loginWithGoogleCode(data: {
   const auth: AuthResponse = await response.json();
   saveSession(auth);
   return auth;
+}
+
+/** Entra com o código que o Google devolveu (ver lib/auth/google.ts). */
+export function loginWithGoogleCode(data: {
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+}): Promise<AuthResponse> {
+  return authenticate("google", data);
+}
+
+/**
+ * Entra com e-mail e senha. Erros da API: 401 (e-mail ou senha incorretos, a mesma
+ * resposta para os dois) e 429 (conta bloqueada por tentativas ou limite por IP).
+ */
+export function loginWithPassword(data: { email: string; password: string }): Promise<AuthResponse> {
+  return authenticate("login", data);
+}
+
+/** Cria a conta e já entra. Erros da API: 400 (campos inválidos) e 409 (e-mail já usado). */
+export function register(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
+  return authenticate("register", data);
 }
 
 /**
