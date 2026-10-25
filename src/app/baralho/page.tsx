@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
 import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
-import { getDeck, deleteDeck, errorMessage, type DeckDetailResponse } from "@/lib/api";
+import { getDeck, deleteDeck, updateDeck, errorMessage,  type DeckDetailResponse } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -62,12 +62,43 @@ function DeckDetailContent() {
   const router = useRouter();
   const deckIdOrSlug = searchParams.get("id") || "";
 
+  const [showRenameModal, setShowRenameModal] = useState(false); 
+  const [renameTitle, setRenameTitle] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
+
   const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+
+  const handleRename = async (e: React.FormEvent) =>{
+    e.preventDefault(); 
+    const trimmed = renameTitle.trim();
+
+    if (!trimmed) { 
+      setRenameError("O nome do baralho não pode ficar vazio."); 
+      return; 
+    } 
+    if (trimmed.length > 200) {
+      setRenameError("O nome do baralho deve ter no máximo 200 caracteres."); 
+      return; } 
+      try { 
+        setIsRenaming(true);
+        setRenameError(null);
+        await updateDeck(deck.id, { title: trimmed });
+        
+      deck.title = trimmed; 
+      setStatusMessage("Nome do baralho atualizado."); 
+      setShowRenameModal(false);
+      } catch { 
+        setRenameError("Não foi possível renomear o baralho. Tente novamente."); 
+        } finally { 
+        setIsRenaming(false); 
+      } 
+    };
 
   const loadDeck = useCallback(async () => {
     if (!deckIdOrSlug) {
@@ -223,6 +254,19 @@ function DeckDetailContent() {
       </section>
 
       <div className={styles.dangerZone}>
+
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => {
+            setRenameTitle(deck.title);
+            setRenameError(null);
+            setShowRenameModal(true);
+          }}
+        >
+          <span>Renomear baralho</span>
+        </Button>
+           
         <Button
           variant="danger"
           size="md"
@@ -260,6 +304,56 @@ function DeckDetailContent() {
           desfazer.
         </p>
       </Dialog>
+      
+      <Dialog
+        open={showRenameModal}
+        onClose={() => !isRenaming && setShowRenameModal(false)}
+        title="Renomear baralho"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setShowRenameModal(false)}
+              disabled={isRenaming}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="form-renomear"
+              variant="primary"
+              size="md"
+              disabled={isRenaming}
+            >
+              {isRenaming ? "Salvando..." : "Salvar"}
+            </Button>
+          </>
+        }
+      >
+        <form id="form-renomear" onSubmit={handleRename} noValidate>
+          <label htmlFor="rename-deck-input" className="sr-only">
+            Novo nome do baralho
+          </label>
+          <input
+            id="rename-deck-input"
+            type="text"
+            className={styles.input}
+            value={renameTitle}
+            onChange={(e) => setRenameTitle(e.target.value)}
+            maxLength={200}
+            disabled={isRenaming}
+            autoFocus
+          />
+          {renameError && (
+            <p role="alert" style={{ color: "#d32f2f", marginTop: "0.5rem" }}>
+              {renameError}
+            </p>
+          )}
+        </form>
+      </Dialog>
+
+    
     </main>
   );
 }
