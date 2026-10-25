@@ -85,11 +85,14 @@ function DeckDetailContent() {
     if (trimmed.length > 200) {
       setRenameError("O nome do baralho deve ter no máximo 200 caracteres."); 
       return; } 
-      try { 
+
+    if (!deck) {
+      setRenameError("Baralho não encontrado.");
+      return; }
+    try { 
         setIsRenaming(true);
         setRenameError(null);
-        await updateDeck(deck.id, { title: trimmed });
-        
+        await updateDeck(deck.id, { title: trimmed });  
       deck.title = trimmed; 
       setStatusMessage("Nome do baralho atualizado."); 
       setShowRenameModal(false);
