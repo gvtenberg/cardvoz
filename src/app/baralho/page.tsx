@@ -3,9 +3,18 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Play, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Play, Plus, Trash2,Pencil } from "lucide-react";
 import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
-import { getDeck, deleteDeck, updateDeck, errorMessage,  type DeckDetailResponse } from "@/lib/api";
+import { 
+  getDeck, 
+  deleteDeck, 
+  updateDeck, 
+  errorMessage,
+  updateCard, 
+  deleteCard,  
+  type DeckDetailResponse, 
+  CardResponse
+ } from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -74,6 +83,15 @@ function DeckDetailContent() {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
+  const [editingCard, setEditingCard] = useState<{ card: CardResponse; index: number } | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
+  const [isSavingCard, setIsSavingCard] = useState(false);
+  const [cardEditError, setCardEditError] = useState<string | null>(null);
+
+  const [deletingCard, setDeletingCard] = useState<{ card: CardResponse; index: number } | null>(null);
+  const [isDeletingCard, setIsDeletingCard] = useState(false);
+
   const handleRename = async (e: React.FormEvent) =>{
     e.preventDefault(); 
     const trimmed = renameTitle.trim();
@@ -139,6 +157,77 @@ function DeckDetailContent() {
       setIsDeleting(false);
       setShowConfirmDelete(false);
       setStatusMessage("Não foi possível excluir o baralho. Tente novamente.");
+    }
+  };
+
+
+const openEditCardModal = (card: CardResponse, index: number) => {
+    setEditingCard({ card, index });
+    setEditQuestion(card.question);
+    setEditAnswer(card.answer);
+    setCardEditError(null);
+  };
+
+  const handleSaveCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCard || !deck) return;
+
+    const trimmedQuestion = editQuestion.trim();
+    const trimmedAnswer = editAnswer.trim();
+
+    if (!trimmedQuestion) {
+      setCardEditError("A pergunta não pode ficar vazia.");
+      return;
+    }
+    if (!trimmedAnswer) {
+      setCardEditError("A resposta não pode ficar vazia.");
+      return;
+    }
+
+    try {
+      setIsSavingCard(true);
+      setCardEditError(null);
+
+      const updated = await updateCard(editingCard.card.id, {
+        question: trimmedQuestion,
+        answer: trimmedAnswer,
+      });
+
+      const updatedCards = (deck.cards || []).map((c) =>
+        c.id === editingCard.card.id ? { ...c, question: updated.question, answer: updated.answer } : c
+      );
+
+      setDeck({ ...deck, cards: updatedCards });
+      setStatusMessage(`Ficha ${editingCard.index + 1} atualizada.`);
+      setEditingCard(null);
+    } catch (err) {
+      setCardEditError(errorMessage(err, "Não foi possível salvar a ficha. Tente novamente."));
+    } finally {
+      setIsSavingCard(false);
+    }
+  };
+
+  const handleConfirmDeleteCard = async () => {
+    if (!deletingCard || !deck) return;
+
+    try {
+      setIsDeletingCard(true);
+      await deleteCard(deletingCard.card.id);
+
+      const updatedCards = (deck.cards || []).filter((c) => c.id !== deletingCard.card.id);
+      setDeck({
+        ...deck,
+        cards: updatedCards,
+        cardCount: updatedCards.length,
+      });
+
+      setStatusMessage("Ficha excluída.");
+      setDeletingCard(null);
+    } catch (err) {
+      console.error(err);
+      setStatusMessage("Não foi possível excluir a ficha. Tente novamente.");
+    } finally {
+      setIsDeletingCard(false);
     }
   };
 
@@ -249,6 +338,27 @@ function DeckDetailContent() {
                     <span className="sr-only">Resposta: </span>
                     {card.answer}
                   </p>
+                  <div className={styles.cardActions} style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openEditCardModal(card, index)}
+                      aria-label={`Editar ficha ${index + 1}`}
+                    >
+                      <Pencil aria-hidden="true" style={{ width: "1rem", height: "1rem" }} />
+                      <span>Editar</span>
+                    </Button>
+
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => setDeletingCard({ card, index })}
+                      aria-label={`Excluir ficha ${index + 1}`}
+                    >
+                      <Trash2 aria-hidden="true" style={{ width: "1rem", height: "1rem" }} />
+                      <span>Excluir</span>
+                    </Button>
+                  </div>
                 </div>
               </li>
             ))}
@@ -356,7 +466,94 @@ function DeckDetailContent() {
         </form>
       </Dialog>
 
-    
+      {/* MODAL: Editar Ficha */}
+      <Dialog
+        open={Boolean(editingCard)}
+        onClose={() => !isSavingCard && setEditingCard(null)}
+        title={editingCard ? `Editar ficha ${editingCard.index + 1}` : "Editar ficha"}
+        footer={
+          <>
+            <Button variant="secondary" size="md" onClick={() => setEditingCard(null)} disabled={isSavingCard}>
+              Cancelar
+            </Button>
+            <Button type="submit" form="form-editar-ficha" variant="primary" size="md" disabled={isSavingCard}>
+              {isSavingCard ? "Salvando..." : "Salvar"}
+            </Button>
+          </>
+        }
+      >
+        <form id="form-editar-ficha" onSubmit={handleSaveCard} noValidate>
+          <div style={{ marginBottom: "1rem" }}>
+            <label htmlFor="edit-card-question" style={{ fontWeight: "bold", display: "block" }}>
+              Pergunta
+            </label>
+            <textarea
+              id="edit-card-question"
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                fontSize: "1rem",
+                marginTop: "0.25rem",
+                minHeight: "80px",
+              }}
+              value={editQuestion}
+              onChange={(e) => setEditQuestion(e.target.value)}
+              disabled={isSavingCard}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="edit-card-answer" style={{ fontWeight: "bold", display: "block" }}>
+              Resposta
+            </label>
+            <textarea
+              id="edit-card-answer"
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                fontSize: "1rem",
+                marginTop: "0.25rem",
+                minHeight: "80px",
+              }}
+              value={editAnswer}
+              onChange={(e) => setEditAnswer(e.target.value)}
+              disabled={isSavingCard}
+            />
+          </div>
+
+          {cardEditError && (
+            <p role="alert" style={{ color: "#d32f2f", marginTop: "0.5rem" }}>
+              {cardEditError}
+            </p>
+          )}
+        </form>
+      </Dialog>
+
+      {/* MODAL: Excluir Ficha */}
+      <Dialog
+        open={Boolean(deletingCard)}
+        onClose={() => !isDeletingCard && setDeletingCard(null)}
+        title={deletingCard ? `Excluir a ficha ${deletingCard.index + 1}?` : "Excluir ficha?"}
+        footer={
+          <>
+            <Button variant="secondary" size="md" onClick={() => setDeletingCard(null)} disabled={isDeletingCard}>
+              Cancelar
+            </Button>
+            <Button variant="danger" size="md" onClick={handleConfirmDeleteCard} disabled={isDeletingCard}>
+              {isDeletingCard ? "Excluindo..." : "Sim, excluir"}
+            </Button>
+          </>
+        }
+      >
+        <p>
+          Você tem certeza que deseja excluir a ficha: <strong>"{deletingCard?.card.question}"</strong>?
+        </p>
+        <p style={{ marginTop: "0.5rem", color: "#666" }}>Não dá para desfazer.</p>
+      </Dialog>
     </main>
   );
 }
