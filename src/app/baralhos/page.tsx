@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DeckCard, DeckCardSkeleton, Button, Skeleton, LoadingStatus } from "@/components";
 import { Plus, Upload } from "lucide-react";
 import {
@@ -16,9 +16,12 @@ import styles from "./page.module.scss";
 export default function HomePage() {
   const [decks, setDecks] = useState<DeckResponse[] | null>(null);
   const [loadError, setLoadError] = useState("");
-  const [shared, setShared] = useState<DeckResponse[]>([]);
+  const [shared, setShared] = useState<DeckResponse[] | null>(null);
+  const [sharedError, setSharedError] = useState("");
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [status, setStatus] = useState({ message: "", isError: false });
+  // O botão "Adicionar" some depois da cópia: o foco vai para o aviso que fica no lugar
+  const focusAdded = useRef<string | null>(null);
 
   const loadDecks = useCallback(() => {
     setLoadError("");
@@ -29,11 +32,26 @@ export default function HomePage() {
       );
   }, []);
 
+  const loadShared = useCallback(() => {
+    setSharedError("");
+    getSharedDecks()
+      .then(setShared)
+      .catch((error) =>
+        setSharedError(errorMessage(error, "Não foi possível carregar os baralhos prontos. Tente de novo."))
+      );
+  }, []);
+
   useEffect(() => {
     loadDecks();
-    // Lista secundária: se não carregar, a seção de baralhos prontos só não aparece
-    getSharedDecks().then(setShared).catch(() => {});
-  }, [loadDecks]);
+    loadShared();
+  }, [loadDecks, loadShared]);
+
+  useEffect(() => {
+    if (focusAdded.current) {
+      document.getElementById(focusAdded.current)?.focus();
+      focusAdded.current = null;
+    }
+  }, [decks]);
 
   const handleCopy = async (deck: DeckResponse) => {
     if (copyingId) return;
@@ -41,6 +59,7 @@ export default function HomePage() {
     setStatus({ message: "", isError: false });
     try {
       const copy = await copySharedDeck(deck.id);
+      focusAdded.current = `pronto-${deck.id}`;
       // A API lista os mais novos primeiro
       setDecks((current) => [copy, ...(current ?? [])]);
       setStatus({ message: `“${copy.title}” foi adicionado aos seus baralhos.`, isError: false });
@@ -128,7 +147,30 @@ export default function HomePage() {
         </ul>
       )}
 
-      {decks !== null && shared.length > 0 && (
+      {/* Carregando: só o anúncio, sem skeleton, porque a lista costuma vir vazia
+          e um bloco que aparece e some faria a tela pular */}
+      {decks !== null && shared === null && !sharedError && (
+        <LoadingStatus>Carregando baralhos prontos...</LoadingStatus>
+      )}
+
+      {decks !== null && sharedError && (
+        <section className={styles.shared} aria-labelledby="prontos-titulo">
+          <h2 id="prontos-titulo" className={styles.sharedTitle}>
+            Baralhos prontos
+          </h2>
+          <p role="alert" className={styles.statusError}>
+            {sharedError}
+          </p>
+          <div>
+            <Button variant="soft" size="md" onClick={loadShared}>
+              Tentar de novo
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* Sem baralhos prontos a seção não aparece: é um complemento, não o conteúdo da página */}
+      {decks !== null && shared !== null && shared.length > 0 && (
         <section className={styles.shared} aria-labelledby="prontos-titulo">
           <div>
             <h2 id="prontos-titulo" className={styles.sharedTitle}>
@@ -140,6 +182,7 @@ export default function HomePage() {
           </div>
           <ul className={styles.decksGrid}>
             {shared.map((deck) => {
+              const added = decks.some((mine) => mine.sourceDeckId === deck.id);
               const label = copyingId === deck.id ? "Adicionando..." : "Adicionar aos meus baralhos";
               return (
                 <li key={deck.id} className={styles.sharedCard}>
@@ -150,18 +193,25 @@ export default function HomePage() {
                     </p>
                     {deck.description && <p className={styles.sharedDescription}>{deck.description}</p>}
                   </div>
-                  {/* aria-disabled em vez de disabled: botão desativado perde o foco */}
-                  <Button
-                    variant="soft"
-                    size="md"
-                    block
-                    onClick={() => handleCopy(deck)}
-                    aria-disabled={copyingId === deck.id || undefined}
-                    aria-label={`${label}: ${deck.title}`}
-                  >
-                    <Plus aria-hidden="true" />
-                    <span>{label}</span>
-                  </Button>
+                  {added ? (
+                    // Evita cópias repetidas; se a pessoa excluir a cópia, o botão volta
+                    <p id={`pronto-${deck.id}`} tabIndex={-1} className={styles.sharedAdded}>
+                      Já está nos seus baralhos.
+                    </p>
+                  ) : (
+                    // aria-disabled em vez de disabled: botão desativado perde o foco
+                    <Button
+                      variant="soft"
+                      size="md"
+                      block
+                      onClick={() => handleCopy(deck)}
+                      aria-disabled={copyingId === deck.id || undefined}
+                      aria-label={`${label}: ${deck.title}`}
+                    >
+                      <Plus aria-hidden="true" />
+                      <span>{label}</span>
+                    </Button>
+                  )}
                 </li>
               );
             })}

@@ -20,6 +20,8 @@ export interface DeckResponse {
   cardCount: number;
   createdAt: string;
   updatedAt?: string | null;
+  /** Baralho compartilhado de onde esta cópia veio (null se não for cópia) */
+  sourceDeckId?: string | null;
 }
 
 export interface DeckDetailResponse extends DeckResponse {

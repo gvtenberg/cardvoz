@@ -148,3 +148,11 @@
 .sharedDescription {
   margin-top: 0.5rem;
 }
+
+.sharedAdded {
+  display: flex;
+  align-items: center;
+  min-height: $touch-md;
+  font-weight: 700;
+  color: var(--success-soft-text);
+}
