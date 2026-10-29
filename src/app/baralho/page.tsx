@@ -550,7 +550,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
         }
       >
         <p>
-          Você tem certeza que deseja excluir a ficha: <strong>"{deletingCard?.card.question}"</strong>?
+          Você tem certeza que deseja excluir a ficha: <strong>{`"${deletingCard?.card.question}"`}</strong>?
         </p>
         <p style={{ marginTop: "0.5rem", color: "#666" }}>Não dá para desfazer.</p>
       </Dialog>
