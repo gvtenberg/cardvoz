@@ -135,6 +135,16 @@ export async function deleteDeck(id: string): Promise<void> {
   await fetchApi<void>(`/decks/${id}`, { method: "DELETE" });
 }
 
+/** Baralhos compartilhados, criados pela equipe no painel de admin. */
+export async function getSharedDecks(): Promise<DeckResponse[]> {
+  return fetchApi<DeckResponse[]>("/shared-decks");
+}
+
+/** Adiciona uma cópia do baralho compartilhado, com as fichas, aos baralhos da pessoa. */
+export async function copySharedDeck(id: string): Promise<DeckResponse> {
+  return fetchApi<DeckResponse>(`/shared-decks/${id}/copy`, { method: "POST" });
+}
+
 export async function getCategories(): Promise<string[]> {
   return fetchApi<string[]>("/decks/categories");
 }

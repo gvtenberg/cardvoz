@@ -3,13 +3,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { DeckCard, DeckCardSkeleton, Button, Skeleton, LoadingStatus } from "@/components";
 import { Plus, Upload } from "lucide-react";
-import { errorMessage, getDecks, type DeckResponse } from "@/lib/api";
+import {
+  copySharedDeck,
+  errorMessage,
+  getDecks,
+  getSharedDecks,
+  type DeckResponse,
+} from "@/lib/api";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 export default function HomePage() {
   const [decks, setDecks] = useState<DeckResponse[] | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [shared, setShared] = useState<DeckResponse[]>([]);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [status, setStatus] = useState({ message: "", isError: false });
 
   const loadDecks = useCallback(() => {
     setLoadError("");
@@ -22,7 +31,28 @@ export default function HomePage() {
 
   useEffect(() => {
     loadDecks();
+    // Lista secundária: se não carregar, a seção de baralhos prontos só não aparece
+    getSharedDecks().then(setShared).catch(() => {});
   }, [loadDecks]);
+
+  const handleCopy = async (deck: DeckResponse) => {
+    if (copyingId) return;
+    setCopyingId(deck.id);
+    setStatus({ message: "", isError: false });
+    try {
+      const copy = await copySharedDeck(deck.id);
+      // A API lista os mais novos primeiro
+      setDecks((current) => [copy, ...(current ?? [])]);
+      setStatus({ message: `“${copy.title}” foi adicionado aos seus baralhos.`, isError: false });
+    } catch (error) {
+      setStatus({
+        message: errorMessage(error, `Não foi possível adicionar “${deck.title}”. Tente de novo.`),
+        isError: true,
+      });
+    } finally {
+      setCopyingId(null);
+    }
+  };
 
   const totalCards = decks?.reduce((acc, d) => acc + (d.cardCount || 0), 0) ?? 0;
 
@@ -51,6 +81,13 @@ export default function HomePage() {
           </Button>
         </div>
       </header>
+
+      <p
+        role="status"
+        className={status.message ? (status.isError ? styles.statusError : styles.status) : "sr-only"}
+      >
+        {status.message}
+      </p>
 
       {loadError ? (
         <div className={styles.emptyState}>
@@ -89,6 +126,47 @@ export default function HomePage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {decks !== null && shared.length > 0 && (
+        <section className={styles.shared} aria-labelledby="prontos-titulo">
+          <div>
+            <h2 id="prontos-titulo" className={styles.sharedTitle}>
+              Baralhos prontos
+            </h2>
+            <p className={styles.pageSubtitle}>
+              Adicione uma cópia aos seus baralhos para estudar e editar.
+            </p>
+          </div>
+          <ul className={styles.decksGrid}>
+            {shared.map((deck) => {
+              const label = copyingId === deck.id ? "Adicionando..." : "Adicionar aos meus baralhos";
+              return (
+                <li key={deck.id} className={styles.sharedCard}>
+                  <div>
+                    <h3 className={styles.sharedName}>{deck.title}</h3>
+                    <p className={styles.sharedMeta}>
+                      {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
+                    </p>
+                    {deck.description && <p className={styles.sharedDescription}>{deck.description}</p>}
+                  </div>
+                  {/* aria-disabled em vez de disabled: botão desativado perde o foco */}
+                  <Button
+                    variant="soft"
+                    size="md"
+                    block
+                    onClick={() => handleCopy(deck)}
+                    aria-disabled={copyingId === deck.id || undefined}
+                    aria-label={`${label}: ${deck.title}`}
+                  >
+                    <Plus aria-hidden="true" />
+                    <span>{label}</span>
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </main>
   );
