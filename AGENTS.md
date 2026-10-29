@@ -19,20 +19,22 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 
 ---
 
-## 2. O sistema (3 repositórios)
+## 2. O sistema (4 repositórios)
 
 | Repositório | Papel | Hospedagem |
 |---|---|---|
 | **CardVoz** (este) | Frontend Next.js exportado como site estático (pasta `out/`) | Render — Static Site |
 | **cardvoz-api** | API REST em C# (.NET 9), só PostgreSQL | Render — Web Service (Docker) |
 | **cardvoz-db** | Esquema e dados iniciais do banco, como migrations do Supabase CLI | Supabase (PostgreSQL) |
+| **cardvoz-admin** | Painel da equipe (Next.js estático): usuários e baralhos compartilhados | Render — Static Site |
 
 - O frontend chama a API em `NEXT_PUBLIC_API_URL` (ex.: `https://cardvoz-api.onrender.com/api`). Essa variável é **gravada no build**: mudou, precisa gerar o site de novo.
 - A API libera o domínio do site pela variável `CORS_ALLOWED_ORIGINS` (sem barra no final).
 - **A API exige login.** Todas as rotas, exceto `/api/auth/*`, pedem `Authorization: Bearer <accessToken>`, e cada pessoa só acessa os próprios baralhos, fichas e sessões (recurso de outra pessoa responde 404). O fluxo de tokens (acesso de 15 min + renovação de 30 dias com rotação) está documentado no README da `cardvoz-api`, seção "Como o frontend deve usar".
 - **Duas formas de entrar:** e-mail e senha (`/entrar/` chama `POST /api/auth/login`; `/cadastro/` chama `POST /api/auth/register`) e Google (fluxo *authorization code* + PKCE, com redirecionamento: o Google devolve a pessoa para `/entrar/` com um código, e a API o troca em `POST /api/auth/google`, com o segredo do cliente que fica só na API). As três devolvem os mesmos tokens próprios. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build, o botão do Google some e só o login com senha aparece. Configuração do Google: README, seção "Login com Google".
 - **A API não junta contas:** se o e-mail do Google já tem uma conta criada com senha, `/api/auth/google` responde `409` e a pessoa entra com a senha. O cadastro com senha não confirma o e-mail, então juntar as contas deixaria quem cadastrou o e-mail de outra pessoa entrar na conta dela com a própria senha.
-- **Os baralhos são privados** de quem os cria. Compartilhar baralhos (por link, criando uma cópia) é evolução futura, fora do escopo atual.
+- **Os baralhos são privados** de quem os cria. **Baralhos compartilhados** são baralhos sem dono, criados pela equipe no `cardvoz-admin`: não aparecem na lista de ninguém, e em `/baralhos/` (seção "Baralhos prontos") a pessoa adiciona uma cópia aos seus (`getSharedDecks`, `copySharedDeck`). A cópia é independente: editar ou excluir o compartilhado não muda as cópias. A cópia guarda `sourceDeckId`, e a seção mostra "Já está nos seus baralhos." no lugar do botão.
+- **Admin:** contas com `isAdmin` entram no `cardvoz-admin` e usam `/api/admin/*`. O site do CardVoz não mostra nada de admin.
 - **Todos os IDs são UUID (texto)**, não números.
 - Mudança de tabela/coluna começa em **cardvoz-db** (nova migration) e precisa bater com o modelo do Entity Framework da **cardvoz-api**. Os nomes no banco são PascalCase (`"Decks"`, `"Cards"`, `"StudySessions"`, `"StudyReviews"`).
 
@@ -110,7 +112,7 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 
 ## 6. Dados (`src/lib/api.ts`)
 
-- Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `createCards` (lote, em sequência, preservando a ordem), `updateCard`, `deleteCard`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
+- Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `createCards` (lote, em sequência, preservando a ordem), `updateCard`, `deleteCard`, `getSharedDecks`, `copySharedDeck`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
 - Os tipos (`DeckResponse`, `DeckDetailResponse`, `CardResponse`, `StudySessionResponse`...) espelham os DTOs da API em camelCase. Todos os IDs são `string` (UUID).
 - `fetchApi` envia o `accessToken`; num `401`, renova a sessão **uma vez** e repete a chamada. Se a sessão acabou, o `AuthProvider` fica sabendo e o `AuthGate` leva a pessoa para `/entrar/?voltar=<página atual>`.
 - **Não há dados de exemplo nem fallback local.** Toda falha vira `ApiError` (`status`, `message`, `fieldErrors` com as chaves da API, como `Title`). `status` 0 = a API nem respondeu. Nunca trate falha como sucesso.

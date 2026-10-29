@@ -96,3 +96,63 @@
   color: var(--text-muted);
   max-width: 30rem;
 }
+
+.status,
+.statusError {
+  padding: 1rem 1.25rem;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  border-radius: $radius-md;
+}
+
+.status {
+  color: var(--success-soft-text);
+  background-color: var(--success-soft);
+}
+
+.statusError {
+  color: var(--danger-text);
+  background-color: var(--danger-soft);
+}
+
+.shared {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sharedTitle {
+  font-size: $font-size-2xl;
+}
+
+.sharedCard {
+  @include surface;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: $radius-xl;
+}
+
+.sharedName {
+  font-size: $font-size-xl;
+  overflow-wrap: anywhere;
+}
+
+.sharedMeta {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+}
+
+.sharedDescription {
+  margin-top: 0.5rem;
+}
+
+.sharedAdded {
+  display: flex;
+  align-items: center;
+  min-height: $touch-md;
+  font-weight: 700;
+  color: var(--success-soft-text);
+}
