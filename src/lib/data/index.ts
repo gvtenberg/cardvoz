@@ -278,8 +278,9 @@ let currentSync: Promise<SyncResult> | null = null;
 /** Guarda a versão da conta sem perder os endereços antigos do baralho. */
 function storeCopy(remote: DeckDetailResponse, userId: string) {
   const existing = findLocalDeck(remote.id);
-  const copy = fromApiDeck(remote, userId);
-  saveLocalDeck({ ...copy, aliases: existing?.aliases ?? [] });
+  // Só herda os endereços antigos do próprio baralho (não de outro que use este id como antigo)
+  const aliases = existing?.id === remote.id ? existing.aliases : [];
+  saveLocalDeck({ ...fromApiDeck(remote, userId), aliases });
 }
 
 /** Baralhos que vieram desta conta e voltaram a ser do aparelho: quem decide é a pessoa. */
@@ -316,7 +317,8 @@ async function refreshCopies(account: SavedAccount) {
   const remotes = await api.getDecks();
   for (const remote of remotes) {
     if (held.has(remote.id) || hasPendingFor(account.id, remote.id)) continue;
-    const local = findLocalDeck(remote.id);
+    const found = findLocalDeck(remote.id);
+    const local = found?.id === remote.id ? found : null;
     const changed =
       !local ||
       local.account?.remoteUpdatedAt !== (remote.updatedAt ?? null) ||
