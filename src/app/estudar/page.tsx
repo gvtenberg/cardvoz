@@ -281,7 +281,8 @@ function EstudarContent() {
             <strong>{deck.title}</strong>.
           </p>
 
-          <ul className={styles.stats} aria-label="Resultado">
+          {/* Só visual: o título acima já anuncia acertos e aproveitamento */}
+          <ul className={styles.stats} aria-hidden="true">
             <li className={styles.statCorrect}>
               <span className={styles.statNumber}>{correctCount}</span>
               <span className={styles.statLabel}>
@@ -321,7 +322,8 @@ function EstudarContent() {
     <main id="main-content" className={`${styles.main} ${styles.studyMain}`}>
       <div className={styles.topBar}>
         <BackLink href={deckHref} label="Sair" />
-        <p className={styles.counter}>
+        {/* Só visual: o título da pergunta já anuncia "Pergunta 2 de 10" */}
+        <p className={styles.counter} aria-hidden="true">
           {position} de {roundCards.length}
         </p>
       </div>

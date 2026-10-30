@@ -282,13 +282,18 @@ const openEditCardModal = (card: CardResponse, index: number) => {
                   {index + 1}
                 </span>
                 <div className={styles.cardContent}>
-                  <p className={styles.questionText}>
-                    <span className="sr-only">Pergunta: </span>
-                    {card.question}
-                  </p>
-                  <p className={styles.answerText}>
-                    <span className="sr-only">Resposta: </span>
-                    {card.answer}
+                  {/* Pergunta e resposta no mesmo parágrafo: lidas de uma vez */}
+                  <p className={styles.cardText}>
+                    <span className={styles.questionText}>
+                      <span className="sr-only">Pergunta {index + 1}: </span>
+                      {card.question}
+                    </span>
+                    <span className="sr-only">. </span>
+                    <br />
+                    <span className={styles.answerText}>
+                      <span className="sr-only">Resposta: </span>
+                      {card.answer}
+                    </span>
                   </p>
                   <div className={styles.cardActions} style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
                     <Button

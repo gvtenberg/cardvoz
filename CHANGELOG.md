@@ -4,6 +4,19 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.6.0 — 30/10/2026
+
+Leitura mais contínua com o TalkBack (pedidos da cliente):
+
+- Matérias da página inicial lidas como uma frase curta ("Exemplos: Biologia, Inglês, ... e muitas outras"), sem ler nome por nome.
+- Perguntas frequentes sempre abertas: sem tocar duas vezes para ouvir a resposta; cada pergunta continua sendo um título, para pular entre elas.
+- "Funciona com TalkBack e NVDA" lido numa frase só.
+- Recursos e passos de "Como funciona" lidos de uma vez (título e texto juntos); subtítulos decorativos removidos.
+- Demonstração da página inicial: o tema entra no anúncio da pergunta, sem repetir "1 de 3".
+- Estudo: contador e placar visuais não repetem o que o leitor de tela já anuncia.
+- Lista de baralhos: nome e quantidade de fichas lidos juntos.
+- Página do baralho: pergunta e resposta de cada ficha lidas de uma vez.
+
 ## 0.5.0 — 30/10/2026
 
 - Modo sem login: criar, importar, editar e estudar baralhos sem conta, guardados no aparelho.

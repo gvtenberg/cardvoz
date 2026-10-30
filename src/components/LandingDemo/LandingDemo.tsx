@@ -108,7 +108,8 @@ export function LandingDemo() {
             </div>
           ) : (
             <>
-              <div className={styles.topo}>
+              {/* Só visual: o título da pergunta já diz o tema e a posição */}
+              <div className={styles.topo} aria-hidden="true">
                 <span className={styles.tema}>{ficha.tema}</span>
                 <span>
                   {indice + 1} de {FICHAS.length}
@@ -120,7 +121,11 @@ export function LandingDemo() {
 
               <h3 ref={perguntaRef} tabIndex={-1} className={styles.face}>
                 <span className={styles.faceRotulo}>
-                  Pergunta<span className="sr-only"> {indice + 1} de {FICHAS.length}:</span>
+                  Pergunta
+                  <span className="sr-only">
+                    {" "}
+                    {indice + 1} de {FICHAS.length}, {ficha.tema}:
+                  </span>
                 </span>
                 <span className={styles.pergunta}>{ficha.pergunta}</span>
               </h3>
