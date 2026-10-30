@@ -21,3 +21,4 @@ export * from "./PasswordInput";
 export * from "./GoogleButton";
 export * from "./SyncStatus";
 export * from "./LocalNotice";
+export * from "./AccountTransfer";

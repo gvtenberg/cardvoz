@@ -171,3 +171,13 @@ describe("sair da conta", () => {
     expect(findLocalDeck("novo-offline")).toMatchObject({ kind: "aparelho", account: null });
   });
 });
+
+describe("oferecer levar ao entrar", () => {
+  it("a marca de login vale uma vez só", async () => {
+    const { markOfferTransfer, takeOfferTransfer } = await import("./transfer");
+    expect(takeOfferTransfer()).toBe(false);
+    markOfferTransfer();
+    expect(takeOfferTransfer()).toBe(true);
+    expect(takeOfferTransfer()).toBe(false);
+  });
+});

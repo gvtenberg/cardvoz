@@ -3,11 +3,12 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Play, Plus, Trash2,Pencil } from "lucide-react";
-import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
+import { ArrowLeft, Download, Play, Plus, Trash2, Pencil, Upload } from "lucide-react";
+import { Button, Dialog, Skeleton, LoadingStatus, useAuth } from "@/components";
 import { errorMessage, type CardResponse } from "@/lib/api";
 import { announce, deleteCard, deleteDeck, editCard, renameDeck, useDeck } from "@/lib/data";
 import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
+import { requestTransfer } from "@/lib/data/transfer";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -63,6 +64,7 @@ function DeckDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const deckIdOrSlug = searchParams.get("id") || "";
+  const { status: authStatus } = useAuth();
 
   const [showRenameModal, setShowRenameModal] = useState(false); 
   const [renameTitle, setRenameTitle] = useState("");
@@ -317,6 +319,13 @@ const openEditCardModal = (card: CardResponse, index: number) => {
       </section>
 
       <div className={styles.dangerZone}>
+        {/* Baralho só do aparelho, com a conta aberta: dá para levar depois do "Agora não" */}
+        {deck.kind === "aparelho" && authStatus === "logado" && (
+          <Button variant="soft" size="md" onClick={() => requestTransfer([deck.id])}>
+            <Upload aria-hidden="true" />
+            <span>Levar para a conta</span>
+          </Button>
+        )}
         <Button
           variant="soft"
           size="md"

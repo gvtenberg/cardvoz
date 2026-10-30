@@ -177,3 +177,40 @@ export function removeAccountCopies(userId: string): void {
   }
   clearQueue();
 }
+
+// --- Pergunta ao entrar -------------------------------------------------------
+
+const OFFER_KEY = "cardvoz.oferecerLevar";
+
+/**
+ * Marca que a pessoa acabou de entrar (senha, cadastro ou Google). Restaurar a
+ * sessão ao abrir o site não conta: a pergunta aparece uma vez por login.
+ */
+export function markOfferTransfer(): void {
+  try {
+    sessionStorage.setItem(OFFER_KEY, "1");
+  } catch {}
+}
+
+export function takeOfferTransfer(): boolean {
+  try {
+    const marked = sessionStorage.getItem(OFFER_KEY) === "1";
+    sessionStorage.removeItem(OFFER_KEY);
+    return marked;
+  } catch {
+    return false;
+  }
+}
+
+// Pedido de levar vindo de uma página (botão no baralho), atendido pelo AccountTransfer
+const REQUEST_EVENT = "cardvoz:levar";
+
+export function requestTransfer(deckIds: string[]): void {
+  window.dispatchEvent(new CustomEvent(REQUEST_EVENT, { detail: deckIds }));
+}
+
+export function onTransferRequest(listener: (deckIds: string[]) => void): () => void {
+  const handler = (event: Event) => listener((event as CustomEvent<string[]>).detail);
+  window.addEventListener(REQUEST_EVENT, handler);
+  return () => window.removeEventListener(REQUEST_EVENT, handler);
+}
