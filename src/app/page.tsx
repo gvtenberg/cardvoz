@@ -73,13 +73,11 @@ export default function LandingPage() {
                   Como funciona
                 </Button>
               </div>
-              <div className={styles.leitores}>
-                <span>Funciona com:</span>
-                <ul>
-                  <li>TalkBack</li>
-                  <li>NVDA</li>
-                </ul>
-              </div>
+              {/* Uma frase só: o TalkBack lê tudo de uma vez (as etiquetas são só visuais) */}
+              <p className={styles.leitores}>
+                Funciona com <span className={styles.leitor}>TalkBack</span> e{" "}
+                <span className={styles.leitor}>NVDA</span>.
+              </p>
             </div>
 
             <LandingDemo />
@@ -90,19 +88,23 @@ export default function LandingPage() {
           <div className={styles.wrap}>
             <div className={styles.cabeca}>
               <h2 id="para-quem-titulo">Tudo o que você precisa para estudar</h2>
-              <p>Simples de usar, no celular ou no computador.</p>
             </div>
-            <div className={styles.recursos}>
+            {/* Título e texto no mesmo parágrafo: o leitor de tela lê cada recurso de uma vez */}
+            <ul className={styles.recursos}>
               {RECURSOS.map(({ icone: Icone, tom, titulo, texto }) => (
-                <article key={titulo} className={styles.recurso}>
+                <li key={titulo} className={styles.recurso}>
                   <span className={`${styles.icone} ${tom}`} aria-hidden="true">
                     <Icone />
                   </span>
-                  <h3>{titulo}</h3>
-                  <p>{texto}</p>
-                </article>
+                  <p>
+                    <strong className={styles.itemTitulo}>{titulo}</strong>
+                    <span className="sr-only">. </span>
+                    <br />
+                    {texto}
+                  </p>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
 
@@ -112,11 +114,16 @@ export default function LandingPage() {
               <h2 id="materias-titulo">Serve para qualquer matéria</h2>
               <p>Você escreve as próprias perguntas, do jeito que o seu professor ou a sua prova cobram.</p>
             </div>
-            <ul className={styles.materias} aria-label="Exemplos de matérias">
+            {/* Para o leitor de tela é uma imagem com uma frase curta; quem enxerga vê os nomes */}
+            <div
+              className={styles.materias}
+              role="img"
+              aria-label="Exemplos: Biologia, Inglês, Matemática, ENEM, concursos e muitas outras."
+            >
               {MATERIAS.map((materia) => (
-                <li key={materia}>{materia}</li>
+                <span key={materia}>{materia}</span>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 
@@ -124,7 +131,6 @@ export default function LandingPage() {
           <div className={styles.wrap}>
             <div className={styles.cabeca}>
               <h2 id="como-titulo">Como funciona</h2>
-              <p>Do baralho vazio à primeira revisão em poucos minutos.</p>
             </div>
             <ol className={styles.passos}>
               {PASSOS.map(({ titulo, texto }, i) => (
@@ -132,8 +138,12 @@ export default function LandingPage() {
                   <span className={styles.passoNumero} aria-hidden="true">
                     {i + 1}
                   </span>
-                  <h3>{titulo}</h3>
-                  <p>{texto}</p>
+                  <p>
+                    <strong className={styles.itemTitulo}>{titulo}</strong>
+                    <span className="sr-only">. </span>
+                    <br />
+                    {texto}
+                  </p>
                 </li>
               ))}
             </ol>
@@ -143,12 +153,14 @@ export default function LandingPage() {
         <section className={`${styles.secao} ${styles.semTopo}`} aria-labelledby="duvidas-titulo">
           <div className={`${styles.wrap} ${styles.duvidas}`}>
             <h2 id="duvidas-titulo">Perguntas frequentes</h2>
+            {/* Respostas sempre visíveis: sem tocar duas vezes para o TalkBack ler.
+                Cada pergunta é um título, para pular de uma para outra */}
             <div className={styles.listaDuvidas}>
               {DUVIDAS.map(({ pergunta, resposta }) => (
-                <details key={pergunta}>
-                  <summary>{pergunta}</summary>
+                <div key={pergunta} className={styles.duvida}>
+                  <h3>{pergunta}</h3>
                   <p>{resposta}</p>
-                </details>
+                </div>
               ))}
             </div>
           </div>

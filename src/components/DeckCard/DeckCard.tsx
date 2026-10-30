@@ -33,9 +33,14 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
           <h2 id={`deck-title-${deck.id}`} className={styles.title}>
             <Link href={routes.deck(targetSlug)} className={styles.titleLink}>
               {deck.title}
+              {/* O leitor de tela lê nome e quantidade de uma vez */}
+              <span className="sr-only">
+                , {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
+                {showCategory && `, ${deck.category}`}
+              </span>
             </Link>
           </h2>
-          <p className={styles.meta}>
+          <p className={styles.meta} aria-hidden="true">
             {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
             {showCategory && ` · ${deck.category}`}
           </p>
