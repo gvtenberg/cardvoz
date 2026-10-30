@@ -79,7 +79,6 @@ src/
 │   ├── http.ts                 # URL da API, ApiError, errorMessage
 │   ├── auth/session.ts         # Tokens, renovação (uma por vez, entre abas), logout
 │   ├── auth/google.ts          # Ida ao Google (PKCE + state) e leitura da volta
-│   ├── notice.ts               # Aviso que sobrevive a uma troca de página (sessionStorage)
 │   ├── routes.ts               # Endereços internos, páginas públicas e safeRedirect
 │   └── importCards.ts          # Leitura de fichas de arquivos TXT/CSV/JSON
 └── styles/
@@ -131,7 +130,7 @@ scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do 
 
 **Cliente da API (`src/lib/api.ts`)**
 
-- Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `createCards` (lote, em sequência, preservando a ordem), `updateCard`, `deleteCard`, `getSharedDecks`, `copySharedDeck`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
+- Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `updateCard`, `deleteCard`, `getSharedDecks`, `copySharedDeck`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
 - Os tipos (`DeckResponse`, `DeckDetailResponse`, `CardResponse`, `StudySessionResponse`...) espelham os DTOs da API em camelCase. Todos os IDs são `string` (UUID).
 - `fetchApi` envia o `accessToken`; num `401`, renova a sessão **uma vez** e repete a chamada. Se a sessão acabou, o `AuthProvider` fica sabendo e o `AuthGate` leva a pessoa para `/entrar/?voltar=<página atual>`.
 - **Não há dados de exemplo nem fallback local.** Toda falha vira `ApiError` (`status`, `message`, `fieldErrors` com as chaves da API, como `Title`). `status` 0 = a API nem respondeu. Nunca trate falha como sucesso.
@@ -146,7 +145,7 @@ scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do 
 - `refreshSession()` garante **uma renovação por vez, inclusive entre abas** (`navigator.locks`), lendo o token dentro da trava. Duas renovações com o mesmo token fazem a API encerrar todas as sessões da pessoa. Não chame `/auth/refresh` por fora dela.
 - Sem internet na renovação **não desloga**: o status vira `"erro"` e o `AuthGate` mostra a mensagem com "Tentar de novo".
 - `useAuth()` dá `status` (`"carregando" | "logado" | "deslogado" | "erro"`), `user` e `logout()`. Sair numa aba sai em todas (evento `storage`).
-- Avisos que precisam aparecer na página seguinte ("Você saiu da sua conta.") vão por `setNotice()`/`takeNotice()` (`src/lib/notice.ts`), e não por `setTimeout` antes de navegar.
+- Avisos que precisam aparecer depois de trocar de página ("Você saiu da sua conta.", "Baralho excluído.") vão por `announce()` (`@/lib/data`), mostrado pelo `SyncStatus` do layout, e não por `setTimeout` antes de navegar.
 - A proteção de páginas no frontend é só experiência de uso; quem protege os dados é a API.
 
 ---
@@ -350,10 +349,11 @@ export default function ExemploPage() {
 | `PasswordInput` | `Input` de senha com a caixa "Mostrar senha" |
 | `GoogleButton` | "Entrar com Google" de `/entrar/` e `/cadastro/`. Não aparece sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
 | `Dialog` | Modal nativo com título, conteúdo e `footer` de ações |
-| `HelpDialog` | Ajuda com seções recolhíveis; abre na seção da tela atual |
+| `HelpDialog` | Ajuda com todos os assuntos abertos (títulos `h3`); o da tela atual vem primeiro |
 | `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
 | `AuthProvider`, `useAuth` | Contexto da sessão: `status`, `user`, `logout()`, `retry()`. Restaura a sessão ao abrir o site |
 | `AuthGate` | No layout: protege as páginas fora de `PUBLIC_PATHS` (skeleton enquanto confere, redireciona para `/entrar/`, erro com "Tentar de novo") |
+| `Instituicao` | "IFTO, *Campus* Palmas" com o itálico padrão |
 | `SyncStatus` | Aviso global da fila de alterações e mensagens de `announce()` (`role="status"`) |
 | `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
 | `AccountTransfer` | Diálogos "Levar para sua conta?" e de repetidos (montado no layout; o botão do baralho usa `requestTransfer`) |
@@ -366,7 +366,6 @@ export default function ExemploPage() {
 | `Kbd` | Tecla de atalho — usado só dentro da Ajuda |
 | `Logo`, `LogoIcon` | Marca: pilha de fichas com barras de voz. `compact` mostra só o ícone abaixo de `sm` (usado no cabeçalho). O vão entre as fichas é uma máscara SVG, então funciona sobre qualquer fundo e em uma cor só. Arquivos da marca em `docs/logo/` |
 | `SkipLink`, `ThemeToggle`, `ThemeProvider` | Estrutura global. `ThemeToggle variant="menu"` é a linha "Tema escuro" (com `aria-pressed`) do menu do celular |
-| `Badge`, `Card`, `cn()` (`lib/utils`) | Existem, mas **não são usados**; prefira o mixin `surface` e template strings |
 
 ---
 
@@ -386,6 +385,7 @@ export default function ExemploPage() {
 
 - Tom próximo e direto, com "você"; frases curtas; botões começam com verbo.
 - Vocabulário fixo: **baralho**, **ficha**, **pergunta**, **resposta**, **Estudar**, **Ver resposta**, **Acertei**, **Errei**, **Novo baralho**, **Adicionar fichas**, **Importar arquivo**, **Ajuda**.
+- **_Campus_** sempre com inicial maiúscula e em itálico. Na interface, use o componente `<Instituicao />` ("IFTO, *Campus* Palmas").
 - Mensagens de erro dizem o que fazer: "Escreva um nome para o baralho." em vez de "Campo inválido".
 
 ---

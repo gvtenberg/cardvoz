@@ -1,8 +1,6 @@
 export * from "./Button";
-export * from "./Card";
 export * from "./Input";
 export * from "./Textarea";
-export * from "./Badge";
 export * from "./Kbd";
 export * from "./ThemeToggle";
 export * from "./SkipLink";
@@ -25,3 +23,4 @@ export * from "./AccountTransfer";
 export * from "./LogoutDialog";
 export * from "./ServiceWorkerRegister";
 export * from "./InstallCard";
+export * from "./Instituicao";

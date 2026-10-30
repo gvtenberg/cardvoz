@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, Play, Plus, Trash2, Pencil, Upload } from "lucide-react";
-import { Button, Dialog, Skeleton, LoadingStatus, useAuth } from "@/components";
+import { Button, Dialog, Input, Skeleton, LoadingStatus, Textarea, useAuth } from "@/components";
 import { errorMessage, type CardResponse } from "@/lib/api";
 import { announce, deleteCard, deleteDeck, editCard, renameDeck, useDeck } from "@/lib/data";
 import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
@@ -66,57 +66,50 @@ function DeckDetailContent() {
   const deckIdOrSlug = searchParams.get("id") || "";
   const { status: authStatus } = useAuth();
 
-  const [showRenameModal, setShowRenameModal] = useState(false); 
-  const [renameTitle, setRenameTitle] = useState("");
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [renameError, setRenameError] = useState<string | null>(null);
-
   // Lido do aparelho e atualizado sozinho quando o baralho muda
   const { deck, loading, error: loadError } = useDeck(deckIdOrSlug);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
+  const renameRef = useRef<HTMLInputElement>(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameTitle, setRenameTitle] = useState("");
+  const [renameError, setRenameError] = useState("");
+
+  const questionRef = useRef<HTMLTextAreaElement>(null);
+  const answerRef = useRef<HTMLTextAreaElement>(null);
   const [editingCard, setEditingCard] = useState<{ card: CardResponse; index: number } | null>(null);
   const [editQuestion, setEditQuestion] = useState("");
   const [editAnswer, setEditAnswer] = useState("");
-  const [isSavingCard, setIsSavingCard] = useState(false);
-  const [cardEditError, setCardEditError] = useState<string | null>(null);
+  const [questionError, setQuestionError] = useState("");
+  const [answerError, setAnswerError] = useState("");
+  // Falha ao gravar (ex.: espaço do aparelho cheio): não é erro de um campo
+  const [cardFormError, setCardFormError] = useState("");
 
   const [deletingCard, setDeletingCard] = useState<{ card: CardResponse; index: number } | null>(null);
-  const [isDeletingCard, setIsDeletingCard] = useState(false);
 
-  const handleRename = (e: React.FormEvent) =>{
-    e.preventDefault(); 
+  // Salvar no aparelho é instantâneo: não há estado "Salvando..." nos diálogos
+  const handleRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deck) return;
     const trimmed = renameTitle.trim();
-
-    if (!trimmed) { 
-      setRenameError("O nome do baralho não pode ficar vazio."); 
-      return; 
-    } 
-    if (trimmed.length > 200) {
-      setRenameError("O nome do baralho deve ter no máximo 200 caracteres."); 
-      return; } 
-
-    if (!deck) {
-      setRenameError("Baralho não encontrado.");
-      return; }
-    try { 
-        setIsRenaming(true);
-        setRenameError(null);
-        renameDeck(deck.id, trimmed);
-      setStatusMessage("Nome do baralho atualizado."); 
+    if (!trimmed) {
+      setRenameError("Escreva um nome para o baralho.");
+      renameRef.current?.focus();
+      return;
+    }
+    try {
+      renameDeck(deck.id, trimmed);
+      setStatusMessage("Nome do baralho atualizado.");
       setShowRenameModal(false);
-      } catch (err) { 
-        setRenameError(errorMessage(err, "Não foi possível renomear o baralho. Tente novamente.")); 
-        } finally { 
-        setIsRenaming(false); 
-      } 
-    };
+    } catch (err) {
+      setRenameError(errorMessage(err, "Não foi possível renomear o baralho. Tente novamente."));
+      renameRef.current?.focus();
+    }
+  };
 
   const handleDelete = () => {
     if (!deck) return;
-    setIsDeleting(true);
     try {
       deleteDeck(deck.id);
       setShowConfirmDelete(false);
@@ -124,63 +117,49 @@ function DeckDetailContent() {
       announce("Baralho excluído.");
       router.push(routes.decks);
     } catch (error) {
-      setIsDeleting(false);
       setShowConfirmDelete(false);
       setStatusMessage(errorMessage(error, "Não foi possível excluir o baralho. Tente novamente."));
     }
   };
 
-
-const openEditCardModal = (card: CardResponse, index: number) => {
+  const openEditCardModal = (card: CardResponse, index: number) => {
     setEditingCard({ card, index });
     setEditQuestion(card.question);
     setEditAnswer(card.answer);
-    setCardEditError(null);
+    setQuestionError("");
+    setAnswerError("");
+    setCardFormError("");
   };
 
   const handleSaveCard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCard || !deck) return;
-
-    const trimmedQuestion = editQuestion.trim();
-    const trimmedAnswer = editAnswer.trim();
-
-    if (!trimmedQuestion) {
-      setCardEditError("A pergunta não pode ficar vazia.");
-      return;
-    }
-    if (!trimmedAnswer) {
-      setCardEditError("A resposta não pode ficar vazia.");
-      return;
-    }
+    const question = editQuestion.trim();
+    const answer = editAnswer.trim();
+    setQuestionError(question ? "" : "Escreva a pergunta.");
+    setAnswerError(answer ? "" : "Escreva a resposta.");
+    // O foco vai para o primeiro campo com problema
+    if (!question) return questionRef.current?.focus();
+    if (!answer) return answerRef.current?.focus();
 
     try {
-      setIsSavingCard(true);
-      setCardEditError(null);
-
-      editCard(deck.id, editingCard.card.id, { question: trimmedQuestion, answer: trimmedAnswer });
+      editCard(deck.id, editingCard.card.id, { question, answer });
       setStatusMessage(`Ficha ${editingCard.index + 1} atualizada.`);
       setEditingCard(null);
     } catch (err) {
-      setCardEditError(errorMessage(err, "Não foi possível salvar a ficha. Tente novamente."));
-    } finally {
-      setIsSavingCard(false);
+      setCardFormError(errorMessage(err, "Não foi possível salvar a ficha. Tente novamente."));
     }
   };
 
   const handleConfirmDeleteCard = () => {
     if (!deletingCard || !deck) return;
-
     try {
-      setIsDeletingCard(true);
       deleteCard(deck.id, deletingCard.card.id);
-      setStatusMessage("Ficha excluída.");
-      setDeletingCard(null);
+      setStatusMessage(`Ficha ${deletingCard.index + 1} excluída.`);
     } catch (err) {
       setStatusMessage(errorMessage(err, "Não foi possível excluir a ficha. Tente novamente."));
-    } finally {
-      setIsDeletingCard(false);
     }
+    setDeletingCard(null);
   };
 
   if (loading) {
@@ -295,14 +274,14 @@ const openEditCardModal = (card: CardResponse, index: number) => {
                       {card.answer}
                     </span>
                   </p>
-                  <div className={styles.cardActions} style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+                  <div className={styles.cardActions}>
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => openEditCardModal(card, index)}
                       aria-label={`Editar ficha ${index + 1}`}
                     >
-                      <Pencil aria-hidden="true" style={{ width: "1rem", height: "1rem" }} />
+                      <Pencil aria-hidden="true" />
                       <span>Editar</span>
                     </Button>
 
@@ -312,7 +291,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
                       onClick={() => setDeletingCard({ card, index })}
                       aria-label={`Excluir ficha ${index + 1}`}
                     >
-                      <Trash2 aria-hidden="true" style={{ width: "1rem", height: "1rem" }} />
+                      <Trash2 aria-hidden="true" />
                       <span>Excluir</span>
                     </Button>
                   </div>
@@ -349,7 +328,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
           size="md"
           onClick={() => {
             setRenameTitle(deck.title);
-            setRenameError(null);
+            setRenameError("");
             setShowRenameModal(true);
           }}
         >
@@ -369,20 +348,15 @@ const openEditCardModal = (card: CardResponse, index: number) => {
 
       <Dialog
         open={showConfirmDelete}
-        onClose={() => !isDeleting && setShowConfirmDelete(false)}
+        onClose={() => setShowConfirmDelete(false)}
         title="Excluir este baralho?"
         footer={
           <>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setShowConfirmDelete(false)}
-              disabled={isDeleting}
-            >
+            <Button variant="secondary" size="md" onClick={() => setShowConfirmDelete(false)}>
               Cancelar
             </Button>
-            <Button variant="danger" size="md" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? "Excluindo..." : "Sim, excluir"}
+            <Button variant="danger" size="md" onClick={handleDelete}>
+              Sim, excluir
             </Button>
           </>
         }
@@ -393,142 +367,106 @@ const openEditCardModal = (card: CardResponse, index: number) => {
           desfazer.
         </p>
       </Dialog>
-      
+
       <Dialog
         open={showRenameModal}
-        onClose={() => !isRenaming && setShowRenameModal(false)}
+        onClose={() => setShowRenameModal(false)}
         title="Renomear baralho"
         footer={
           <>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setShowRenameModal(false)}
-              disabled={isRenaming}
-            >
+            <Button variant="secondary" size="md" onClick={() => setShowRenameModal(false)}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              form="form-renomear"
-              variant="primary"
-              size="md"
-              disabled={isRenaming}
-            >
-              {isRenaming ? "Salvando..." : "Salvar"}
+            <Button type="submit" form="form-renomear" variant="primary" size="md">
+              Salvar
             </Button>
           </>
         }
       >
         <form id="form-renomear" onSubmit={handleRename} noValidate>
-          <label htmlFor="rename-deck-input" className="sr-only">
-            Novo nome do baralho
-          </label>
-          <input
+          <Input
+            ref={renameRef}
             id="rename-deck-input"
-            type="text"
-            className={styles.input}
+            label="Novo nome do baralho"
             value={renameTitle}
-            onChange={(e) => setRenameTitle(e.target.value)}
+            error={renameError}
+            onChange={(e) => {
+              setRenameTitle(e.target.value);
+              if (renameError) setRenameError("");
+            }}
             maxLength={200}
-            disabled={isRenaming}
-            autoFocus
+            autoComplete="off"
           />
-          {renameError && (
-            <p role="alert" style={{ color: "#d32f2f", marginTop: "0.5rem" }}>
-              {renameError}
-            </p>
-          )}
         </form>
       </Dialog>
 
-      {/* MODAL: Editar Ficha */}
       <Dialog
         open={Boolean(editingCard)}
-        onClose={() => !isSavingCard && setEditingCard(null)}
+        onClose={() => setEditingCard(null)}
         title={editingCard ? `Editar ficha ${editingCard.index + 1}` : "Editar ficha"}
         footer={
           <>
-            <Button variant="secondary" size="md" onClick={() => setEditingCard(null)} disabled={isSavingCard}>
+            <Button variant="secondary" size="md" onClick={() => setEditingCard(null)}>
               Cancelar
             </Button>
-            <Button type="submit" form="form-editar-ficha" variant="primary" size="md" disabled={isSavingCard}>
-              {isSavingCard ? "Salvando..." : "Salvar"}
+            <Button type="submit" form="form-editar-ficha" variant="primary" size="md">
+              Salvar
             </Button>
           </>
         }
       >
-        <form id="form-editar-ficha" onSubmit={handleSaveCard} noValidate>
-          <div style={{ marginBottom: "1rem" }}>
-            <label htmlFor="edit-card-question" style={{ fontWeight: "bold", display: "block" }}>
-              Pergunta
-            </label>
-            <textarea
-              id="edit-card-question"
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                fontSize: "1rem",
-                marginTop: "0.25rem",
-                minHeight: "80px",
-              }}
-              value={editQuestion}
-              onChange={(e) => setEditQuestion(e.target.value)}
-              disabled={isSavingCard}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="edit-card-answer" style={{ fontWeight: "bold", display: "block" }}>
-              Resposta
-            </label>
-            <textarea
-              id="edit-card-answer"
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                fontSize: "1rem",
-                marginTop: "0.25rem",
-                minHeight: "80px",
-              }}
-              value={editAnswer}
-              onChange={(e) => setEditAnswer(e.target.value)}
-              disabled={isSavingCard}
-            />
-          </div>
-
-          {cardEditError && (
-            <p role="alert" style={{ color: "#d32f2f", marginTop: "0.5rem" }}>
-              {cardEditError}
+        <form id="form-editar-ficha" onSubmit={handleSaveCard} className={styles.editForm} noValidate>
+          <Textarea
+            ref={questionRef}
+            id="edit-card-question"
+            label="Pergunta"
+            rows={3}
+            value={editQuestion}
+            error={questionError}
+            onChange={(e) => {
+              setEditQuestion(e.target.value);
+              if (questionError) setQuestionError("");
+            }}
+          />
+          <Textarea
+            ref={answerRef}
+            id="edit-card-answer"
+            label="Resposta"
+            rows={3}
+            value={editAnswer}
+            error={answerError}
+            onChange={(e) => {
+              setEditAnswer(e.target.value);
+              if (answerError) setAnswerError("");
+            }}
+          />
+          {cardFormError && (
+            <p role="alert" className={styles.formError}>
+              {cardFormError}
             </p>
           )}
         </form>
       </Dialog>
 
-      {/* MODAL: Excluir Ficha */}
       <Dialog
         open={Boolean(deletingCard)}
-        onClose={() => !isDeletingCard && setDeletingCard(null)}
+        onClose={() => setDeletingCard(null)}
         title={deletingCard ? `Excluir a ficha ${deletingCard.index + 1}?` : "Excluir ficha?"}
         footer={
           <>
-            <Button variant="secondary" size="md" onClick={() => setDeletingCard(null)} disabled={isDeletingCard}>
+            <Button variant="secondary" size="md" onClick={() => setDeletingCard(null)}>
               Cancelar
             </Button>
-            <Button variant="danger" size="md" onClick={handleConfirmDeleteCard} disabled={isDeletingCard}>
-              {isDeletingCard ? "Excluindo..." : "Sim, excluir"}
+            <Button variant="danger" size="md" onClick={handleConfirmDeleteCard}>
+              Sim, excluir
             </Button>
           </>
         }
       >
         <p>
-          Você tem certeza que deseja excluir a ficha: <strong>{`"${deletingCard?.card.question}"`}</strong>?
+          A ficha <strong>“{deletingCard?.card.question}”</strong> será apagada. Não dá
+          para desfazer.
         </p>
-        <p style={{ marginTop: "0.5rem", color: "#666" }}>Não dá para desfazer.</p>
       </Dialog>
     </main>
   );

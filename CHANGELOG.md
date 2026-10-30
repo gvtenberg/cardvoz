@@ -4,6 +4,16 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.7.0 — 30/10/2026
+
+- Ajuda com todos os assuntos abertos (sem toque duplo), cada um com um título; o assunto da tela atual vem primeiro. Novos textos: editar fichas, usar sem internet, exportar.
+- Perguntas frequentes atualizadas: instalar no celular e nova pergunta "Funciona sem internet?".
+- Política de privacidade revisada para o estado atual (uso sem conta, dados no aparelho, escolha ao sair, exportar) e com os três integrantes da equipe.
+- *Campus* em itálico e com inicial maiúscula em todo o site.
+- Vocabulário padronizado: "fichas" em vez de "cartões" na página inicial.
+- Diálogos de editar ficha e renomear baralho com os campos padrão do projeto (rótulo visível, erro anunciado e foco no campo com problema, contraste AAA).
+- Código sem uso removido (componentes Badge e Card, cn(), aviso entre páginas antigo, importação em lote antiga e a dependência clsx).
+
 ## 0.6.0 — 30/10/2026
 
 Leitura mais contínua com o TalkBack (pedidos da cliente):

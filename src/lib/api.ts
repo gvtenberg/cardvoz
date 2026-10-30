@@ -207,36 +207,6 @@ export async function getStudyHistory(deckId?: string): Promise<StudySessionResp
   return fetchApi<StudySessionResponse[]>(`/study-sessions/history${query}`);
 }
 
-/**
- * Cadastra várias fichas em sequência (importação de arquivo), preservando a ordem.
- * Retorna quantas fichas foram salvas; `onProgress` informa o avanço.
- * Para na hora se a sessão acabar ou a internet cair (as próximas falhariam igual).
- */
-export async function createCards(
-  deckId: string,
-  cards: { question: string; answer: string }[],
-  options?: { startOrder?: number; onProgress?: (done: number, total: number) => void }
-): Promise<number> {
-  const startOrder = options?.startOrder ?? 1;
-  let saved = 0;
-  for (let i = 0; i < cards.length; i++) {
-    try {
-      await createCard({
-        deckId,
-        question: cards[i].question,
-        answer: cards[i].answer,
-        displayOrder: startOrder + i,
-      });
-      saved++;
-    } catch (error) {
-      if (error instanceof ApiError && (error.status === 0 || error.status === 401)) break;
-      console.warn(`CardVoz: falha ao importar a ficha ${i + 1}:`, error);
-    }
-    options?.onProgress?.(i + 1, cards.length);
-  }
-  return saved;
-}
-
 // --- Rotas com menos chamadas (parte 4, na cardvoz-api) ----------------------
 // Enquanto a API não as tiver, respondem 404/405 e o site usa o caminho antigo.
 

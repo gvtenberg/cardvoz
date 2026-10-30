@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components";
+import { Button, Instituicao } from "@/components";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -11,12 +11,30 @@ export default function PrivacidadePage() {
       <h1 className={styles.title}>Política de privacidade</h1>
 
       <p className={styles.lead}>
-        O CardVoz é um projeto de extensão do curso de Sistemas para Internet do IFTO,
-        Campus Palmas. Guardamos só o necessário para você estudar.
+        O CardVoz é um projeto de extensão do curso de Sistemas para Internet do{" "}
+        <Instituicao />. Você pode usar sem conta, e guardamos só o necessário
+        para você estudar.
       </p>
 
+      <section className={styles.panel} aria-labelledby="aparelho">
+        <h2 id="aparelho" className={styles.panelTitle}>No seu aparelho</h2>
+        <p className={styles.text}>
+          Com ou sem conta, o navegador do seu aparelho guarda:
+        </p>
+        <ul className={styles.list}>
+          <li>Seus baralhos e fichas, para você estudar mesmo sem internet.</li>
+          <li>Suas escolhas: tema escuro, atalhos do teclado e o aviso de instalar o app.</li>
+          <li>Uma cópia das páginas do CardVoz, para o site abrir sem internet.</li>
+        </ul>
+        <p className={styles.text}>
+          Sem conta, seus baralhos não saem do aparelho: nós não recebemos nada.
+          Limpar os dados do navegador apaga esses baralhos. Para guardar uma cópia,
+          use Exportar.
+        </p>
+      </section>
+
       <section className={styles.panel} aria-labelledby="o-que">
-        <h2 id="o-que" className={styles.panelTitle}>O que guardamos</h2>
+        <h2 id="o-que" className={styles.panelTitle}>Se você criar uma conta</h2>
         <ul className={styles.list}>
           <li>Seu nome e seu e-mail.</li>
           <li>
@@ -27,7 +45,7 @@ export default function PrivacidadePage() {
             Se você entra com o Google, um código da sua conta Google, para reconhecer
             você na próxima vez.
           </li>
-          <li>Os baralhos e as fichas que você cria.</li>
+          <li>Os baralhos e as fichas que você guarda na conta.</li>
           <li>Os resultados das suas sessões de estudo (acertos e erros).</li>
         </ul>
         <p className={styles.text}>
@@ -48,26 +66,29 @@ export default function PrivacidadePage() {
       <section className={styles.panel} aria-labelledby="onde">
         <h2 id="onde" className={styles.panelTitle}>Onde ficam</h2>
         <p className={styles.text}>
-          Os dados ficam num banco de dados no Supabase, e o site e o servidor ficam no
-          Render. No seu aparelho, o navegador guarda uma chave para manter você
-          conectado, apagada quando você toca em Sair da conta.
+          Os dados da conta ficam num banco de dados no Supabase, e o site e o servidor
+          ficam no Render. No seu aparelho, o navegador guarda uma chave para manter
+          você conectado, uma cópia dos baralhos da conta e as alterações que esperam a
+          internet voltar.
         </p>
         <p className={styles.text}>
-          Seus baralhos também ficam guardados no navegador do seu aparelho, com ou sem
-          conta, para você estudar sem internet. Ao sair da conta, você escolhe se eles
-          continuam no aparelho ou são apagados dali. Limpar os dados do navegador também
-          os apaga do aparelho; os que estão na sua conta continuam guardados.
+          Ao sair da conta, você escolhe se os baralhos continuam no aparelho ou são
+          apagados dele. A chave de acesso é apagada nos dois casos, e os baralhos
+          continuam guardados na sua conta.
         </p>
       </section>
 
       <section className={styles.panel} aria-labelledby="direitos">
         <h2 id="direitos" className={styles.panelTitle}>Seus direitos</h2>
         <p className={styles.text}>
-          Você pode pedir uma cópia, a correção ou a exclusão dos seus dados. Fale com a
-          equipe do projeto: Élida Cristina Ferreira Alves e Guntemberg Pereira
-          Oliveira, do IFTO, Campus Palmas.
+          Você pode baixar seus baralhos a qualquer momento com Exportar. Também pode
+          pedir uma cópia, a correção ou a exclusão dos seus dados. Fale com a equipe do
+          projeto: Élida Cristina, Gutemberg Oliveira e Heitor Oliveira, do{" "}
+          <Instituicao />.
         </p>
       </section>
+
+      <p className={styles.updated}>Atualizada em 30 de outubro de 2026.</p>
 
       <Button href={routes.home} variant="secondary" size="md" block>
         Voltar ao início
