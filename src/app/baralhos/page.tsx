@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   DeckCard,
   DeckCardSkeleton,
+  InstallCard,
   Button,
   Skeleton,
   LoadingStatus,
@@ -124,6 +125,7 @@ export default function HomePage() {
 
       {/* Sem conta: lembra que os baralhos estão só aqui (não aparece enquanto confere o login) */}
       {decks && authStatus === "deslogado" && <LocalNotice decks={decks} />}
+      {decks && <InstallCard />}
 
       {decks === null ? (
         <>

@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-r
 import { Button, Skeleton, LoadingStatus } from "@/components";
 import type { CardResponse } from "@/lib/api";
 import { saveStudyResult, useDeck } from "@/lib/data";
+import { markFirstStudyDone } from "@/lib/install";
 import { routes } from "@/lib/routes";
 import { useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./page.module.scss";
@@ -147,6 +148,8 @@ function EstudarContent() {
       const localScore = roundCards.length > 0 ? Math.round((newCorrect / roundCards.length) * 100) : 0;
       setScorePercentage(localScore);
       setIsFinished(true);
+      // A sugestão de instalar só aparece depois que a pessoa viu o CardVoz funcionar
+      markFirstStudyDone();
 
       // Baralho da conta: o resultado entra na fila (vai para o histórico com internet)
       if (deck) {

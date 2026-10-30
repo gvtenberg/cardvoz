@@ -148,6 +148,24 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
         </details>
 
         <details className={styles.section}>
+          <summary className={styles.summary}>Instalar no celular</summary>
+          <p className={styles.text}>
+            Instalado, o CardVoz abre direto da tela inicial, como um aplicativo, e
+            funciona mesmo sem internet.
+          </p>
+          <ol className={styles.steps}>
+            <li>
+              No Android, abra o menu do Chrome (três pontos) e toque em{" "}
+              <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.
+            </li>
+            <li>
+              No iPhone, abra no Safari, toque em <strong>Compartilhar</strong> e depois
+              em <strong>Adicionar à Tela de Início</strong>.
+            </li>
+          </ol>
+        </details>
+
+        <details className={styles.section}>
           <summary className={styles.summary}>Atalhos do teclado</summary>
           <p className={styles.text}>
             Vêm desligados porque o leitor de tela também usa essas teclas. Sem
