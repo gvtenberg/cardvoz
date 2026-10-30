@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Headphones, PencilLine, Trophy, Upload } from "lucide-react";
 import { Button, LandingDemo } from "@/components";
 import { routes } from "@/lib/routes";
+import { APP_VERSION } from "@/lib/version";
 import styles from "./page.module.scss";
 
 const RECURSOS = [
@@ -175,6 +176,7 @@ export default function LandingPage() {
       <footer className={styles.rodape}>
         <div className={styles.wrap}>
           <p>CardVoz é um projeto de extensão do IFTO, campus Palmas.</p>
+          <p>{APP_VERSION}</p>
           <p>
             <Link href={routes.privacy} className={styles.rodapeLink}>
               Política de privacidade

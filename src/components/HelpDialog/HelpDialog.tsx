@@ -6,6 +6,7 @@ import { Dialog } from "../Dialog";
 import { Button } from "../Button";
 import { Kbd } from "../Kbd";
 import { setShortcutsEnabled, useShortcutsEnabled } from "@/lib/shortcuts";
+import { APP_VERSION } from "@/lib/version";
 import styles from "./HelpDialog.module.scss";
 
 type SectionId = "estudar" | "criar" | "importar" | "teclado" | "conta";
@@ -196,6 +197,9 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
           </p>
         </details>
       </div>
+
+      {/* Conferir a versão de qualquer tela, inclusive no app instalado */}
+      <p className={styles.version}>{APP_VERSION}</p>
     </Dialog>
   );
 }

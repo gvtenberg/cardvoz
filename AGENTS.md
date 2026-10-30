@@ -413,6 +413,7 @@ npx serve out         # pré-visualiza o resultado do build
 - Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
 - **Antes de concluir uma mudança:** lint, tipos, testes e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
+- **Versão:** ao publicar, suba o `version` do `package.json` (funcionalidade nova sobe o MINOR, só correção sobe o PATCH) e registre no `CHANGELOG.md`. O rodapé da página inicial e a Ajuda mostram "Versão X (commit)" (`src/lib/version.ts`, valores gravados no build pelo `next.config.mjs`), para conferir o deploy no Render sem entrar na conta.
 
 ---
 
