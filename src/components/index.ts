@@ -24,3 +24,4 @@ export * from "./LogoutDialog";
 export * from "./ServiceWorkerRegister";
 export * from "./InstallCard";
 export * from "./Instituicao";
+export * from "./Select";

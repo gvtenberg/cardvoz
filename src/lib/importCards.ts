@@ -13,6 +13,8 @@
  *        de "Exportar todos") vira vários baralhos.
  */
 
+import { isLanguageCode } from "@/lib/local/decks";
+
 export interface ImportedCard {
   question: string;
   answer: string;
@@ -26,15 +28,36 @@ export interface ImportResult {
   /** Linhas ou itens ignorados por não terem pergunta e resposta */
   skipped: number;
   /** Arquivo com vários baralhos: um item por baralho (cards = todas as fichas) */
-  decks?: { title: string; cards: ImportedCard[] }[];
+  decks?: ImportedDeck[];
+  /** Idioma das perguntas e das respostas (só no JSON exportado); null = português */
+  questionLang: string | null;
+  answerLang: string | null;
+}
+
+export interface ImportedDeck {
+  title: string;
+  cards: ImportedCard[];
+  questionLang: string | null;
+  answerLang: string | null;
 }
 
 type Parsed = {
   title?: string;
   cards: ImportedCard[];
   skipped: number;
-  decks?: { title: string; cards: ImportedCard[] }[];
+  decks?: ImportedDeck[];
+  questionLang?: string | null;
+  answerLang?: string | null;
 };
+
+const QUESTION_LANG_KEYS = ["idiomaperguntas", "idioma_perguntas", "questionlang"];
+const ANSWER_LANG_KEYS = ["idiomarespostas", "idioma_respostas", "answerlang"];
+
+/** Idioma do arquivo, só se for um código válido (o valor vai para o atributo lang) */
+function languageOf(obj: Record<string, unknown>, keys: string[]): string | null {
+  const value = pick(obj, keys);
+  return isLanguageCode(value) ? value : null;
+}
 
 export class ImportError extends Error {}
 
@@ -120,15 +143,29 @@ function parseJson(text: string): Parsed {
 
   let title: string | undefined;
   let entries: unknown;
+  let questionLang: string | null = null;
+  let answerLang: string | null = null;
 
   if (Array.isArray(data) && isDeckList(data)) {
     let skipped = 0;
     const decks = data.map((item, i) => {
       const parsed = parseEntries(pick(item, LIST_KEYS) as unknown[]);
       skipped += parsed.skipped;
-      return { title: toText(pick(item, TITLE_KEYS)) || `Baralho ${i + 1}`, cards: parsed.cards };
+      return {
+        title: toText(pick(item, TITLE_KEYS)) || `Baralho ${i + 1}`,
+        cards: parsed.cards,
+        questionLang: languageOf(item, QUESTION_LANG_KEYS),
+        answerLang: languageOf(item, ANSWER_LANG_KEYS),
+      };
     });
-    return { title: decks[0].title, cards: decks.flatMap((d) => d.cards), skipped, decks };
+    return {
+      title: decks[0].title,
+      cards: decks.flatMap((d) => d.cards),
+      skipped,
+      decks,
+      questionLang: decks[0].questionLang,
+      answerLang: decks[0].answerLang,
+    };
   }
 
   if (Array.isArray(data)) {
@@ -137,6 +174,8 @@ function parseJson(text: string): Parsed {
     const obj = data as Record<string, unknown>;
     title = toText(pick(obj, TITLE_KEYS)) || undefined;
     entries = pick(obj, LIST_KEYS);
+    questionLang = languageOf(obj, QUESTION_LANG_KEYS);
+    answerLang = languageOf(obj, ANSWER_LANG_KEYS);
   }
 
   if (!Array.isArray(entries)) {
@@ -146,7 +185,7 @@ function parseJson(text: string): Parsed {
   }
 
   const { cards, skipped } = parseEntries(entries);
-  return { title, cards, skipped };
+  return { title, cards, skipped, questionLang, answerLang };
 }
 
 // --- CSV --------------------------------------------------------------------
@@ -362,6 +401,8 @@ export function parseImportText(text: string, fileName: string): ImportResult {
     cards: parsed.cards,
     skipped: parsed.skipped,
     ...(parsed.decks && { decks: parsed.decks }),
+    questionLang: parsed.questionLang ?? null,
+    answerLang: parsed.answerLang ?? null,
   };
 }
 

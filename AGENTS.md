@@ -76,6 +76,8 @@ src/
 │   ├── local/                  # localStorage: storage.ts, decks.ts, queue.ts (fila), account.ts (conta ativa)
 │   ├── exportDecks.ts          # Exportar baralhos em JSON (mesmo formato da importação)
 │   ├── install.ts              # Cartão "Instalar o CardVoz" (regras e janela do Android)
+│   ├── languages.ts            # Idiomas das fichas e langAttr() para o atributo lang
+│   ├── searchCards.ts          # Busca de fichas (sem acentos) e texto do anúncio de resultados
 │   ├── http.ts                 # URL da API, ApiError, errorMessage
 │   ├── auth/session.ts         # Tokens, renovação (uma por vez, entre abas), logout
 │   ├── auth/google.ts          # Ida ao Google (PKCE + state) e leitura da volta
@@ -174,7 +176,9 @@ scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do 
 - **Diálogos:** use sempre o componente `<Dialog>` (elemento nativo `<dialog>` com `showModal`): foco preso, `Esc` e anúncio corretos. Não crie modais com `div role="dialog"`.
 
 **Rótulos**
-- Quando um botão repete o mesmo texto em vários itens, use `aria-label` que **contenha o texto visível** (WCAG 2.5.3): "Estudar Biologia Celular", "Ver fichas de Biologia Celular".
+- Quando um botão repete o mesmo texto em vários itens, use `aria-label` que **contenha o texto visível** (WCAG 2.5.3): "Estudar Biologia Celular", "Ver fichas de Biologia Celular", "Excluir ficha 2: Qual organela...".
+- **Idioma:** texto de ficha em outro idioma leva `lang` (`langAttr()` de `src/lib/languages.ts`), conforme o "Idioma das fichas" do baralho (`questionLang`/`answerLang`; `null` = português, sem marcar). Trecho estrangeiro fixo na interface também leva `lang` (WCAG 3.1.2).
+- **Mensagens de confirmação** se explicam sozinhas, porque são ouvidas sem o contexto visual: "Ficha 2 de “Biologia” atualizada.", e não "Salvo com sucesso".
 - Ícones do lucide sempre com `aria-hidden="true"`; botão só com ícone precisa de `aria-label`.
 - Uma página tem **um** `<h1>`; a hierarquia de títulos não pula níveis.
 - `<html lang="pt-BR">`, skip link para `#main-content` e `prefers-reduced-motion` já estão configurados globalmente.
@@ -353,6 +357,7 @@ export default function ExemploPage() {
 | `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
 | `AuthProvider`, `useAuth` | Contexto da sessão: `status`, `user`, `logout()`, `retry()`. Restaura a sessão ao abrir o site |
 | `AuthGate` | No layout: protege as páginas fora de `PUBLIC_PATHS` (skeleton enquanto confere, redireciona para `/entrar/`, erro com "Tentar de novo") |
+| `Select` | Lista de opções nativa com `label` e `hint`, no visual do `Input` |
 | `Instituicao` | "IFTO, *Campus* Palmas" com o itálico padrão |
 | `SyncStatus` | Aviso global da fila de alterações e mensagens de `announce()` (`role="status"`) |
 | `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
@@ -413,6 +418,10 @@ npx serve out         # pré-visualiza o resultado do build
 - Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
 - **Antes de concluir uma mudança:** lint, tipos, testes e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
+- **Textos de apoio em toda mudança:** confira e atualize junto o `README.md`, as **perguntas frequentes** (`DUVIDAS` em `src/app/page.tsx`), a **Ajuda** (`HelpDialog`), o `docs/guia-de-uso.md`, este `AGENTS.md` e o `CHANGELOG.md`. Se nenhum precisou mudar, diga isso no PR.
+- **Branch e PR:** trabalhe numa branch (`feat/...`, `fix/...`, `docs/...`) e abra PR para a `main`; o merge na `main` publica no Render. Depois do deploy, confira a versão no rodapé.
+- **Outros repositórios:** `cardvoz-api` e `cardvoz-db` têm donos no grupo. Não altere sem combinar; descreva a tarefa em `docs/tarefas/` do repositório e abra PR para o dono.
+- **Idioma de trabalho:** respostas, comentários, commits e documentação em português do Brasil.
 - **Versão:** ao publicar, suba o `version` do `package.json` (funcionalidade nova sobe o MINOR, só correção sobe o PATCH) e registre no `CHANGELOG.md`. O rodapé da página inicial e a Ajuda mostram "Versão X (commit)" (`src/lib/version.ts`, valores gravados no build pelo `next.config.mjs`), para conferir o deploy no Render sem entrar na conta.
 
 ---

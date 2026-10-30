@@ -59,7 +59,13 @@ export default function NovoBaralhoPage() {
     try {
       // Salva no aparelho na hora; com conta, a fila envia depois
       const cards = imported?.cards ?? [];
-      const created = createDeck({ title, cards });
+      // O idioma vem do arquivo exportado pelo CardVoz, se houver
+      const created = createDeck({
+        title,
+        cards,
+        questionLang: imported?.questionLang ?? null,
+        answerLang: imported?.answerLang ?? null,
+      });
       setStatusMessage(
         cards.length > 0
           ? `Baralho criado com ${cards.length} ${cards.length === 1 ? "ficha" : "fichas"}.`

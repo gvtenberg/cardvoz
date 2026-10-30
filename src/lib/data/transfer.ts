@@ -65,7 +65,13 @@ function replaceWithRemote(local: LocalDeck, remote: DeckDetailResponse, userId:
   const keepOld = local.id !== local.account?.remoteId;
   const aliases = keepOld ? [...local.aliases, local.id] : local.aliases;
   removeLocalDeck(local.id);
-  saveLocalDeck({ ...fromApiDeck(remote, userId), aliases });
+  // O idioma fica só no aparelho (a API ainda não guarda)
+  saveLocalDeck({
+    ...fromApiDeck(remote, userId),
+    aliases,
+    questionLang: local.questionLang ?? null,
+    answerLang: local.answerLang ?? null,
+  });
 }
 
 async function upload(local: LocalDeck, title: string, userId: string, api: TransferApi) {

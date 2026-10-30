@@ -4,6 +4,16 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.8.0 — 30/10/2026
+
+- Busca de fichas na página do baralho (RF09): procura na pergunta e na resposta, sem diferenciar acentos, e anuncia quantas fichas encontrou.
+- Idioma das fichas: num baralho de inglês ou espanhol, a pessoa escolhe o idioma das perguntas e das respostas, e o leitor de tela pronuncia nesse idioma. Português é o padrão. O idioma vai junto na exportação; por enquanto fica só no aparelho.
+- Botões "Editar" e "Excluir" de cada ficha anunciam o número e o começo da pergunta.
+- Mensagens de confirmação que se explicam sozinhas ("Ficha 2 de “Biologia” atualizada.").
+- Quantidade de fichas anunciada antes da lista ("Fichas (12)").
+- Guia de uso (`docs/guia-de-uso.md`) e baralho exportado de exemplo (`docs/exemplos/`).
+- Ajuda, perguntas frequentes e README atualizados (busca, idioma).
+
 ## 0.7.0 — 30/10/2026
 
 - Ajuda com todos os assuntos abertos (sem toque duplo), cada um com um título; o assunto da tela atual vem primeiro. Novos textos: editar fichas, usar sem internet, exportar.

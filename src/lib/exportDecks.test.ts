@@ -38,3 +38,28 @@ describe("exportar baralhos", () => {
     expect(result.cards).toEqual([{ question: "a", answer: "b" }]);
   });
 });
+
+describe("idioma na exportação", () => {
+  it("leva e traz o idioma das perguntas e das respostas", () => {
+    const exported = toExported({ ...ing, questionLang: "en", answerLang: "pt-BR" });
+    expect(exported).toMatchObject({ idiomaPerguntas: "en", idiomaRespostas: "pt-BR" });
+    const result = parseImportText(JSON.stringify(exported), "ingles.json");
+    expect(result).toMatchObject({ questionLang: "en", answerLang: "pt-BR" });
+  });
+
+  it("ignora idioma inválido no arquivo", () => {
+    const text = JSON.stringify({ titulo: "X", idiomaPerguntas: "<script>", fichas: [{ pergunta: "a", resposta: "b" }] });
+    expect(parseImportText(text, "x.json").questionLang).toBeNull();
+  });
+});
+
+describe("baralho exportado de exemplo (docs/exemplos)", () => {
+  it("continua sendo importado com fichas e idiomas", async () => {
+    const { readFileSync } = await import("node:fs");
+    const text = readFileSync("docs/exemplos/cardvoz-ingles-basico.json", "utf8");
+    const result = parseImportText(text, "cardvoz-ingles-basico.json");
+    expect(result.title).toBe("Inglês básico");
+    expect(result.cards).toHaveLength(5);
+    expect(result).toMatchObject({ questionLang: "en", answerLang: "pt-BR" });
+  });
+});

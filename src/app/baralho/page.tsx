@@ -3,14 +3,21 @@
 import React, { useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Play, Plus, Trash2, Pencil, Upload } from "lucide-react";
-import { Button, Dialog, Input, Skeleton, LoadingStatus, Textarea, useAuth } from "@/components";
+import { ArrowLeft, Download, Languages, Play, Plus, Trash2, Pencil, Upload } from "lucide-react";
+import { Button, Dialog, Input, Select, Skeleton, LoadingStatus, Textarea, useAuth } from "@/components";
 import { errorMessage, type CardResponse } from "@/lib/api";
-import { announce, deleteCard, deleteDeck, editCard, renameDeck, useDeck } from "@/lib/data";
+import { announce, deleteCard, deleteDeck, editCard, renameDeck, setDeckLanguages, useDeck } from "@/lib/data";
+import { LANGUAGES, langAttr, languageName } from "@/lib/languages";
+import { filterCards, resultsText } from "@/lib/searchCards";
 import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
 import { requestTransfer } from "@/lib/data/transfer";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
+
+/** Começo da pergunta para o nome dos botões: diz a qual ficha cada um se refere */
+function shortQuestion(text: string): string {
+  return text.length > 50 ? `${text.slice(0, 47).trimEnd()}...` : text;
+}
 
 function BackLink() {
   return (
@@ -88,6 +95,33 @@ function DeckDetailContent() {
 
   const [deletingCard, setDeletingCard] = useState<{ card: CardResponse; index: number } | null>(null);
 
+  const [query, setQuery] = useState("");
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [questionLang, setQuestionLang] = useState("pt-BR");
+  const [answerLang, setAnswerLang] = useState("pt-BR");
+
+  const openLanguageModal = () => {
+    setQuestionLang(deck?.questionLang ?? "pt-BR");
+    setAnswerLang(deck?.answerLang ?? "pt-BR");
+    setShowLanguageModal(true);
+  };
+
+  const handleSaveLanguages = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deck) return;
+    // Português é o idioma da página: guarda null para não marcar nada
+    const toStored = (code: string) => (code === "pt-BR" ? null : code);
+    try {
+      setDeckLanguages(deck.id, { questionLang: toStored(questionLang), answerLang: toStored(answerLang) });
+      setStatusMessage(
+        `Idioma de “${deck.title}”: perguntas em ${languageName(questionLang).toLowerCase()}, respostas em ${languageName(answerLang).toLowerCase()}.`
+      );
+    } catch (err) {
+      setStatusMessage(errorMessage(err, "Não foi possível salvar o idioma. Tente novamente."));
+    }
+    setShowLanguageModal(false);
+  };
+
   // Salvar no aparelho é instantâneo: não há estado "Salvando..." nos diálogos
   const handleRename = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +134,7 @@ function DeckDetailContent() {
     }
     try {
       renameDeck(deck.id, trimmed);
-      setStatusMessage("Nome do baralho atualizado.");
+      setStatusMessage(`Baralho renomeado para “${trimmed}”.`);
       setShowRenameModal(false);
     } catch (err) {
       setRenameError(errorMessage(err, "Não foi possível renomear o baralho. Tente novamente."));
@@ -144,7 +178,7 @@ function DeckDetailContent() {
 
     try {
       editCard(deck.id, editingCard.card.id, { question, answer });
-      setStatusMessage(`Ficha ${editingCard.index + 1} atualizada.`);
+      setStatusMessage(`Ficha ${editingCard.index + 1} de “${deck.title}” atualizada.`);
       setEditingCard(null);
     } catch (err) {
       setCardFormError(errorMessage(err, "Não foi possível salvar a ficha. Tente novamente."));
@@ -155,7 +189,7 @@ function DeckDetailContent() {
     if (!deletingCard || !deck) return;
     try {
       deleteCard(deck.id, deletingCard.card.id);
-      setStatusMessage(`Ficha ${deletingCard.index + 1} excluída.`);
+      setStatusMessage(`Ficha ${deletingCard.index + 1} excluída de “${deck.title}”.`);
     } catch (err) {
       setStatusMessage(errorMessage(err, "Não foi possível excluir a ficha. Tente novamente."));
     }
@@ -203,6 +237,11 @@ function DeckDetailContent() {
   const targetSlug = deck.slug || deck.id;
   const cardList = deck.cards || [];
   const showCategory = deck.category && deck.category.toLowerCase() !== "geral";
+  // Mantém o número original da ficha mesmo filtrando
+  const visibleCards = filterCards(
+    cardList.map((card, index) => ({ card, index, question: card.question, answer: card.answer })),
+    query
+  );
 
   return (
     <main id="main-content" className={styles.main}>
@@ -219,6 +258,12 @@ function DeckDetailContent() {
             {cardList.length} {cardList.length === 1 ? "ficha" : "fichas"}
             {showCategory && ` · ${deck.category}`}
           </p>
+          {(deck.questionLang || deck.answerLang) && (
+            <p className={styles.meta}>
+              Perguntas em {languageName(deck.questionLang).toLowerCase()} · respostas em{" "}
+              {languageName(deck.answerLang).toLowerCase()}
+            </p>
+          )}
           {deck.description && <p className={styles.description}>{deck.description}</p>}
         </div>
 
@@ -241,9 +286,27 @@ function DeckDetailContent() {
       </header>
 
       <section aria-labelledby="cards-list-heading" className={styles.cardsSection}>
+        {/* A quantidade vem antes da lista: dá para decidir se percorre ou pula */}
         <h2 id="cards-list-heading" className={styles.sectionTitle}>
-          Fichas
+          Fichas ({cardList.length})
         </h2>
+
+        {cardList.length > 1 && (
+          <div className={styles.search}>
+            <Input
+              id="buscar-fichas"
+              type="search"
+              label="Buscar fichas"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoComplete="off"
+            />
+            {/* O texto muda a cada busca, então o leitor de tela anuncia de novo */}
+            <p role="status" className={query.trim() ? styles.searchStatus : "sr-only"}>
+              {query.trim() ? resultsText(visibleCards.length, query) : ""}
+            </p>
+          </div>
+        )}
 
         {cardList.length === 0 ? (
           <div className={styles.emptyState}>
@@ -255,7 +318,7 @@ function DeckDetailContent() {
           </div>
         ) : (
           <ol className={styles.cardsList}>
-            {cardList.map((card, index) => (
+            {visibleCards.map(({ card, index }) => (
               <li key={card.id || index} className={styles.cardItem}>
                 <span className={styles.cardNumber} aria-hidden="true">
                   {index + 1}
@@ -265,13 +328,14 @@ function DeckDetailContent() {
                   <p className={styles.cardText}>
                     <span className={styles.questionText}>
                       <span className="sr-only">Pergunta {index + 1}: </span>
-                      {card.question}
+                      {/* lang: o leitor de tela troca a voz no idioma do baralho */}
+                      <span lang={langAttr(deck.questionLang)}>{card.question}</span>
                     </span>
                     <span className="sr-only">. </span>
                     <br />
                     <span className={styles.answerText}>
                       <span className="sr-only">Resposta: </span>
-                      {card.answer}
+                      <span lang={langAttr(deck.answerLang)}>{card.answer}</span>
                     </span>
                   </p>
                   <div className={styles.cardActions}>
@@ -279,7 +343,7 @@ function DeckDetailContent() {
                       variant="secondary"
                       size="sm"
                       onClick={() => openEditCardModal(card, index)}
-                      aria-label={`Editar ficha ${index + 1}`}
+                      aria-label={`Editar ficha ${index + 1}: ${shortQuestion(card.question)}`}
                     >
                       <Pencil aria-hidden="true" />
                       <span>Editar</span>
@@ -289,7 +353,7 @@ function DeckDetailContent() {
                       variant="danger"
                       size="sm"
                       onClick={() => setDeletingCard({ card, index })}
-                      aria-label={`Excluir ficha ${index + 1}`}
+                      aria-label={`Excluir ficha ${index + 1}: ${shortQuestion(card.question)}`}
                     >
                       <Trash2 aria-hidden="true" />
                       <span>Excluir</span>
@@ -303,6 +367,10 @@ function DeckDetailContent() {
       </section>
 
       <div className={styles.dangerZone}>
+        <Button variant="soft" size="md" onClick={openLanguageModal} aria-haspopup="dialog">
+          <Languages aria-hidden="true" />
+          <span>Idioma das fichas</span>
+        </Button>
         {/* Baralho só do aparelho, com a conta aberta: dá para levar depois do "Agora não" */}
         {deck.kind === "aparelho" && authStatus === "logado" && (
           <Button variant="soft" size="md" onClick={() => requestTransfer([deck.id])}>
@@ -467,6 +535,43 @@ function DeckDetailContent() {
           A ficha <strong>“{deletingCard?.card.question}”</strong> será apagada. Não dá
           para desfazer.
         </p>
+      </Dialog>
+
+      <Dialog
+        open={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        title="Idioma das fichas"
+        footer={
+          <>
+            <Button variant="secondary" size="md" onClick={() => setShowLanguageModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" form="form-idioma" variant="primary" size="md">
+              Salvar
+            </Button>
+          </>
+        }
+      >
+        <form id="form-idioma" onSubmit={handleSaveLanguages} className={styles.editForm}>
+          <p>
+            Num baralho de outro idioma, o leitor de tela troca a voz e pronuncia as
+            palavras corretamente.
+          </p>
+          <Select
+            id="idioma-perguntas"
+            label="Idioma das perguntas"
+            options={LANGUAGES}
+            value={questionLang}
+            onChange={(e) => setQuestionLang(e.target.value)}
+          />
+          <Select
+            id="idioma-respostas"
+            label="Idioma das respostas"
+            options={LANGUAGES}
+            value={answerLang}
+            onChange={(e) => setAnswerLang(e.target.value)}
+          />
+        </form>
       </Dialog>
     </main>
   );

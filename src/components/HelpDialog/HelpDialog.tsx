@@ -71,6 +71,15 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               Para corrigir, use <strong>Editar</strong> ou <strong>Excluir</strong> em
               cada ficha e <strong>Renomear baralho</strong> no fim da página do baralho.
             </li>
+            <li>
+              Para achar uma ficha, escreva em <strong>Buscar fichas</strong>, na página
+              do baralho. O CardVoz diz quantas encontrou.
+            </li>
+            <li>
+              Para estudar outro idioma, toque em <strong>Idioma das fichas</strong> e
+              escolha o idioma das perguntas e das respostas. Assim o leitor de tela
+              pronuncia as palavras nesse idioma.
+            </li>
           </ol>
           <p className={styles.text}>
             Tudo funciona sem conta e sem internet: as fichas ficam guardadas neste
