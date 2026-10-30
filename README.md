@@ -70,16 +70,28 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api          # cardvoz-api rodando loc
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=<id>.apps.googleusercontent.com
 ```
 
-Todas as páginas, exceto a inicial, `/entrar/`, `/cadastro/` e `/privacidade/`, pedem login. Sem a API, só essas quatro funcionam. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, o site funciona só com e-mail e senha.
+Só `/perfil/` pede login. Baralhos, fichas, importação, exportação e estudo funcionam **sem conta**, com tudo guardado no `localStorage` do navegador; dá para testar sem a API rodando. Com conta, os baralhos também ficam na API (veja "Modo sem login" abaixo). Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, o site funciona só com e-mail e senha.
+
+### Testes
+
+```bash
+npm test           # Vitest: lógica de src/lib (armazenamento, fila, levar para a conta, exportar, instalar)
+```
+
+Os testes rodam no Node, sem navegador. As telas são conferidas à mão (checklist no `AGENTS.md`, seção 14).
 
 ### Build de Produção (site estático)
 
 O CardVoz é exportado como **site estático** (`output: "export"`): o build gera a pasta `out/`, que pode ser publicada em qualquer hospedagem estática. Os dados vêm da API C# chamada direto pelo navegador.
 
 ```bash
-npm run build      # gera a pasta out/
+npm run build      # gera a pasta out/ e o service worker (out/sw.js)
 npx serve out      # pré-visualização local do resultado
 ```
+
+O `npm run build` roda `next build` e depois `scripts/gerar-sw.mjs`, que cria o `out/sw.js` com a lista de arquivos do site. É ele que faz o CardVoz **abrir sem internet** e poder ser **instalado na tela inicial** (com `public/manifest.webmanifest`). O service worker só é registrado no build de produção, não no `npm run dev`.
+
+**Testar sem internet:** `npm run build && npx serve out`, abra o site, navegue pela lista de baralhos e, no DevTools do Chrome, marque *Network → Offline* e recarregue.
 
 ### Deploy no Render
 
@@ -93,6 +105,8 @@ npx serve out      # pré-visualização local do resultado
 **API (`cardvoz-api`)**
 - `CORS_ALLOWED_ORIGINS=https://<seu-site>.onrender.com` para liberar o site a chamar a API.
 - `GOOGLE_CLIENT_ID` (o mesmo do site) e `GOOGLE_CLIENT_SECRET`.
+
+**Rotas novas da API (parte 4 do modo sem login):** o site já usa `POST /api/decks/import`, `GET /api/decks/changes` e `POST /api/study-sessions/complete` quando existirem, e cai no caminho antigo (uma chamada por ficha ou por resposta) enquanto a API responder 404/405. A tarefa está descrita no repositório `cardvoz-api` (`docs/tarefas/parte-4-menos-chamadas.md`).
 
 **Ordem ao publicar mudanças de login:** primeiro a migration do `cardvoz-db` (`npx supabase db push`), depois a API, por último o site. O site novo chama `/api/auth/google`, que só existe na API nova.
 
@@ -135,6 +149,20 @@ Se o botão "Entrar com Google" não aparecer, falta `NEXT_PUBLIC_GOOGLE_CLIENT_
 
 ---
 
+## Modo sem login
+
+Pedido da cliente: digitar e-mail e senha com o TalkBack é trabalhoso. Por isso a conta é **opcional**:
+
+- **Sem conta:** os baralhos ficam só no aparelho (`localStorage`). A lista avisa: "Seus baralhos estão só neste aparelho."
+- **Com conta:** os baralhos da conta também ficam guardados no aparelho, para abrir rápido e estudar e editar **sem internet**. As mudanças entram numa fila (`cardvoz.fila.v1`) que vai para a API quando a conexão volta. Se o mesmo baralho for editado em dois aparelhos, vale a última alteração enviada.
+- **Ao entrar** com baralhos no aparelho, um diálogo pergunta se a pessoa quer levá-los para a conta. Se já existir um baralho com o mesmo nome, ela escolhe qual versão fica.
+- **Ao sair**, a pessoa escolhe manter os baralhos no aparelho ou apagá-los dali (continuam na conta). Sessão que termina sozinha vale como "manter".
+- **Exportar e importar** em JSON funcionam sem conta.
+
+Design completo: `docs/superpowers/specs/2026-10-30-modo-sem-login-design.md`.
+
+---
+
 ## Estrutura do Projeto
 
 ```
@@ -156,6 +184,10 @@ cardvoz/
 │   ├── components/             # Um componente por pasta (Header com menu, AuthProvider, AuthGate...)
 │   ├── lib/
 │   │   ├── api.ts              # Cliente da API (token, renovação no 401, ApiError)
+│   │   ├── data/               # O que as páginas usam: baralhos no aparelho, fila e sincronização com a conta
+│   │   ├── local/              # localStorage: baralhos, fila de alterações e conta ativa
+│   │   ├── exportDecks.ts      # Exportar baralhos em JSON
+│   │   ├── install.ts          # Sugestão de instalar na tela inicial
 │   │   ├── http.ts             # URL da API, ApiError e mensagens de erro
 │   │   ├── auth/session.ts     # Tokens, renovação entre abas e logout
 │   │   ├── auth/google.ts      # Ida e volta do Google (PKCE)
@@ -163,6 +195,7 @@ cardvoz/
 │   │   ├── routes.ts           # Endereços internos e páginas públicas
 │   │   └── importCards.ts      # Leitura de fichas de arquivos TXT/CSV/JSON
 │   └── styles/                 # Tokens, mixins e temas claro/escuro
+├── scripts/                    # gerar-sw.mjs: service worker gerado depois do build
 ├── AGENTS.md                   # Guia de referência para agentes de IA (regras e arquitetura)
 └── next.config.mjs             # Export estático (out/)
 ```
