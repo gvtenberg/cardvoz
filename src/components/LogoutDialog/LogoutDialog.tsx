@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "../Button";
 import { Dialog } from "../Dialog";
 import { useAuth } from "../AuthProvider";
-import { announce } from "@/lib/data";
+import { announce, setActiveAccount } from "@/lib/data";
 import { convertCopiesToDevice, removeAccountCopies } from "@/lib/data/transfer";
 import { clearSavedAccount } from "@/lib/local/account";
 import { pendingCount } from "@/lib/local/queue";
@@ -27,8 +27,9 @@ export function LogoutDialog({ open, onClose }: LogoutDialogProps) {
   const pending = user && open ? pendingCount(user.id) : 0;
 
   const leave = (keep: boolean) => {
+    // Primeiro desliga a conta: uma sincronização ainda em andamento para de gravar
+    setActiveAccount(null);
     if (user) {
-      // Antes de sair: depois do logout a conta ativa deixa de existir
       if (keep) convertCopiesToDevice(user.id);
       else removeAccountCopies(user.id);
     }

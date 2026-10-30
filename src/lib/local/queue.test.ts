@@ -189,3 +189,44 @@ describe("fila de alterações", () => {
     expect(pendingCount("outra")).toBe(0);
   });
 });
+
+describe("fila: erros da API", () => {
+  it("erro temporário do servidor (500) para a fila e guarda o item", async () => {
+    contaDeck("d1");
+    enqueue(USER, { type: "renomearBaralho", deckId: "d1", title: "A" });
+    const api = fakeApi();
+    api.updateDeck.mockRejectedValue(new ApiError(503, "acordando"));
+
+    const result = await processQueue(USER, api);
+
+    expect(result.stoppedOffline).toBe(true);
+    expect(result.failures).toEqual([]);
+    expect(readQueue(USER)).toHaveLength(1);
+  });
+
+  it("baralho novo recusado pela API volta a ser do aparelho para levar depois", async () => {
+    const deck = contaDeck("l1");
+    saveLocalDeck({ ...deck, account: { userId: USER, remoteId: "", remoteUpdatedAt: null } });
+    enqueue(USER, { type: "criarBaralho", deckId: "l1", title: "Bio", category: "Geral", cards: [] });
+    const api = fakeApi();
+    api.importDeck.mockRejectedValue(new ApiError(400, "inválido"));
+
+    const result = await processQueue(USER, api);
+
+    expect(result.failures).toHaveLength(1);
+    expect(findLocalDeck("l1")).toMatchObject({ kind: "aparelho", account: null });
+  });
+
+  it("guarda o id antigo da ficha depois do envio", async () => {
+    contaDeck("d1", [{ id: "c1", question: "q" }]);
+    enqueue(USER, { type: "criarFicha", deckId: "d1", localId: "c1", question: "q", answer: "r", displayOrder: 1 });
+    const api = fakeApi();
+    api.createCard.mockResolvedValue({ id: "rc1", deckId: "d1", question: "q", answer: "r", displayOrder: 1, createdAt: "x" });
+
+    await processQueue(USER, api);
+
+    const card = findLocalDeck("d1")?.cards[0];
+    expect(card?.id).toBe("rc1");
+    expect(card?.aliases).toContain("c1");
+  });
+});

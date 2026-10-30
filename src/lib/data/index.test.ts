@@ -20,7 +20,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
 
 import * as api from "@/lib/api";
 import { RouteMissingError, type DeckDetailResponse } from "@/lib/api";
-import { getSavedAccount, saveAccount } from "@/lib/local/account";
+import { clearSavedAccount, getSavedAccount, saveAccount } from "@/lib/local/account";
 import { findLocalDeck, fromApiDeck, saveLocalDeck } from "@/lib/local/decks";
 import { enqueue, readQueue } from "@/lib/local/queue";
 import {
@@ -147,5 +147,67 @@ describe("camada de dados", () => {
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
     saveStudyResult("r1", { startedAt: "a", answers: [{ cardId: "r1-c0", wasCorrect: true, answeredAt: "b" }] });
     expect(readQueue(USER.id)).toMatchObject([{ type: "estudo", deckId: "r1" }]);
+  });
+});
+
+describe("camada de dados: correções da revisão", () => {
+  it("sincronização que termina depois de sair não devolve as cópias ao aparelho", async () => {
+    const { removeAccountCopies } = await import("./transfer");
+    saveAccount(USER);
+    setActiveAccount(USER);
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    let release: (v: unknown) => void = () => {};
+    vi.mocked(api.getDecks).mockReturnValue(new Promise((r) => (release = r)) as never);
+    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t1"));
+
+    setOnline(true);
+    const sync = syncAccount();
+    await Promise.resolve();
+    // A pessoa sai e apaga enquanto a API ainda não respondeu (como o LogoutDialog faz)
+    setActiveAccount(null);
+    removeAccountCopies(USER.id);
+    clearSavedAccount();
+    release([{ ...remote("r1", "t1"), cards: undefined }]);
+    await sync;
+
+    expect(findLocalDeck("r1")).toBeNull();
+    expect(getSavedAccount()).toBeNull();
+  });
+
+  it("estudo e edição com o id antigo da ficha usam o id novo", () => {
+    setActiveAccount(USER);
+    const copy = fromApiDeck(remote("r1", "t1"), USER.id);
+    copy.cards[0] = { ...copy.cards[0], id: "novo", aliases: ["antigo"] };
+    saveLocalDeck(copy);
+
+    editCard("r1", "antigo", { question: "editada", answer: "r" });
+    saveStudyResult("r1", { startedAt: "a", answers: [{ cardId: "antigo", wasCorrect: true, answeredAt: "b" }] });
+
+    expect(findLocalDeck("r1")?.cards[0].question).toBe("editada");
+    const items = readQueue(USER.id);
+    expect(items[0]).toMatchObject({ type: "editarFicha", cardId: "novo" });
+    expect(items[1]).toMatchObject({ type: "estudo", answers: [{ cardId: "novo" }] });
+  });
+
+  it("não cria cópia de um baralho que ainda está sendo levado para a conta", async () => {
+    saveAccount(USER);
+    setActiveAccount(USER);
+    const device = fromApiDeck(remote("l1", "t1"), USER.id);
+    saveLocalDeck({ ...device, kind: "aparelho", account: null, upload: { remoteId: "meio" } });
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("meio", "t1"), cards: undefined } as never]);
+    vi.mocked(api.getDeck).mockResolvedValue(remote("meio", "t1"));
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(findLocalDeck("meio")).toBeNull();
+  });
+
+  it("ao voltar a internet: sessão em erro é restaurada; logada sincroniza", async () => {
+    const { reconnectAction } = await import("./index");
+    expect(reconnectAction("erro")).toBe("restaurar");
+    expect(reconnectAction("logado")).toBe("sincronizar");
+    expect(reconnectAction("deslogado")).toBe("nada");
   });
 });

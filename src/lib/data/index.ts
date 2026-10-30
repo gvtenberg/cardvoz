@@ -40,9 +40,28 @@ let activeAccount: SavedAccount | null | undefined;
 export type Connection = "desconhecida" | "online" | "offline";
 let connection: Connection = "desconhecida";
 
+/**
+ * Muda a cada troca de conta (inclusive ao sair). Uma sincronização que começou
+ * com outra conta para de gravar: sem isso, uma resposta lenta da API depois do
+ * "Sair" traria os baralhos da conta de volta ao aparelho.
+ */
+let generation = 0;
+
 export function setActiveAccount(account: SavedAccount | null): void {
+  if ((account?.id ?? null) !== (activeAccount?.id ?? null)) generation++;
   activeAccount = account;
   emit();
+}
+
+export function isCurrentAccount(userId: string): boolean {
+  return getActiveAccount()?.id === userId;
+}
+
+/** O que fazer quando a internet volta, conforme o estado do login. */
+export function reconnectAction(status: string): "restaurar" | "sincronizar" | "nada" {
+  if (status === "erro") return "restaurar";
+  if (status === "logado") return "sincronizar";
+  return "nada";
 }
 
 export function getActiveAccount(): SavedAccount | null {
@@ -132,6 +151,11 @@ export function findDeck(idOrSlug: string): DeckDetail | null {
 }
 
 // --- Escritas ----------------------------------------------------------------
+
+/** Id atual da ficha: telas abertas antes de a fila enviar ainda usam o id antigo. */
+function resolveCardId(deck: LocalDeck, cardId: string): string {
+  return deck.cards.find((c) => c.id === cardId || c.aliases?.includes(cardId))?.id ?? cardId;
+}
 
 /** Cópia da conta ativa: mudanças também vão para a fila. */
 function accountOf(deck: LocalDeck): SavedAccount | null {
@@ -223,9 +247,10 @@ export function addCards(deckId: string, cards: { question: string; answer: stri
   }
 }
 
-export function editCard(deckId: string, cardId: string, data: { question: string; answer: string }): void {
+export function editCard(deckId: string, oldCardId: string, data: { question: string; answer: string }): void {
   const deck = findLocalDeck(deckId);
   if (!deck) return;
+  const cardId = resolveCardId(deck, oldCardId);
   updateLocalDeck(deck.id, (d) =>
     touch(d, { cards: d.cards.map((c) => (c.id === cardId ? { ...c, ...data } : c)) })
   );
@@ -236,9 +261,10 @@ export function editCard(deckId: string, cardId: string, data: { question: strin
   }
 }
 
-export function deleteCard(deckId: string, cardId: string): void {
+export function deleteCard(deckId: string, oldCardId: string): void {
   const deck = findLocalDeck(deckId);
   if (!deck) return;
+  const cardId = resolveCardId(deck, oldCardId);
   updateLocalDeck(deck.id, (d) => touch(d, { cards: d.cards.filter((c) => c.id !== cardId) }));
   const account = accountOf(deck);
   if (account) {
@@ -261,7 +287,7 @@ export function saveStudyResult(
     deckId: deck.id,
     startedAt: result.startedAt,
     completedAt: new Date().toISOString(),
-    answers: result.answers,
+    answers: result.answers.map((a) => ({ ...a, cardId: resolveCardId(deck, a.cardId) })),
   });
   kick();
 }
@@ -285,11 +311,13 @@ function storeCopy(remote: DeckDetailResponse, userId: string) {
 
 /** Baralhos que vieram desta conta e voltaram a ser do aparelho: quem decide é a pessoa. */
 function heldByDevice(userId: string): Set<string> {
-  return new Set(
-    listLocalDecks()
-      .filter((d) => d.kind === "aparelho" && d.account?.userId === userId)
-      .map((d) => d.account!.remoteId)
-  );
+  const held = new Set<string>();
+  for (const d of listLocalDecks()) {
+    if (d.kind === "aparelho" && d.account?.userId === userId) held.add(d.account.remoteId);
+    // Sendo levado para a conta agora: a cópia nasce quando o envio terminar
+    if (d.upload) held.add(d.upload.remoteId);
+  }
+  return held;
 }
 
 function removeVanished(userId: string, remoteIds: Set<string>) {
@@ -300,10 +328,12 @@ function removeVanished(userId: string, remoteIds: Set<string>) {
   }
 }
 
-async function refreshCopies(account: SavedAccount) {
+async function refreshCopies(account: SavedAccount, gen: number) {
   const held = heldByDevice(account.id);
+  const stale = () => gen !== generation;
   try {
     const changes = await api.getDeckChanges(account.lastSync ?? null);
+    if (stale()) return;
     for (const remote of changes.decks) {
       if (!held.has(remote.id) && !hasPendingFor(account.id, remote.id)) storeCopy(remote, account.id);
     }
@@ -316,6 +346,7 @@ async function refreshCopies(account: SavedAccount) {
 
   const remotes = await api.getDecks();
   for (const remote of remotes) {
+    if (stale()) return;
     if (held.has(remote.id) || hasPendingFor(account.id, remote.id)) continue;
     const found = findLocalDeck(remote.id);
     const local = found?.id === remote.id ? found : null;
@@ -325,12 +356,14 @@ async function refreshCopies(account: SavedAccount) {
       local.cards.length !== remote.cardCount;
     if (!changed) continue;
     const detail = await api.getDeck(remote.id);
-    if (detail) storeCopy(detail, account.id);
+    if (detail && !stale()) storeCopy(detail, account.id);
   }
+  if (stale()) return;
   removeVanished(account.id, new Set(remotes.map((r) => r.id)));
 }
 
 async function runSync(account: SavedAccount): Promise<SyncResult> {
+  const gen = generation;
   running = true;
   message = "";
   emit();
@@ -340,7 +373,9 @@ async function runSync(account: SavedAccount): Promise<SyncResult> {
     result.failures = queued.failures;
     result.offline = queued.stoppedOffline;
     if (queued.sent > 0 && pendingCount(account.id) === 0) lastSentAt = Date.now();
-    if (!queued.stoppedOffline && !queued.stoppedSession) await refreshCopies(account);
+    if (!queued.stoppedOffline && !queued.stoppedSession && gen === generation) {
+      await refreshCopies(account, gen);
+    }
   } catch (error) {
     if (error instanceof ApiError && error.status === 0) result.offline = true;
     else console.warn("CardVoz: falha ao atualizar os baralhos da conta.", errorMessage(error, ""));

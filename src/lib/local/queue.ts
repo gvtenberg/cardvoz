@@ -65,6 +65,11 @@ export function hasPendingFor(userId: string, deckId: string): boolean {
   return readQueue(userId).some((item) => item.deckId === deckId);
 }
 
+/** Como hasPendingFor, sem contar estudos (estudar não muda o baralho). */
+export function hasEditsPendingFor(userId: string, deckId: string): boolean {
+  return readQueue(userId).some((item) => item.deckId === deckId && item.type !== "estudo");
+}
+
 export function clearQueue(): void {
   removeKey(QUEUE_KEY);
 }
@@ -199,7 +204,10 @@ function applyIds(userId: string, oldDeckId: string, newDeck: DeckDetailResponse
       remoteId: newDeckId,
       remoteUpdatedAt: newDeck?.updatedAt ?? deck.account?.remoteUpdatedAt ?? null,
     },
-    cards: deck.cards.map((c) => ({ ...c, id: cardIds.get(c.id) ?? c.id })),
+    cards: deck.cards.map((c) => {
+      const next = cardIds.get(c.id);
+      return next ? { ...c, id: next, aliases: [...(c.aliases ?? []), c.id] } : c;
+    }),
   }));
 }
 
@@ -283,9 +291,21 @@ function failureFor(item: QueueItem, status: number): string | null {
     if (item.type === "editarFicha") {
       return `A ficha “${cardQuestion(item.deckId, item.cardId, item.question)}” não existe mais na sua conta.`;
     }
+    if (item.type === "estudo") {
+      return `Não foi possível guardar o estudo de “${deckTitle(item.deckId)}” no histórico.`;
+    }
     return `O baralho “${deckTitle(item.deckId)}” não existe mais na sua conta.`;
   }
   return `Não foi possível enviar uma alteração de “${deckTitle(item.deckId)}”.`;
+}
+
+/** Recusa definitiva da API (4xx): não adianta tentar de novo. */
+function isDefinitive(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    error.status >= 400 && error.status < 500 &&
+    error.status !== 408 && error.status !== 429
+  );
 }
 
 async function run(userId: string, api: QueueApi): Promise<QueueResult> {
@@ -298,19 +318,27 @@ async function run(userId: string, api: QueueApi): Promise<QueueResult> {
       await sendItem(userId, item, api);
       result.sent++;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 0) {
-        result.stoppedOffline = true;
-        break;
-      }
       if (error instanceof ApiError && error.status === 401) {
         result.stoppedSession = true;
         break;
       }
-      const status = error instanceof ApiError ? error.status : -1;
-      const failure = failureFor(item, status);
+      // Sem internet, API acordando ou com problema (5xx, 408, 429) ou erro no
+      // aparelho: para e tenta de novo depois, sem perder a alteração
+      if (!isDefinitive(error)) {
+        result.stoppedOffline = true;
+        break;
+      }
+      const failure = failureFor(item, (error as ApiError).status);
       if (failure) result.failures.push(failure);
       else result.sent++;
-      removeFirst(userId, item.id);
+      if (item.type === "criarBaralho") {
+        // A conta recusou o baralho: ele volta a ser do aparelho (dá para levar depois)
+        // e as outras alterações dele saem da fila
+        writeQueue(userId, readQueue(userId).filter((i) => i.deckId !== item.deckId));
+        updateLocalDeck(item.deckId, (d) => ({ ...d, kind: "aparelho", account: null }));
+      } else {
+        removeFirst(userId, item.id);
+      }
     }
   }
   return result;

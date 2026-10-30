@@ -142,7 +142,14 @@ export function Header() {
       </nav>
 
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
-      <LogoutDialog open={logoutOpen} onClose={() => setLogoutOpen(false)} />
+      <LogoutDialog
+        open={logoutOpen}
+        onClose={() => {
+          setLogoutOpen(false);
+          // No celular o "Sair" estava no menu, que fechou: o foco volta para o botão Menu
+          if (menuButtonRef.current?.offsetParent) menuButtonRef.current.focus();
+        }}
+      />
     </header>
   );
 }

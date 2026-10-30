@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, RouteMissingError, type DeckDetailResponse } from "@/lib/api";
 import { findLocalDeck, listLocalDecks, saveLocalDeck, type LocalDeck } from "@/lib/local/decks";
 import { enqueue, pendingCount } from "@/lib/local/queue";
@@ -11,8 +11,12 @@ import {
   uploadCandidates,
   type TransferApi,
 } from "./transfer";
+import { setActiveAccount } from "./index";
 
 const USER = "u1";
+
+// As transferências só gravam enquanto a conta continua ativa
+beforeEach(() => setActiveAccount({ id: USER, name: "Ana", email: "ana@x.com" }));
 
 function deck(id: string, change: Partial<LocalDeck> = {}): LocalDeck {
   const d: LocalDeck = {
@@ -179,5 +183,14 @@ describe("oferecer levar ao entrar", () => {
     markOfferTransfer();
     expect(takeOfferTransfer()).toBe(true);
     expect(takeOfferTransfer()).toBe(false);
+  });
+});
+
+describe("sair da conta: estudo pendente", () => {
+  it("um estudo pendente não conta como edição do baralho", () => {
+    deck("c1", { kind: "conta", account: fromAccount("c1") });
+    enqueue(USER, { type: "estudo", deckId: "c1", startedAt: "a", completedAt: "b", answers: [] });
+    convertCopiesToDevice(USER);
+    expect(findLocalDeck("c1")?.editedOffAccount).toBe(false);
   });
 });

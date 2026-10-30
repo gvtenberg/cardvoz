@@ -11,6 +11,8 @@ import { readJson, requestPersistentStorage, writeJson } from "./storage";
 
 export interface LocalCard {
   id: string;
+  /** ids antigos (antes de a fila enviar a ficha): telas abertas ainda podem usá-los */
+  aliases?: string[];
   question: string;
   answer: string;
   displayOrder: number;

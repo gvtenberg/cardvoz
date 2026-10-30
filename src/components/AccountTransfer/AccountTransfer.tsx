@@ -63,6 +63,9 @@ export function AccountTransfer() {
       if (!user || busyRef.current) return;
       busyRef.current = true;
       cancelledRef.current = false;
+      // Espera as cópias da conta chegarem: sem elas, um "Biologia" repetido não seria percebido
+      setPhase({ name: "levando", index: 0, total: deckIds.length });
+      await syncAccount();
       let moved = 0;
       const failed: string[] = [];
       let offlineMessage = "";
@@ -159,7 +162,9 @@ export function AccountTransfer() {
   } else if (phase.name === "levando") {
     body = (
       <p role="status" className={styles.progress}>
-        Levando {phase.index} de {decksText(phase.total)}...
+        {phase.index === 0
+          ? "Conferindo os baralhos da sua conta..."
+          : `Levando ${phase.index} de ${decksText(phase.total)}...`}
       </p>
     );
   } else if (phase.name === "repetido") {

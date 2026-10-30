@@ -13,7 +13,8 @@ import {
   updateLocalDeck,
   type LocalDeck,
 } from "@/lib/local/decks";
-import { clearQueue, hasPendingFor } from "@/lib/local/queue";
+import { clearQueue, hasEditsPendingFor } from "@/lib/local/queue";
+import { isCurrentAccount } from "./index";
 
 export type TransferApi = Pick<
   typeof import("@/lib/api"),
@@ -57,6 +58,8 @@ export function findDuplicate(local: LocalDeck, userId: string): Duplicate {
 
 /** Troca o baralho do aparelho pela versão que acabou de chegar na conta. */
 function replaceWithRemote(local: LocalDeck, remote: DeckDetailResponse, userId: string) {
+  // A pessoa saiu da conta enquanto o envio terminava: não traz a conta de volta ao aparelho
+  if (!isCurrentAccount(userId)) return;
   // O id antigo continua abrindo o baralho, a não ser que ele seja o id de um baralho da conta
   const keepOld = local.id !== local.account?.remoteId;
   const aliases = keepOld ? [...local.aliases, local.id] : local.aliases;
@@ -153,7 +156,7 @@ export function convertCopiesToDevice(userId: string): void {
     if (deck.kind !== "conta" || deck.account?.userId !== userId) continue;
     const neverSent = !deck.account.remoteId;
     // Alterações que não chegaram à conta já estão aplicadas aqui: na volta, a pessoa decide
-    const pending = hasPendingFor(userId, deck.id);
+    const pending = hasEditsPendingFor(userId, deck.id);
     updateLocalDeck(deck.id, (d) => ({
       ...d,
       kind: "aparelho",
