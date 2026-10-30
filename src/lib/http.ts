@@ -66,5 +66,7 @@ export function errorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError && (error.status === 0 || error.status === 429)) {
     return error.message;
   }
+  // Espaço do aparelho cheio: a mensagem diz o que fazer (exportar e apagar)
+  if (error instanceof Error && error.name === "StorageFullError") return error.message;
   return fallback;
 }
