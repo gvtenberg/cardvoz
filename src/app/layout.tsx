@@ -8,6 +8,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { AuthGate } from "@/components/AuthGate";
 import { SyncStatus } from "@/components/SyncStatus";
 import { AccountTransfer } from "@/components/AccountTransfer";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import styles from "./layout.module.scss";
 
 const nunito = Nunito({
@@ -31,8 +32,8 @@ export const metadata: Metadata = {
     "Fichas de estudo e memorização ativa projetadas para pessoas cegas e com baixa visão, compatíveis com leitores de tela (TalkBack, NVDA e VoiceOver).",
   // Permite instalar o CardVoz na tela inicial e abrir como aplicativo
   manifest: "/manifest.webmanifest",
+  // O ícone do iPhone vem de src/app/apple-icon.png (convenção do Next)
   appleWebApp: { capable: true, title: "CardVoz", statusBarStyle: "default" },
-  icons: { apple: "/icones/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -65,6 +66,7 @@ export default function RootLayout({
               <AuthGate>{children}</AuthGate>
             </div>
             <AccountTransfer />
+            <ServiceWorkerRegister />
           </AuthProvider>
         </ThemeProvider>
       </body>

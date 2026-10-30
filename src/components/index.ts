@@ -23,3 +23,4 @@ export * from "./SyncStatus";
 export * from "./LocalNotice";
 export * from "./AccountTransfer";
 export * from "./LogoutDialog";
+export * from "./ServiceWorkerRegister";
