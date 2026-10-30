@@ -349,10 +349,11 @@ export default function ExemploPage() {
 | `PasswordInput` | `Input` de senha com a caixa "Mostrar senha" |
 | `GoogleButton` | "Entrar com Google" de `/entrar/` e `/cadastro/`. Não aparece sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
 | `Dialog` | Modal nativo com título, conteúdo e `footer` de ações |
-| `HelpDialog` | Ajuda com seções recolhíveis; abre na seção da tela atual |
+| `HelpDialog` | Ajuda com todos os assuntos abertos (títulos `h3`); o da tela atual vem primeiro |
 | `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
 | `AuthProvider`, `useAuth` | Contexto da sessão: `status`, `user`, `logout()`, `retry()`. Restaura a sessão ao abrir o site |
 | `AuthGate` | No layout: protege as páginas fora de `PUBLIC_PATHS` (skeleton enquanto confere, redireciona para `/entrar/`, erro com "Tentar de novo") |
+| `Instituicao` | "IFTO, *Campus* Palmas" com o itálico padrão |
 | `SyncStatus` | Aviso global da fila de alterações e mensagens de `announce()` (`role="status"`) |
 | `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
 | `AccountTransfer` | Diálogos "Levar para sua conta?" e de repetidos (montado no layout; o botão do baralho usa `requestTransfer`) |
@@ -384,6 +385,7 @@ export default function ExemploPage() {
 
 - Tom próximo e direto, com "você"; frases curtas; botões começam com verbo.
 - Vocabulário fixo: **baralho**, **ficha**, **pergunta**, **resposta**, **Estudar**, **Ver resposta**, **Acertei**, **Errei**, **Novo baralho**, **Adicionar fichas**, **Importar arquivo**, **Ajuda**.
+- **_Campus_** sempre com inicial maiúscula e em itálico. Na interface, use o componente `<Instituicao />` ("IFTO, *Campus* Palmas").
 - Mensagens de erro dizem o que fazer: "Escreva um nome para o baralho." em vez de "Campo inválido".
 
 ---
