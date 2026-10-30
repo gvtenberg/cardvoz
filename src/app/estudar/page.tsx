@@ -5,16 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-react";
 import { Button, Skeleton, LoadingStatus } from "@/components";
-import {
-  errorMessage,
-  getDeck,
-  startStudySession,
-  recordStudyReview,
-  finishStudySession,
-  type CardResponse,
-  type DeckDetailResponse,
-  type StudySessionResponse,
-} from "@/lib/api";
+import type { CardResponse } from "@/lib/api";
+import { saveStudyResult, useDeck } from "@/lib/data";
 import { routes } from "@/lib/routes";
 import { useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./page.module.scss";
@@ -71,12 +63,11 @@ function EstudarContent() {
   const searchParams = useSearchParams();
   const deckSlug = searchParams.get("deck") || "";
 
-  const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
-  const [cards, setCards] = useState<CardResponse[]>([]);
-  const [session, setSession] = useState<StudySessionResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  // O baralho vem do aparelho; as fichas da rodada são fixadas ao começar, para
+  // uma atualização vinda da conta não mudar as fichas no meio do estudo
+  const { deck, loading, error: loadError } = useDeck(deckSlug);
+  const [cards, setCards] = useState<CardResponse[] | null>(null);
   const shortcutsEnabled = useShortcutsEnabled();
-  const [loadError, setLoadError] = useState("");
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -93,11 +84,16 @@ function EstudarContent() {
   // Trava curta após cada ação: um toque duplo em "Ver resposta" não vira "Errei"
   // e um toque duplo em "Acertei" não pula a ficha seguinte sem ser vista
   const lockUntilRef = useRef(0);
-  // Fila de chamadas à API: o estudo avança na hora, sem esperar a rede
-  const pendingRef = useRef<Promise<unknown>>(Promise.resolve());
-  const roundRef = useRef(0);
+  // Respostas da rodada: vão juntas para o histórico no fim (fila da conta)
+  const startedAtRef = useRef(new Date().toISOString());
+  const answersRef = useRef<{ cardId: string; wasCorrect: boolean; answeredAt: string }[]>([]);
 
-  const currentCard: CardResponse | undefined = cards[currentIndex];
+  useEffect(() => {
+    if (deck && cards === null) setCards(deck.cards || []);
+  }, [deck, cards]);
+
+  const roundCards = cards ?? [];
+  const currentCard: CardResponse | undefined = roundCards[currentIndex];
 
   const acquireLock = useCallback(() => {
     const now = Date.now();
@@ -106,59 +102,12 @@ function EstudarContent() {
     return true;
   }, []);
 
-  const enqueue = useCallback(<T,>(task: () => Promise<T>): Promise<T | undefined> => {
-    const run = pendingRef.current.then(task).catch((err) => {
-      console.warn("CardVoz: falha ao sincronizar estudo com a API:", err);
-      return undefined;
-    });
-    pendingRef.current = run;
-    return run;
-  }, []);
-
-  // Inicializa o baralho e abre a sessão na API C#
-  const initSession = useCallback(async () => {
-    if (!deckSlug) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setLoadError("");
-    try {
-      const loadedDeck = await getDeck(deckSlug);
-      if (loadedDeck) {
-        setDeck(loadedDeck);
-        const deckCards = loadedDeck.cards || [];
-        setCards(deckCards);
-
-        if (deckCards.length > 0) {
-          // Se só a sessão falhar, dá para estudar mesmo assim (o resultado não é salvo)
-          const newSession = await startStudySession({
-            deckSlug: loadedDeck.slug,
-            deckId: loadedDeck.id,
-          }).catch((err) => {
-            console.warn("CardVoz: falha ao iniciar a sessão de estudo:", err);
-            return null;
-          });
-          setSession(newSession);
-        }
-      }
-    } catch (err) {
-      setLoadError(errorMessage(err, "Não foi possível carregar as fichas. Tente de novo."));
-    } finally {
-      setLoading(false);
-    }
-  }, [deckSlug]);
-
-  useEffect(() => {
-    initSession();
-  }, [initSession]);
-
   // Leva o foco para a pergunta a cada nova ficha: o leitor de tela lê sozinho
   useEffect(() => {
-    if (!loading && !isFinished) {
+    if (cards !== null && !isFinished) {
       questionRef.current?.focus();
     }
-  }, [currentIndex, loading, isFinished]);
+  }, [currentIndex, cards, isFinished]);
 
   useEffect(() => {
     if (isRevealed) {
@@ -187,52 +136,42 @@ function EstudarContent() {
       setCorrectCount(newCorrect);
       if (!wasCorrect) setIncorrectCount((n) => n + 1);
 
-      if (session) {
-        const sessionId = session.id;
-        const cardId = currentCard.id;
-        enqueue(() => recordStudyReview(sessionId, { cardId, wasCorrect, voiceUsed: false }));
-      }
+      answersRef.current.push({ cardId: currentCard.id, wasCorrect, answeredAt: new Date().toISOString() });
 
-      if (currentIndex + 1 < cards.length) {
+      if (currentIndex + 1 < roundCards.length) {
         setCurrentIndex((prev) => prev + 1);
         setIsRevealed(false);
         return;
       }
 
-      const localScore = cards.length > 0 ? Math.round((newCorrect / cards.length) * 100) : 0;
+      const localScore = roundCards.length > 0 ? Math.round((newCorrect / roundCards.length) * 100) : 0;
       setScorePercentage(localScore);
       setIsFinished(true);
 
-      if (session) {
-        const round = roundRef.current;
-        const sessionId = session.id;
-        enqueue(() => finishStudySession(sessionId)).then((finished) => {
-          if (round === roundRef.current && finished?.scorePercentage !== undefined) {
-            setScorePercentage(Math.round(finished.scorePercentage));
-          }
-        });
+      // Baralho da conta: o resultado entra na fila (vai para o histórico com internet)
+      if (deck) {
+        try {
+          saveStudyResult(deck.id, { startedAt: startedAtRef.current, answers: answersRef.current });
+        } catch {
+          // Sem espaço no aparelho: o resumo continua na tela, só o histórico não é guardado
+        }
       }
     },
-    [currentCard, isFinished, currentIndex, correctCount, session, cards.length, enqueue, acquireLock]
+    [currentCard, isFinished, currentIndex, correctCount, roundCards.length, deck, acquireLock]
   );
 
-  const restartSession = async () => {
-    roundRef.current += 1;
+  const restartSession = () => {
     answeredIndexRef.current = null;
-    setSession(null);
+    answersRef.current = [];
+    startedAtRef.current = new Date().toISOString();
+    // Começa a nova rodada com as fichas atuais do baralho
+    if (deck) setCards(deck.cards || []);
     setCurrentIndex(0);
     setIsRevealed(false);
     setCorrectCount(0);
     setIncorrectCount(0);
     setScorePercentage(0);
     setIsFinished(false);
-
-    if (deck) {
-      const newSession = await enqueue(() =>
-        startStudySession({ deckSlug: deck.slug, deckId: deck.id })
-      );
-      if (newSession) setSession(newSession);
-    }
   };
 
   // Atalhos: Espaço (ver resposta), 1 (acertei), 2 (errei). Só quando a pessoa
@@ -259,7 +198,7 @@ function EstudarContent() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [shortcutsEnabled, isRevealed, isFinished, handleReveal, handleAnswer]);
 
-  if (loading) {
+  if (loading || (deck && cards === null)) {
     return <EstudarLoading />;
   }
 
@@ -272,7 +211,7 @@ function EstudarContent() {
           <p role="alert" className={styles.messageText}>
             {loadError}
           </p>
-          <Button variant="primary" size="lg" onClick={initSession}>
+          <Button variant="primary" size="lg" onClick={() => window.location.reload()}>
             Tentar de novo
           </Button>
         </section>
@@ -299,7 +238,7 @@ function EstudarContent() {
 
   const deckHref = routes.deck(deck.slug || deck.id);
 
-  if (cards.length === 0) {
+  if (roundCards.length === 0) {
     return (
       <main id="main-content" className={styles.main}>
         <BackLink href={deckHref} label={deck.title} />
@@ -318,7 +257,7 @@ function EstudarContent() {
   }
 
   if (isFinished) {
-    const total = cards.length;
+    const total = roundCards.length;
     return (
       <main id="main-content" className={styles.main}>
         <BackLink href={deckHref} label={deck.title} />
@@ -373,14 +312,14 @@ function EstudarContent() {
   }
 
   const position = currentIndex + 1;
-  const progress = Math.round((position / cards.length) * 100);
+  const progress = Math.round((position / roundCards.length) * 100);
 
   return (
     <main id="main-content" className={`${styles.main} ${styles.studyMain}`}>
       <div className={styles.topBar}>
         <BackLink href={deckHref} label="Sair" />
         <p className={styles.counter}>
-          {position} de {cards.length}
+          {position} de {roundCards.length}
         </p>
       </div>
 
@@ -393,7 +332,7 @@ function EstudarContent() {
 
         <h2 ref={questionRef} tabIndex={-1} className={styles.faceBlock}>
           <span className={styles.faceLabel}>
-            Pergunta<span className="sr-only"> {position} de {cards.length}:</span>
+            Pergunta<span className="sr-only"> {position} de {roundCards.length}:</span>
           </span>
           <span className={styles.questionText}>{currentCard?.question}</span>
         </h2>
