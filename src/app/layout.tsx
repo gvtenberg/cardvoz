@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Atkinson_Hyperlegible } from "next/font/google";
 import "@/styles/globals.scss";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -29,6 +29,14 @@ export const metadata: Metadata = {
   title: "CardVoz - Fichas de Estudo Acessíveis",
   description:
     "Fichas de estudo e memorização ativa projetadas para pessoas cegas e com baixa visão, compatíveis com leitores de tela (TalkBack, NVDA e VoiceOver).",
+  // Permite instalar o CardVoz na tela inicial e abrir como aplicativo
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "CardVoz", statusBarStyle: "default" },
+  icons: { apple: "/icones/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2846C4",
 };
 
 export default function RootLayout({
