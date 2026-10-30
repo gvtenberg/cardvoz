@@ -52,6 +52,11 @@
   }
 }
 
+// O display: flex do painel anularia o atributo hidden
+.panel[hidden] {
+  display: none;
+}
+
 .panelTitle {
   font-size: $font-size-xl;
 }

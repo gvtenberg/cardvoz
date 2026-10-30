@@ -3,10 +3,11 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Play, Plus, Trash2,Pencil } from "lucide-react";
+import { ArrowLeft, Download, Play, Plus, Trash2,Pencil } from "lucide-react";
 import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
 import { errorMessage, type CardResponse } from "@/lib/api";
 import { announce, deleteCard, deleteDeck, editCard, renameDeck, useDeck } from "@/lib/data";
+import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -316,7 +317,19 @@ const openEditCardModal = (card: CardResponse, index: number) => {
       </section>
 
       <div className={styles.dangerZone}>
-
+        <Button
+          variant="soft"
+          size="md"
+          onClick={() => {
+            const fileName = exportFileName(deck.title, new Date());
+            downloadJson(fileName, toExported(deck));
+            setStatusMessage(`Arquivo “${fileName}” baixado.`);
+          }}
+          aria-label={`Exportar baralho ${deck.title}`}
+        >
+          <Download aria-hidden="true" />
+          <span>Exportar baralho</span>
+        </Button>
         <Button
           variant="secondary"
           size="md"

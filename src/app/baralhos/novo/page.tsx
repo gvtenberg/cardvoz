@@ -29,8 +29,23 @@ export default function NovoBaralhoPage() {
     setImported(result);
   };
 
+  // Arquivo de "Exportar todos": cada baralho do arquivo vira um baralho
+  const importedDecks = imported?.decks && imported.decks.length > 1 ? imported.decks : null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (importedDecks) {
+      setIsSubmitting(true);
+      try {
+        importedDecks.forEach((deck) => createDeck({ title: deck.title, cards: deck.cards }));
+        setStatusMessage(`${importedDecks.length} baralhos importados.`);
+        setTimeout(() => router.push(routes.decks), 800);
+      } catch (error) {
+        setIsSubmitting(false);
+        setStatusMessage(errorMessage(error, "Não foi possível importar os baralhos. Tente novamente."));
+      }
+      return;
+    }
     const title = name.trim();
     if (!title) {
       setNameError("Escreva um nome para o baralho.");
@@ -61,7 +76,9 @@ export default function NovoBaralhoPage() {
 
   const count = imported?.cards.length ?? 0;
   const submitLabel = isSubmitting
-      ? "Salvando..."
+    ? "Salvando..."
+    : importedDecks
+      ? `Importar ${importedDecks.length} baralhos`
       : count > 0
         ? `Criar baralho com ${count} ${count === 1 ? "ficha" : "fichas"}`
         : "Criar baralho";
@@ -82,7 +99,8 @@ export default function NovoBaralhoPage() {
       </p>
 
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <div className={styles.panel}>
+        {/* No arquivo com vários baralhos, os nomes vêm do próprio arquivo */}
+        <div className={styles.panel} hidden={Boolean(importedDecks)}>
           <Input
             ref={nameRef}
             id="nome-baralho"

@@ -11,9 +11,10 @@ import {
   LocalNotice,
   useAuth,
 } from "@/components";
-import { Plus, Upload } from "lucide-react";
+import { Download, Plus, Upload } from "lucide-react";
 import { errorMessage, type DeckResponse } from "@/lib/api";
-import { copySharedDeck, listSharedDecks, useDecks } from "@/lib/data";
+import { copySharedDeck, findDeck, listSharedDecks, useDecks } from "@/lib/data";
+import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -69,6 +70,17 @@ export default function HomePage() {
     }
   };
 
+  const handleExportAll = () => {
+    if (!decks || decks.length === 0) return;
+    const all = decks.flatMap((d) => {
+      const detail = findDeck(d.id);
+      return detail ? [toExported(detail)] : [];
+    });
+    const fileName = exportFileName(null, new Date());
+    downloadJson(fileName, all);
+    setStatus({ message: `Arquivo “${fileName}” baixado.`, isError: false });
+  };
+
   const totalCards = decks?.reduce((acc, d) => acc + (d.cardCount || 0), 0) ?? 0;
 
   return (
@@ -94,6 +106,12 @@ export default function HomePage() {
             <Upload aria-hidden="true" />
             <span>Importar arquivo</span>
           </Button>
+          {decks && decks.length > 0 && (
+            <Button variant="soft" size="md" onClick={handleExportAll}>
+              <Download aria-hidden="true" />
+              <span>Exportar todos</span>
+            </Button>
+          )}
         </div>
       </header>
 
