@@ -52,6 +52,12 @@ export default function PrivacidadePage() {
           Render. No seu aparelho, o navegador guarda uma chave para manter você
           conectado, apagada quando você toca em Sair da conta.
         </p>
+        <p className={styles.text}>
+          Seus baralhos também ficam guardados no navegador do seu aparelho, com ou sem
+          conta, para você estudar sem internet. Ao sair da conta, você escolhe se eles
+          continuam no aparelho ou são apagados dali. Limpar os dados do navegador também
+          os apaga do aparelho; os que estão na sua conta continuam guardados.
+        </p>
       </section>
 
       <section className={styles.panel} aria-labelledby="direitos">

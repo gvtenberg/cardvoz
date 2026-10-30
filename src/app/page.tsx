@@ -43,11 +43,11 @@ const PASSOS = [
 ];
 
 const DUVIDAS = [
-  { pergunta: "Preciso criar uma conta?", resposta: "Sim. Crie a conta com seu nome, seu e-mail e uma senha, ou entre direto com a sua conta Google." },
+  { pergunta: "Preciso criar uma conta?", resposta: "Não. Você pode criar e estudar seus baralhos sem conta, e eles ficam guardados neste aparelho. Com uma conta, seus baralhos ficam guardados também na internet e você pode usá-los em outro aparelho." },
   { pergunta: "Preciso instalar alguma coisa?", resposta: "Não. O CardVoz abre direto no navegador do celular ou do computador." },
   { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack, no Android, e com o NVDA, no Windows." },
   { pergunta: "Dá para usar no computador?", resposta: "Sim. No computador, dá para estudar só com o teclado, usando Tab e Enter nos botões. Se preferir, ligue na Ajuda os atalhos de uma tecla: a barra de espaço mostra a resposta, a tecla 1 marca “Acertei” e a tecla 2 marca “Errei”." },
-  { pergunta: "Meus cartões ficam salvos?", resposta: "Sim. Seus baralhos ficam guardados para você estudar quando quiser." },
+  { pergunta: "Meus cartões ficam salvos?", resposta: "Sim. Ficam guardados neste aparelho e, se você entrar na sua conta, também na sua conta. Para levar para outro lugar, use Exportar." },
 ];
 
 export default function LandingPage() {

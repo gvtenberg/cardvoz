@@ -108,6 +108,10 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
 
         <details className={styles.section} open={current === "conta"}>
           <summary className={styles.summary}>Entrar e sair da conta</summary>
+          <p className={styles.text}>
+            Você não precisa de conta para usar o CardVoz: seus baralhos ficam guardados
+            neste aparelho. Com uma conta, eles ficam guardados também na internet.
+          </p>
           <ol className={styles.steps}>
             <li>
               Para criar sua conta, toque em <strong>Criar conta</strong> e escreva
@@ -126,9 +130,15 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               navegador.
             </li>
             <li>
+              Se você tem baralhos neste aparelho, ao entrar o CardVoz pergunta se quer{" "}
+              <strong>Levar para a conta</strong>. Se preferir depois, use o botão na
+              página do baralho.
+            </li>
+            <li>
               Para sair, abra o <strong>Menu</strong> e toque em{" "}
               <strong>Sair da conta</strong>. No computador, essa opção fica no{" "}
-              <strong>Perfil</strong>.
+              <strong>Perfil</strong>. Você escolhe se os baralhos continuam neste
+              aparelho ou são apagados dele.
             </li>
           </ol>
           <p className={styles.text}>
