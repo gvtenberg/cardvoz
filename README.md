@@ -17,6 +17,9 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
 - **Sem conta, se a pessoa preferir**: baralhos, fichas e estudo funcionam sem login, guardados no aparelho. Com conta, os baralhos também ficam na internet e podem ser levados do aparelho para a conta.
 - **Funciona sem internet e pode ser instalado** na tela inicial do celular, como um aplicativo.
 - **Leitura contínua**: textos que o leitor de tela leria em partes são lidos de uma vez (recursos, passos, pergunta e resposta de cada ficha, nome e quantidade de fichas de cada baralho). As perguntas frequentes e a Ajuda ficam sempre abertas, sem toque duplo para ouvir a resposta.
+- **Idioma das fichas**: num baralho de inglês ou espanhol, a pessoa escolhe o idioma das perguntas e das respostas, e o texto ganha o atributo `lang`. O leitor de tela troca a voz e pronuncia corretamente. Português é o padrão. Por enquanto o idioma fica só no aparelho (a API ainda não tem esse campo).
+- **Busca de fichas**: na página do baralho, procura na pergunta e na resposta, sem diferenciar acentos, e anuncia quantas fichas encontrou.
+- **Botões que dizem a que se referem**: "Editar" e "Excluir" de cada ficha anunciam o número e o começo da pergunta, e as mensagens de confirmação citam o baralho.
 - **Conta com e-mail e senha ou com Google**: a pessoa cria a conta com nome, e-mail e senha (com "Mostrar senha", porque o leitor de tela não lê o que foi digitado num campo de senha) ou toca em "Entrar com Google" e escolhe a conta; nesse caso, na primeira vez a conta no CardVoz é criada sozinha. Usamos nosso próprio botão e a página inteira do Google (nada de janela que abre sozinha), e a sessão dura 30 dias no aparelho.
 - **Ajuda contextual**: o botão "Ajuda" no topo abre um diálogo com todos os assuntos abertos, cada um com um título; o assunto da tela atual vem primeiro.
 - **Skip Link ("Pular para o conteúdo principal")**: Acesso rápido ao `<main id="main-content">` para usuários de tecnologias assistivas e leitores de tela (NVDA, Orca, TalkBack).
@@ -154,6 +157,12 @@ Se o botão "Entrar com Google" não aparecer, falta `NEXT_PUBLIC_GOOGLE_CLIENT_
 
 ---
 
+## Guia de uso
+
+Material de orientação para quem vai usar o CardVoz: [`docs/guia-de-uso.md`](docs/guia-de-uso.md). Um baralho exportado de exemplo (com idioma) está em [`docs/exemplos/cardvoz-ingles-basico.json`](docs/exemplos/cardvoz-ingles-basico.json).
+
+---
+
 ## Modo sem login
 
 Pedido da cliente: digitar e-mail e senha com o TalkBack é trabalhoso. Por isso a conta é **opcional**:
@@ -193,6 +202,8 @@ cardvoz/
 │   │   ├── local/              # localStorage: baralhos, fila de alterações e conta ativa
 │   │   ├── exportDecks.ts      # Exportar baralhos em JSON
 │   │   ├── install.ts          # Sugestão de instalar na tela inicial
+│   │   ├── languages.ts        # Idiomas das fichas (atributo lang)
+│   │   ├── searchCards.ts      # Busca de fichas no baralho
 │   │   ├── http.ts             # URL da API, ApiError e mensagens de erro
 │   │   ├── auth/session.ts     # Tokens, renovação entre abas e logout
 │   │   ├── auth/google.ts      # Ida e volta do Google (PKCE)

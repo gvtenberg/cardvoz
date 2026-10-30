@@ -236,3 +236,31 @@ describe("camada de dados: pontos menores", () => {
     expect(listDecks()).toEqual([]);
   });
 });
+
+describe("idioma das fichas na camada de dados", () => {
+  it("guarda o idioma só no aparelho, sem enviar à conta", async () => {
+    const { setDeckLanguages } = await import("./index");
+    setActiveAccount(USER);
+    saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
+    setDeckLanguages("r1", { questionLang: "en", answerLang: null });
+    expect(findLocalDeck("r1")).toMatchObject({ questionLang: "en", answerLang: null });
+    expect(readQueue(USER.id)).toHaveLength(0);
+  });
+
+  it("atualizar a cópia com a conta não apaga o idioma escolhido", async () => {
+    const { setDeckLanguages } = await import("./index");
+    saveAccount(USER);
+    setActiveAccount(USER);
+    saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
+    setDeckLanguages("r1", { questionLang: "en", answerLang: "pt-BR" });
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t2", 2), cards: undefined } as never]);
+    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t2", 2));
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(findLocalDeck("r1")).toMatchObject({ questionLang: "en", answerLang: "pt-BR" });
+    expect(findLocalDeck("r1")?.cards).toHaveLength(2);
+  });
+});

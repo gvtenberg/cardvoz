@@ -23,14 +23,15 @@ import {
   toDeckDetail,
   toDeckResponse,
   updateLocalDeck,
+  type DeckLanguages,
   type LocalDeck,
 } from "@/lib/local/decks";
 import { enqueue, hasPendingFor, pendingCount, processQueue, QUEUE_KEY } from "@/lib/local/queue";
 import { onLocalChange } from "@/lib/local/storage";
 
 export type DeckKind = LocalDeck["kind"];
-export type DeckItem = DeckResponse & { kind: DeckKind };
-export type DeckDetail = DeckDetailResponse & { kind: DeckKind };
+export type DeckItem = DeckResponse & { kind: DeckKind } & DeckLanguages;
+export type DeckDetail = DeckDetailResponse & { kind: DeckKind } & DeckLanguages;
 
 // --- Conta ativa e conexão ---------------------------------------------------
 
@@ -184,9 +185,11 @@ function kick() {
 export function createDeck(data: {
   title: string;
   cards?: { question: string; answer: string }[];
+  questionLang?: string | null;
+  answerLang?: string | null;
 }): DeckItem {
   const account = getActiveAccount();
-  const deck = newDeviceDeck({ title: data.title, cards: data.cards });
+  const deck = newDeviceDeck(data);
   if (!account) return toDeckResponse(deck);
 
   // Baralho novo com conta: é da conta desde já; o id da API chega quando a fila enviar
@@ -212,7 +215,7 @@ export function createDeck(data: {
  * espaço acabar no meio, os já criados são desfeitos, para tentar de novo não
  * duplicar.
  */
-export function createDecks(decks: { title: string; cards?: { question: string; answer: string }[] }[]): DeckItem[] {
+export function createDecks(decks: Parameters<typeof createDeck>[0][]): DeckItem[] {
   const created: DeckItem[] = [];
   try {
     for (const deck of decks) created.push(createDeck(deck));
@@ -225,6 +228,14 @@ export function createDecks(decks: { title: string; cards?: { question: string; 
     }
     throw error;
   }
+}
+
+/**
+ * Idioma das perguntas e das respostas, para o leitor de tela trocar a voz.
+ * Só no aparelho (a API ainda não tem esses campos), então não entra na fila.
+ */
+export function setDeckLanguages(id: string, languages: DeckLanguages): void {
+  updateLocalDeck(id, (d) => ({ ...d, ...languages }));
 }
 
 export function renameDeck(id: string, title: string): void {
@@ -329,8 +340,14 @@ let currentSync: Promise<SyncResult> | null = null;
 function storeCopy(remote: DeckDetailResponse, userId: string) {
   const existing = findLocalDeck(remote.id);
   // Só herda os endereços antigos do próprio baralho (não de outro que use este id como antigo)
-  const aliases = existing?.id === remote.id ? existing.aliases : [];
-  saveLocalDeck({ ...fromApiDeck(remote, userId), aliases });
+  const same = existing?.id === remote.id ? existing : null;
+  // O idioma fica só no aparelho: a versão da conta não o traz
+  saveLocalDeck({
+    ...fromApiDeck(remote, userId),
+    aliases: same?.aliases ?? [],
+    questionLang: same?.questionLang ?? null,
+    answerLang: same?.answerLang ?? null,
+  });
 }
 
 /** Baralhos que vieram desta conta e voltaram a ser do aparelho: quem decide é a pessoa. */
@@ -445,7 +462,7 @@ export async function copySharedDeck(id: string): Promise<DeckItem> {
   const copy = await api.copySharedDeck(id);
   const detail = await api.getDeck(copy.id);
   if (account && detail) storeCopy(detail, account.id);
-  return findDeck(copy.id) ?? { ...copy, kind: "conta" };
+  return findDeck(copy.id) ?? { ...copy, kind: "conta", questionLang: null, answerLang: null };
 }
 
 // --- Hooks -------------------------------------------------------------------

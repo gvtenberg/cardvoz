@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { Textarea, Button, FileImport, Skeleton } from "@/components";
 import { errorMessage } from "@/lib/api";
 import { addCards, useDeck } from "@/lib/data";
+import { langAttr } from "@/lib/languages";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -53,7 +54,7 @@ function NovoCartaoContent() {
       setQuestion("");
       setAnswer("");
       setStatusMessage(
-        `${savedCount + 1}ª ficha salva. Escreva a próxima ou toque em Concluir.`
+        `${savedCount + 1}ª ficha salva em “${deck.title}”. Escreva a próxima ou toque em Concluir.`
       );
       questionRef.current?.focus();
     } catch (error) {
@@ -107,7 +108,9 @@ function NovoCartaoContent() {
       </p>
 
       <form onSubmit={handleSubmit} className={styles.panel} noValidate>
+        {/* lang: teclado, corretor e leitor de tela no idioma do baralho */}
         <Textarea
+          lang={langAttr(deck?.questionLang)}
           ref={questionRef}
           id="pergunta"
           name="pergunta"
@@ -120,6 +123,7 @@ function NovoCartaoContent() {
         />
 
         <Textarea
+          lang={langAttr(deck?.answerLang)}
           id="resposta"
           name="resposta"
           label="Resposta"

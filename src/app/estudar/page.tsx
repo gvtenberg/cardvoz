@@ -8,6 +8,7 @@ import { Button, Skeleton, LoadingStatus } from "@/components";
 import type { CardResponse } from "@/lib/api";
 import { saveStudyResult, useDeck } from "@/lib/data";
 import { markFirstStudyDone } from "@/lib/install";
+import { langAttr } from "@/lib/languages";
 import { routes } from "@/lib/routes";
 import { useShortcutsEnabled } from "@/lib/shortcuts";
 import styles from "./page.module.scss";
@@ -339,7 +340,10 @@ function EstudarContent() {
           <span className={styles.faceLabel}>
             Pergunta<span className="sr-only"> {position} de {roundCards.length}:</span>
           </span>
-          <span className={styles.questionText}>{currentCard?.question}</span>
+          {/* lang: o leitor de tela pronuncia no idioma do baralho */}
+          <span className={styles.questionText} lang={langAttr(deck.questionLang)}>
+            {currentCard?.question}
+          </span>
         </h2>
 
         {isRevealed && (
@@ -347,7 +351,9 @@ function EstudarContent() {
             <span className={styles.answerLabel}>
               Resposta<span className="sr-only">:</span>
             </span>
-            <span className={styles.answerText}>{currentCard?.answer}</span>
+            <span className={styles.answerText} lang={langAttr(deck.answerLang)}>
+              {currentCard?.answer}
+            </span>
           </h2>
         )}
       </article>

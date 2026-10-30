@@ -1,0 +1,12 @@
+{
+  "titulo": "Inglês básico",
+  "idiomaPerguntas": "en",
+  "idiomaRespostas": "pt-BR",
+  "fichas": [
+    { "pergunta": "Irregular verbs", "resposta": "Verbos irregulares" },
+    { "pergunta": "Went", "resposta": "Passado de \"to go\" (ir)" },
+    { "pergunta": "Thought", "resposta": "Passado de \"to think\" (pensar)" },
+    { "pergunta": "Library", "resposta": "Biblioteca" },
+    { "pergunta": "Actually", "resposta": "Na verdade" }
+  ]
+}

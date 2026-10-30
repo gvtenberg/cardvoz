@@ -84,3 +84,12 @@ describe("baralhos no aparelho", () => {
     expect(localStorage.getItem(`${DECKS_KEY}.corrompido`)).toBe(raw);
   });
 });
+
+describe("idioma das fichas", () => {
+  it("baralho novo usa o idioma da página (null) até a pessoa escolher", () => {
+    const deck = newDeviceDeck({ title: "Inglês" });
+    expect(deck.questionLang).toBeNull();
+    expect(deck.answerLang).toBeNull();
+    expect(toDeckResponse(deck)).toMatchObject({ questionLang: null, answerLang: null });
+  });
+});

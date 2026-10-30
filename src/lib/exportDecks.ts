@@ -6,12 +6,22 @@
 
 export interface ExportedDeck {
   titulo: string;
+  /** Idioma das perguntas e das respostas (ex.: "en"); ausente = português */
+  idiomaPerguntas?: string;
+  idiomaRespostas?: string;
   fichas: { pergunta: string; resposta: string }[];
 }
 
-export function toExported(deck: { title: string; cards: { question: string; answer: string }[] }): ExportedDeck {
+export function toExported(deck: {
+  title: string;
+  cards: { question: string; answer: string }[];
+  questionLang?: string | null;
+  answerLang?: string | null;
+}): ExportedDeck {
   return {
     titulo: deck.title,
+    ...(deck.questionLang && { idiomaPerguntas: deck.questionLang }),
+    ...(deck.answerLang && { idiomaRespostas: deck.answerLang }),
     fichas: deck.cards.map((c) => ({ pergunta: c.question, resposta: c.answer })),
   };
 }

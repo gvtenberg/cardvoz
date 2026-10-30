@@ -6,7 +6,16 @@ import styles from "./LandingDemo.module.scss";
 
 const FICHAS = [
   { tema: "Biologia", pergunta: "Qual organela produz a energia (ATP) da célula?", resposta: "A mitocôndria." },
-  { tema: "Inglês", pergunta: "Qual é o passado do verbo “to go”?", resposta: "Went." },
+  {
+    tema: "Inglês",
+    // Trechos em inglês marcados com lang: o leitor de tela pronuncia em inglês
+    pergunta: (
+      <>
+        Qual é o passado do verbo “<span lang="en">to go</span>”?
+      </>
+    ),
+    resposta: <span lang="en">Went.</span>,
+  },
   { tema: "Matemática", pergunta: "Quantos lados tem um hexágono?", resposta: "Seis." },
 ];
 

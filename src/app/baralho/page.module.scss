@@ -220,3 +220,15 @@
   background-color: var(--danger-soft);
   border-radius: $radius-md;
 }
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.searchStatus {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: var(--text-muted);
+}

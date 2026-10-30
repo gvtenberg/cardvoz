@@ -47,6 +47,18 @@ export interface LocalDeck {
   editedOffAccount: boolean;
   /** Envio para a conta em andamento: o baralho já existe na API com este id */
   upload: { remoteId: string } | null;
+  /**
+   * Idioma das perguntas e das respostas (ex.: "en"), para o leitor de tela
+   * trocar a voz. null = português, o idioma da página. Fica só no aparelho
+   * até a API ter onde guardar.
+   */
+  questionLang?: string | null;
+  answerLang?: string | null;
+}
+
+/** Códigos de idioma aceitos (BCP 47 simples, como "en" ou "pt-BR"). */
+export function isLanguageCode(value: unknown): value is string {
+  return typeof value === "string" && /^[a-z]{2,3}(-[A-Z]{2})?$/.test(value);
 }
 
 export const DECKS_KEY = "cardvoz.baralhos.v1";
@@ -140,6 +152,8 @@ export function newDeviceDeck(data: {
   title: string;
   category?: string;
   cards?: { question: string; answer: string }[];
+  questionLang?: string | null;
+  answerLang?: string | null;
 }): LocalDeck {
   const now = new Date().toISOString();
   const deck: LocalDeck = {
@@ -156,6 +170,8 @@ export function newDeviceDeck(data: {
     account: null,
     editedOffAccount: false,
     upload: null,
+    questionLang: data.questionLang ?? null,
+    answerLang: data.answerLang ?? null,
   };
   saveLocalDeck(deck);
   return deck;
@@ -184,10 +200,14 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
     account: { userId, remoteId: d.id, remoteUpdatedAt: d.updatedAt ?? null },
     editedOffAccount: false,
     upload: null,
+    questionLang: null,
+    answerLang: null,
   };
 }
 
-export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["kind"] } {
+export type DeckLanguages = { questionLang: string | null; answerLang: string | null };
+
+export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["kind"] } & DeckLanguages {
   return {
     id: d.id,
     slug: d.id,
@@ -199,10 +219,12 @@ export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["
     updatedAt: d.updatedAt,
     sourceDeckId: d.sourceDeckId,
     kind: d.kind,
+    questionLang: d.questionLang ?? null,
+    answerLang: d.answerLang ?? null,
   };
 }
 
-export function toDeckDetail(d: LocalDeck): DeckDetailResponse & { kind: LocalDeck["kind"] } {
+export function toDeckDetail(d: LocalDeck): DeckDetailResponse & { kind: LocalDeck["kind"] } & DeckLanguages {
   const cards: CardResponse[] = d.cards.map((c) => ({ ...c, deckId: d.id, voiceNotes: null }));
   return { ...toDeckResponse(d), cards };
 }
