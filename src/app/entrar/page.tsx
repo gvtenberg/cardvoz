@@ -15,7 +15,6 @@ import {
 import { ApiError, errorMessage } from "@/lib/http";
 import { loginWithGoogleCode, loginWithPassword } from "@/lib/auth/session";
 import { getGoogleRedirectUri, isGoogleConfigured, readGoogleCallback } from "@/lib/auth/google";
-import { takeNotice } from "@/lib/notice";
 import { markOfferTransfer, takeOfferTransfer } from "@/lib/data/transfer";
 import { routes, safeRedirect } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -55,7 +54,6 @@ function EntrarContent() {
   const [passwordError, setPasswordError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const handledRef = useRef(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -65,11 +63,6 @@ function EntrarContent() {
     // Roda uma vez só: o código do Google vale para uma única troca
     if (handledRef.current) return;
     handledRef.current = true;
-
-    // Avisos de outra página ("Você saiu da sua conta."), preenchidos depois de
-    // montar para o leitor de tela anunciar a mudança
-    const pendingNotice = takeNotice();
-    if (pendingNotice) setNotice(pendingNotice);
 
     const callback = readGoogleCallback(new URLSearchParams(window.location.search));
     if (!callback) return;
@@ -109,7 +102,6 @@ function EntrarContent() {
 
   const clearMessages = () => {
     setError("");
-    setNotice("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,10 +162,6 @@ function EntrarContent() {
             : "Use seu e-mail e sua senha."}
         </p>
       </div>
-
-      <p role="status" className={notice ? styles.notice : "sr-only"}>
-        {notice}
-      </p>
 
       {error && (
         <p role="alert" className={styles.error}>

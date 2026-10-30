@@ -9,9 +9,11 @@ import { setShortcutsEnabled, useShortcutsEnabled } from "@/lib/shortcuts";
 import { APP_VERSION } from "@/lib/version";
 import styles from "./HelpDialog.module.scss";
 
-type SectionId = "estudar" | "criar" | "importar" | "teclado" | "conta";
+// Ordem dos assuntos; o da tela atual sobe para o começo
+const SECTION_ORDER = ["estudar", "criar", "importar", "conta", "instalar", "teclado"] as const;
+type SectionId = (typeof SECTION_ORDER)[number];
 
-/** Escolhe a seção que já abre expandida conforme a tela em que a pessoa está. */
+/** Escolhe a seção que vem primeiro conforme a tela em que a pessoa está. */
 function sectionForPath(pathname: string): SectionId {
   const path = pathname.replace(/\/+$/, "");
   if (path.startsWith("/estudar")) return "estudar";
@@ -32,26 +34,11 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
   const current = sectionForPath(pathname);
   const shortcutsEnabled = useShortcutsEnabled();
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      title="Como usar"
-      footer={
-        <Button variant="primary" size="md" onClick={onClose}>
-          Entendi
-        </Button>
-      }
-    >
-      <p className={styles.intro}>
-        O CardVoz funciona com o leitor de tela do seu aparelho (TalkBack, NVDA ou
-        VoiceOver). Escolha um assunto:
-      </p>
-
-      {/* key força o estado inicial "aberto" a acompanhar a tela atual */}
-      <div className={styles.sections} key={current}>
-        <details className={styles.section} open={current === "estudar"}>
-          <summary className={styles.summary}>Estudar um baralho</summary>
+  const sections: Record<SectionId, { title: string; content: React.ReactNode }> = {
+    estudar: {
+      title: "Estudar um baralho",
+      content: (
+        <>
           <ol className={styles.steps}>
             <li>Leia a pergunta e pense na resposta.</li>
             <li>
@@ -64,10 +51,13 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             </li>
             <li>A próxima pergunta é lida automaticamente pelo leitor de tela.</li>
           </ol>
-        </details>
-
-        <details className={styles.section} open={current === "criar"}>
-          <summary className={styles.summary}>Criar baralhos e fichas</summary>
+        </>
+      ),
+    },
+    criar: {
+      title: "Criar baralhos e fichas",
+      content: (
+        <>
           <ol className={styles.steps}>
             <li>
               Em <strong>Meus baralhos</strong>, toque em <strong>Novo baralho</strong>{" "}
@@ -77,11 +67,22 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               Dentro do baralho, toque em <strong>Adicionar fichas</strong> e
               escreva a pergunta e a resposta.
             </li>
+            <li>
+              Para corrigir, use <strong>Editar</strong> ou <strong>Excluir</strong> em
+              cada ficha e <strong>Renomear baralho</strong> no fim da página do baralho.
+            </li>
           </ol>
-        </details>
-
-        <details className={styles.section}>
-          <summary className={styles.summary}>Importar de um arquivo</summary>
+          <p className={styles.text}>
+            Tudo funciona sem conta e sem internet: as fichas ficam guardadas neste
+            aparelho.
+          </p>
+        </>
+      ),
+    },
+    importar: {
+      title: "Importar e exportar arquivos",
+      content: (
+        <>
           <p className={styles.text}>
             Você pode trazer várias fichas de uma vez com um arquivo TXT, CSV ou
             JSON. O jeito mais simples é um arquivo de texto com uma ficha por
@@ -105,10 +106,19 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             </a>
             .
           </p>
-        </details>
-
-        <details className={styles.section} open={current === "conta"}>
-          <summary className={styles.summary}>Entrar e sair da conta</summary>
+          <p className={styles.text}>
+            Para guardar uma cópia ou levar para outro aparelho, toque em{" "}
+            <strong>Exportar baralho</strong> na página do baralho, ou em{" "}
+            <strong>Exportar todos</strong> em Meus baralhos. O arquivo baixado pode ser
+            importado de novo em <strong>Importar arquivo</strong>.
+          </p>
+        </>
+      ),
+    },
+    conta: {
+      title: "Entrar e sair da conta",
+      content: (
+        <>
           <p className={styles.text}>
             Você não precisa de conta para usar o CardVoz: seus baralhos ficam guardados
             neste aparelho. Com uma conta, eles ficam guardados também na internet.
@@ -131,6 +141,10 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               navegador.
             </li>
             <li>
+              Sem internet, você continua estudando e editando. As alterações vão para
+              a sua conta quando a conexão voltar.
+            </li>
+            <li>
               Se você tem baralhos neste aparelho, ao entrar o CardVoz pergunta se quer{" "}
               <strong>Levar para a conta</strong>. Se preferir depois, use o botão na
               página do baralho.
@@ -146,10 +160,13 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             Se o Google mostrar um erro ao abrir o CardVoz de dentro de outro
             aplicativo, como o Instagram, abra o endereço no Chrome.
           </p>
-        </details>
-
-        <details className={styles.section}>
-          <summary className={styles.summary}>Instalar no celular</summary>
+        </>
+      ),
+    },
+    instalar: {
+      title: "Instalar no celular",
+      content: (
+        <>
           <p className={styles.text}>
             Instalado, o CardVoz abre direto da tela inicial, como um aplicativo, e
             funciona mesmo sem internet.
@@ -164,10 +181,13 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               em <strong>Adicionar à Tela de Início</strong>.
             </li>
           </ol>
-        </details>
-
-        <details className={styles.section}>
-          <summary className={styles.summary}>Atalhos do teclado</summary>
+        </>
+      ),
+    },
+    teclado: {
+      title: "Atalhos do teclado",
+      content: (
+        <>
           <p className={styles.text}>
             Vêm desligados porque o leitor de tela também usa essas teclas. Sem
             eles, use Tab e Enter nos botões.
@@ -195,7 +215,40 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             No NVDA, os atalhos funcionam no modo de foco (NVDA + Espaço liga e
             desliga).
           </p>
-        </details>
+        </>
+      ),
+    },
+  };
+  const order: SectionId[] = [current, ...SECTION_ORDER.filter((id) => id !== current)];
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="Como usar"
+      footer={
+        <Button variant="primary" size="md" onClick={onClose}>
+          Entendi
+        </Button>
+      }
+    >
+      <p className={styles.intro}>
+        O CardVoz funciona com o leitor de tela do seu aparelho (TalkBack, NVDA ou
+        VoiceOver). O assunto desta tela vem primeiro.
+      </p>
+
+      {/* Tudo aberto (pedido da cliente: nada de tocar duas vezes para ouvir).
+          Cada assunto é um título, para o leitor de tela pular entre eles, e o
+          da tela atual vem primeiro, também na ordem de leitura */}
+      <div className={styles.sections}>
+        {order.map((id) => (
+          <section key={id} className={styles.section} aria-labelledby={`ajuda-${id}`}>
+            <h3 id={`ajuda-${id}`} className={styles.sectionTitle}>
+              {sections[id].title}
+            </h3>
+            {sections[id].content}
+          </section>
+        ))}
       </div>
 
       {/* Conferir a versão de qualquer tela, inclusive no app instalado */}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Headphones, PencilLine, Trophy, Upload } from "lucide-react";
-import { Button, LandingDemo } from "@/components";
+import { Button, Instituicao, LandingDemo } from "@/components";
 import { routes } from "@/lib/routes";
 import { APP_VERSION } from "@/lib/version";
 import styles from "./page.module.scss";
@@ -9,7 +9,7 @@ const RECURSOS = [
   {
     icone: PencilLine,
     tom: styles.tom1,
-    titulo: "Crie seus próprios cartões",
+    titulo: "Crie suas próprias fichas",
     texto: "Escreva cada pergunta e a resposta do seu jeito, para a matéria ou a prova que você quiser.",
   },
   {
@@ -22,7 +22,7 @@ const RECURSOS = [
     icone: Upload,
     tom: styles.tom3,
     titulo: "Traga suas perguntas prontas",
-    texto: "Já tem uma lista ou planilha? Importe tudo de uma vez, e cada linha vira um cartão.",
+    texto: "Já tem uma lista ou planilha? Importe tudo de uma vez, e cada linha vira uma ficha.",
   },
   {
     icone: Trophy,
@@ -45,10 +45,11 @@ const PASSOS = [
 
 const DUVIDAS = [
   { pergunta: "Preciso criar uma conta?", resposta: "Não. Você pode criar e estudar seus baralhos sem conta, e eles ficam guardados neste aparelho. Com uma conta, seus baralhos ficam guardados também na internet e você pode usá-los em outro aparelho." },
-  { pergunta: "Preciso instalar alguma coisa?", resposta: "Não. O CardVoz abre direto no navegador do celular ou do computador." },
+  { pergunta: "Preciso instalar alguma coisa?", resposta: "Não. O CardVoz abre direto no navegador do celular ou do computador. Se quiser, dá para instalá-lo na tela inicial do celular e abrir como um aplicativo." },
+  { pergunta: "Funciona sem internet?", resposta: "Sim. Depois de abrir o CardVoz uma vez, você estuda, cria e edita fichas mesmo sem internet. Se você entrou na sua conta, as alterações vão para ela quando a conexão voltar." },
   { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack, no Android, e com o NVDA, no Windows." },
   { pergunta: "Dá para usar no computador?", resposta: "Sim. No computador, dá para estudar só com o teclado, usando Tab e Enter nos botões. Se preferir, ligue na Ajuda os atalhos de uma tecla: a barra de espaço mostra a resposta, a tecla 1 marca “Acertei” e a tecla 2 marca “Errei”." },
-  { pergunta: "Meus cartões ficam salvos?", resposta: "Sim. Ficam guardados neste aparelho e, se você entrar na sua conta, também na sua conta. Para levar para outro lugar, use Exportar." },
+  { pergunta: "Minhas fichas ficam salvas?", resposta: "Sim. Ficam guardados neste aparelho e, se você entrar na sua conta, também na sua conta. Para levar para outro lugar, use Exportar." },
 ];
 
 export default function LandingPage() {
@@ -170,7 +171,7 @@ export default function LandingPage() {
           <div className={styles.wrap}>
             <div className={styles.chamada}>
               <h2 id="comecar-titulo">Monte seu primeiro baralho hoje</h2>
-              <p>Crie seus cartões e comece a estudar.</p>
+              <p>Crie suas fichas e comece a estudar.</p>
               <Button href={routes.decks} size="md" className={styles.chamadaBotao}>
                 Começar agora
               </Button>
@@ -187,7 +188,9 @@ export default function LandingPage() {
 
       <footer className={styles.rodape}>
         <div className={styles.wrap}>
-          <p>CardVoz é um projeto de extensão do IFTO, campus Palmas.</p>
+          <p>
+            CardVoz é um projeto de extensão do <Instituicao />.
+          </p>
           <p>{APP_VERSION}</p>
           <p>
             <Link href={routes.privacy} className={styles.rodapeLink}>

@@ -1,4 +1,4 @@
-# CardVoz &mdash; Flashcards Acessíveis com Controle por Voz
+# CardVoz &mdash; Fichas de estudo acessíveis para leitores de tela
 
 O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcards projetada com foco prioritário em **pessoas cegas e com baixa visão**. Desenvolvido com **Next.js 15 (App Router)**, **TypeScript**, **SCSS Modules**, arquitetura modular de estilos Sass e suporte a temas claro/escuro de alto contraste via **next-themes**.
 
@@ -14,8 +14,11 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
   - `Tecla 1`: Marcar que acertou (funciona também antes de revelar).
   - `Tecla 2`: Marcar que errou.
 - **Importação de fichas**: Arquivos TXT, CSV ou JSON (exemplos em `public/modelos/`). TXT aceita uma ficha por linha (`pergunta; resposta`), blocos separados por linha em branco ou linhas `P:`/`R:`; CSV aceita vírgula ou ponto e vírgula, com ou sem cabeçalho; JSON aceita uma lista de fichas ou `{ "titulo": "...", "fichas": [...] }`.
+- **Sem conta, se a pessoa preferir**: baralhos, fichas e estudo funcionam sem login, guardados no aparelho. Com conta, os baralhos também ficam na internet e podem ser levados do aparelho para a conta.
+- **Funciona sem internet e pode ser instalado** na tela inicial do celular, como um aplicativo.
+- **Leitura contínua**: textos que o leitor de tela leria em partes são lidos de uma vez (recursos, passos, pergunta e resposta de cada ficha, nome e quantidade de fichas de cada baralho). As perguntas frequentes e a Ajuda ficam sempre abertas, sem toque duplo para ouvir a resposta.
 - **Conta com e-mail e senha ou com Google**: a pessoa cria a conta com nome, e-mail e senha (com "Mostrar senha", porque o leitor de tela não lê o que foi digitado num campo de senha) ou toca em "Entrar com Google" e escolhe a conta; nesse caso, na primeira vez a conta no CardVoz é criada sozinha. Usamos nosso próprio botão e a página inteira do Google (nada de janela que abre sozinha), e a sessão dura 30 dias no aparelho.
-- **Ajuda contextual**: Botão "Ajuda" no topo abre um diálogo que já mostra a explicação da tela atual.
+- **Ajuda contextual**: o botão "Ajuda" no topo abre um diálogo com todos os assuntos abertos, cada um com um título; o assunto da tela atual vem primeiro.
 - **Skip Link ("Pular para o conteúdo principal")**: Acesso rápido ao `<main id="main-content">` para usuários de tecnologias assistivas e leitores de tela (NVDA, Orca, TalkBack).
 - **Semântica Rigorosa WAI-ARIA**: Uso estruturado de `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, regiões ao vivo `aria-live` e descrições claras em `aria-label`.
 - **Foco Visível de Alto Contraste**: Anéis de foco destacados com offset (`outline: 3px solid var(--ring)` e `outline-offset: 3px`) garantindo identificação imediata do elemento focado.
@@ -193,7 +196,6 @@ cardvoz/
 │   │   ├── http.ts             # URL da API, ApiError e mensagens de erro
 │   │   ├── auth/session.ts     # Tokens, renovação entre abas e logout
 │   │   ├── auth/google.ts      # Ida e volta do Google (PKCE)
-│   │   ├── notice.ts           # Aviso que sobrevive a uma troca de página
 │   │   ├── routes.ts           # Endereços internos e páginas públicas
 │   │   └── importCards.ts      # Leitura de fichas de arquivos TXT/CSV/JSON
 │   └── styles/                 # Tokens, mixins e temas claro/escuro
