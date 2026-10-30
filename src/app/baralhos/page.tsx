@@ -1,21 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DeckCard, DeckCardSkeleton, Button, Skeleton, LoadingStatus } from "@/components";
-import { Plus, Upload } from "lucide-react";
+import Link from "next/link";
 import {
-  copySharedDeck,
-  errorMessage,
-  getDecks,
-  getSharedDecks,
-  type DeckResponse,
-} from "@/lib/api";
+  DeckCard,
+  DeckCardSkeleton,
+  InstallCard,
+  Button,
+  Skeleton,
+  LoadingStatus,
+  LocalNotice,
+  useAuth,
+} from "@/components";
+import { Download, Plus, Upload } from "lucide-react";
+import { errorMessage, type DeckResponse } from "@/lib/api";
+import { copySharedDeck, findDeck, listSharedDecks, useDecks } from "@/lib/data";
+import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 export default function HomePage() {
-  const [decks, setDecks] = useState<DeckResponse[] | null>(null);
-  const [loadError, setLoadError] = useState("");
+  const { status: authStatus } = useAuth();
+  const isLoggedIn = authStatus === "logado";
+  const { decks: storedDecks, firstSync } = useDecks();
+  // Primeira vez com conta neste aparelho: espera as cópias chegarem (skeleton)
+  const decks = firstSync && storedDecks?.length === 0 ? null : storedDecks;
   const [shared, setShared] = useState<DeckResponse[] | null>(null);
   const [sharedError, setSharedError] = useState("");
   const [copyingId, setCopyingId] = useState<string | null>(null);
@@ -23,28 +32,19 @@ export default function HomePage() {
   // O botão "Adicionar" some depois da cópia: o foco vai para o aviso que fica no lugar
   const focusAdded = useRef<string | null>(null);
 
-  const loadDecks = useCallback(() => {
-    setLoadError("");
-    getDecks()
-      .then(setDecks)
-      .catch((error) =>
-        setLoadError(errorMessage(error, "Não foi possível carregar seus baralhos. Tente de novo."))
-      );
-  }, []);
-
   const loadShared = useCallback(() => {
     setSharedError("");
-    getSharedDecks()
+    listSharedDecks()
       .then(setShared)
       .catch((error) =>
         setSharedError(errorMessage(error, "Não foi possível carregar os baralhos prontos. Tente de novo."))
       );
   }, []);
 
+  // Baralhos prontos vêm da API e pedem login
   useEffect(() => {
-    loadDecks();
-    loadShared();
-  }, [loadDecks, loadShared]);
+    if (isLoggedIn) loadShared();
+  }, [isLoggedIn, loadShared]);
 
   useEffect(() => {
     if (focusAdded.current) {
@@ -60,8 +60,6 @@ export default function HomePage() {
     try {
       const copy = await copySharedDeck(deck.id);
       focusAdded.current = `pronto-${deck.id}`;
-      // A API lista os mais novos primeiro
-      setDecks((current) => [copy, ...(current ?? [])]);
       setStatus({ message: `“${copy.title}” foi adicionado aos seus baralhos.`, isError: false });
     } catch (error) {
       setStatus({
@@ -73,6 +71,17 @@ export default function HomePage() {
     }
   };
 
+  const handleExportAll = () => {
+    if (!decks || decks.length === 0) return;
+    const all = decks.flatMap((d) => {
+      const detail = findDeck(d.id);
+      return detail ? [toExported(detail)] : [];
+    });
+    const fileName = exportFileName(null, new Date());
+    downloadJson(fileName, all);
+    setStatus({ message: `Arquivo “${fileName}” baixado.`, isError: false });
+  };
+
   const totalCards = decks?.reduce((acc, d) => acc + (d.cardCount || 0), 0) ?? 0;
 
   return (
@@ -80,7 +89,7 @@ export default function HomePage() {
       <header className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Seus baralhos</h1>
-          {decks === null && !loadError && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
+          {decks === null && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
           {decks && decks.length > 0 && (
             <p className={styles.pageSubtitle}>
               {decks.length} {decks.length === 1 ? "baralho" : "baralhos"} ·{" "}
@@ -98,6 +107,12 @@ export default function HomePage() {
             <Upload aria-hidden="true" />
             <span>Importar arquivo</span>
           </Button>
+          {decks && decks.length > 0 && (
+            <Button variant="soft" size="md" onClick={handleExportAll}>
+              <Download aria-hidden="true" />
+              <span>Exportar todos</span>
+            </Button>
+          )}
         </div>
       </header>
 
@@ -108,17 +123,11 @@ export default function HomePage() {
         {status.message}
       </p>
 
-      {loadError ? (
-        <div className={styles.emptyState}>
-          <h2 className={styles.emptyTitle}>Seus baralhos não carregaram</h2>
-          <p role="alert" className={styles.emptyText}>
-            {loadError}
-          </p>
-          <Button variant="primary" size="md" onClick={loadDecks}>
-            Tentar de novo
-          </Button>
-        </div>
-      ) : decks === null ? (
+      {/* Sem conta: lembra que os baralhos estão só aqui (não aparece enquanto confere o login) */}
+      {decks && authStatus === "deslogado" && <LocalNotice decks={decks} />}
+      {decks && <InstallCard />}
+
+      {decks === null ? (
         <>
           <LoadingStatus>Carregando baralhos...</LoadingStatus>
           <ul className={styles.decksGrid} aria-hidden="true">
@@ -149,11 +158,25 @@ export default function HomePage() {
 
       {/* Carregando: só o anúncio, sem skeleton, porque a lista costuma vir vazia
           e um bloco que aparece e some faria a tela pular */}
-      {decks !== null && shared === null && !sharedError && (
+      {decks !== null && authStatus === "deslogado" && (
+        <section className={styles.shared} aria-labelledby="prontos-titulo">
+          <h2 id="prontos-titulo" className={styles.sharedTitle}>
+            Baralhos prontos
+          </h2>
+          <p className={styles.pageSubtitle}>
+            Entre na sua conta para ver os baralhos prontos.{" "}
+            <Link href={routes.loginThenReturn(routes.decks)} className={styles.inlineLink}>
+              Entrar
+            </Link>
+          </p>
+        </section>
+      )}
+
+      {decks !== null && isLoggedIn && shared === null && !sharedError && (
         <LoadingStatus>Carregando baralhos prontos...</LoadingStatus>
       )}
 
-      {decks !== null && sharedError && (
+      {decks !== null && isLoggedIn && sharedError && (
         <section className={styles.shared} aria-labelledby="prontos-titulo">
           <h2 id="prontos-titulo" className={styles.sharedTitle}>
             Baralhos prontos
@@ -170,7 +193,7 @@ export default function HomePage() {
       )}
 
       {/* Sem baralhos prontos a seção não aparece: é um complemento, não o conteúdo da página */}
-      {decks !== null && shared !== null && shared.length > 0 && (
+      {decks !== null && isLoggedIn && shared !== null && shared.length > 0 && (
         <section className={styles.shared} aria-labelledby="prontos-titulo">
           <div>
             <h2 id="prontos-titulo" className={styles.sharedTitle}>

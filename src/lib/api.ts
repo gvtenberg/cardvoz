@@ -187,16 +187,15 @@ export async function startStudySession(data: {
   });
 }
 
-/** Registra a resposta de uma ficha e devolve a sessão atualizada. */
+/** Registra a resposta de uma ficha (a tela já calcula o placar sozinha). */
 export async function recordStudyReview(
   sessionId: string,
   data: { cardId: string; wasCorrect: boolean; voiceUsed: boolean }
-): Promise<StudySessionResponse> {
+): Promise<void> {
   await fetchApi<StudyReviewResponse>(`/study-sessions/${sessionId}/review`, {
     method: "POST",
     body: JSON.stringify(data),
   });
-  return fetchApi<StudySessionResponse>(`/study-sessions/${sessionId}`);
 }
 
 export async function finishStudySession(sessionId: string): Promise<StudySessionResponse> {
@@ -236,4 +235,74 @@ export async function createCards(
     options?.onProgress?.(i + 1, cards.length);
   }
   return saved;
+}
+
+// --- Rotas com menos chamadas (parte 4, na cardvoz-api) ----------------------
+// Enquanto a API não as tiver, respondem 404/405 e o site usa o caminho antigo.
+
+/** A rota ainda não existe na API publicada. */
+export class RouteMissingError extends Error {
+  constructor() {
+    super("Rota ainda não disponível na API.");
+    this.name = "RouteMissingError";
+  }
+}
+
+// Lembra as rotas ausentes para não tentar de novo a cada chamada da mesma visita
+const missingRoutes = new Set<string>();
+
+async function fetchNewRoute<T>(route: string, endpoint: string, options?: RequestInit): Promise<T> {
+  if (missingRoutes.has(route)) throw new RouteMissingError();
+  try {
+    return await fetchApi<T>(endpoint, options);
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 405)) {
+      missingRoutes.add(route);
+      throw new RouteMissingError();
+    }
+    throw error;
+  }
+}
+
+/** Cria o baralho com todas as fichas numa chamada só (tudo ou nada). */
+export async function importDeck(data: {
+  title: string;
+  category: string;
+  description?: string;
+  cards: { question: string; answer: string }[];
+}): Promise<DeckDetailResponse> {
+  return fetchNewRoute("import", "/decks/import", { method: "POST", body: JSON.stringify(data) });
+}
+
+/** Baralhos criados ou alterados depois de `since`, já com as fichas. */
+export async function getDeckChanges(
+  since: string | null
+): Promise<{ decks: DeckDetailResponse[]; allIds: string[]; serverTime: string }> {
+  const query = since ? `?since=${encodeURIComponent(since)}` : "";
+  const result = await fetchNewRoute<{ decks?: unknown; allIds?: unknown; serverTime?: unknown }>(
+    "changes",
+    `/decks/changes${query}`
+  );
+  // Na API sem a rota, um baralho com endereço "changes" responde aqui: não é a lista de alterações
+  if (!Array.isArray(result?.decks) || !Array.isArray(result?.allIds) || typeof result?.serverTime !== "string") {
+    throw new RouteMissingError();
+  }
+  return result as { decks: DeckDetailResponse[]; allIds: string[]; serverTime: string };
+}
+
+/**
+ * Guarda uma sessão de estudo já concluída (feita com ou sem internet). Sem a
+ * rota nova, a fila usa start + review + finish e guarda o progresso para
+ * retomar a mesma sessão (ver lib/local/queue.ts).
+ */
+export async function completeStudySession(data: {
+  deckId: string;
+  startedAt: string;
+  completedAt: string;
+  answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
+}): Promise<void> {
+  await fetchNewRoute("complete", "/study-sessions/complete", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

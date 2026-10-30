@@ -1,24 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { Button, useAuth } from "@/components";
-import { routes } from "@/lib/routes";
+import { Button, LogoutDialog, useAuth } from "@/components";
 import styles from "./page.module.scss";
 
 const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" });
 
 export default function PerfilPage() {
-  const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   // O AuthGate só mostra esta página com a pessoa logada
   if (!user) return null;
-
-  const handleLogout = () => {
-    logout();
-    router.replace(routes.login);
-  };
 
   return (
     <main id="main-content" className={styles.main}>
@@ -44,10 +38,11 @@ export default function PerfilPage() {
         </dl>
       </section>
 
-      <Button variant="secondary" size="lg" block onClick={handleLogout}>
+      <Button variant="secondary" size="lg" block onClick={() => setLogoutOpen(true)}>
         <LogOut aria-hidden="true" />
         <span>Sair da conta</span>
       </Button>
+      <LogoutDialog open={logoutOpen} onClose={() => setLogoutOpen(false)} />
     </main>
   );
 }

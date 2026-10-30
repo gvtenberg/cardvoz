@@ -16,6 +16,7 @@ import { ApiError, errorMessage } from "@/lib/http";
 import { register } from "@/lib/auth/session";
 import { isGoogleConfigured } from "@/lib/auth/google";
 import { routes, safeRedirect } from "@/lib/routes";
+import { markOfferTransfer, takeOfferTransfer } from "@/lib/data/transfer";
 import styles from "./page.module.scss";
 
 // Mesmos limites da API (RegisterDto), para avisar antes de enviar
@@ -111,8 +112,10 @@ function CadastroContent() {
     setSubmitting(true);
     try {
       // Ao dar certo, o AuthProvider fica logado e o efeito acima segue para "voltar"
+      markOfferTransfer();
       await register({ name: typedName, email: typedEmail, password });
     } catch (err) {
+      takeOfferTransfer();
       setSubmitting(false);
       if (err instanceof ApiError && err.status === 409) {
         showFieldErrors({

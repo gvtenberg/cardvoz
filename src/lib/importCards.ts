@@ -9,7 +9,8 @@
  *        com ou sem linha de cabeçalho.
  * - JSON: lista de fichas ou objeto { "titulo": "...", "fichas": [...] }, em que
  *        cada ficha é { "pergunta", "resposta" } (ou question/answer, frente/verso)
- *        ou um par ["pergunta", "resposta"].
+ *        ou um par ["pergunta", "resposta"]. Uma lista desses objetos (o arquivo
+ *        de "Exportar todos") vira vários baralhos.
  */
 
 export interface ImportedCard {
@@ -24,7 +25,16 @@ export interface ImportResult {
   cards: ImportedCard[];
   /** Linhas ou itens ignorados por não terem pergunta e resposta */
   skipped: number;
+  /** Arquivo com vários baralhos: um item por baralho (cards = todas as fichas) */
+  decks?: { title: string; cards: ImportedCard[] }[];
 }
+
+type Parsed = {
+  title?: string;
+  cards: ImportedCard[];
+  skipped: number;
+  decks?: { title: string; cards: ImportedCard[] }[];
+};
 
 export class ImportError extends Error {}
 
@@ -65,31 +75,7 @@ function titleFromFileName(fileName: string): string {
 
 // --- JSON -------------------------------------------------------------------
 
-function parseJson(text: string): { title?: string; cards: ImportedCard[]; skipped: number } {
-  let data: unknown;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new ImportError("O arquivo JSON tem um erro de formatação e não pôde ser lido.");
-  }
-
-  let title: string | undefined;
-  let entries: unknown;
-
-  if (Array.isArray(data)) {
-    entries = data;
-  } else if (data && typeof data === "object") {
-    const obj = data as Record<string, unknown>;
-    title = toText(pick(obj, TITLE_KEYS)) || undefined;
-    entries = pick(obj, LIST_KEYS);
-  }
-
-  if (!Array.isArray(entries)) {
-    throw new ImportError(
-      'Não encontramos a lista de fichas no JSON. Use uma lista ou a chave "fichas".'
-    );
-  }
-
+function parseEntries(entries: unknown[]): { cards: ImportedCard[]; skipped: number } {
   const cards: ImportedCard[] = [];
   let skipped = 0;
   for (const entry of entries) {
@@ -109,6 +95,57 @@ function parseJson(text: string): { title?: string; cards: ImportedCard[]; skipp
       skipped++;
     }
   }
+  return { cards, skipped };
+}
+
+/** Lista em que todo item é um baralho ({ titulo, fichas }) */
+function isDeckList(data: unknown[]): data is Record<string, unknown>[] {
+  return (
+    data.length > 0 &&
+    data.every(
+      (item) =>
+        item !== null && typeof item === "object" && !Array.isArray(item) &&
+        Array.isArray(pick(item as Record<string, unknown>, LIST_KEYS))
+    )
+  );
+}
+
+function parseJson(text: string): Parsed {
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new ImportError("O arquivo JSON tem um erro de formatação e não pôde ser lido.");
+  }
+
+  let title: string | undefined;
+  let entries: unknown;
+
+  if (Array.isArray(data) && isDeckList(data)) {
+    let skipped = 0;
+    const decks = data.map((item, i) => {
+      const parsed = parseEntries(pick(item, LIST_KEYS) as unknown[]);
+      skipped += parsed.skipped;
+      return { title: toText(pick(item, TITLE_KEYS)) || `Baralho ${i + 1}`, cards: parsed.cards };
+    });
+    return { title: decks[0].title, cards: decks.flatMap((d) => d.cards), skipped, decks };
+  }
+
+  if (Array.isArray(data)) {
+    entries = data;
+  } else if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    title = toText(pick(obj, TITLE_KEYS)) || undefined;
+    entries = pick(obj, LIST_KEYS);
+  }
+
+  if (!Array.isArray(entries)) {
+    throw new ImportError(
+      'Não encontramos a lista de fichas no JSON. Use uma lista ou a chave "fichas".'
+    );
+  }
+
+  const { cards, skipped } = parseEntries(entries);
   return { title, cards, skipped };
 }
 
@@ -299,7 +336,7 @@ export function parseImportText(text: string, fileName: string): ImportResult {
   const extension = fileName.toLowerCase().split(".").pop() || "";
   const looksLikeJson = /^\s*[[{]/.test(clean);
 
-  let parsed: { title?: string; cards: ImportedCard[]; skipped: number };
+  let parsed: Parsed;
   if (extension === "json" || looksLikeJson) {
     parsed = parseJson(clean);
   } else if (extension === "csv") {
@@ -324,6 +361,7 @@ export function parseImportText(text: string, fileName: string): ImportResult {
     title: parsed.title || titleFromFileName(fileName),
     cards: parsed.cards,
     skipped: parsed.skipped,
+    ...(parsed.decks && { decks: parsed.decks }),
   };
 }
 

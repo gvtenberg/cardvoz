@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   REFRESH_TOKEN_KEY,
   forgetSession,
@@ -13,7 +13,9 @@ import {
   type UserResponse,
 } from "@/lib/auth/session";
 import { errorMessage } from "@/lib/http";
-import { setNotice } from "@/lib/notice";
+import { reconnectAction, setActiveAccount, setOnline, syncAccount } from "@/lib/data";
+import { clearSavedAccount, getSavedAccount, saveAccount } from "@/lib/local/account";
+import { convertCopiesToDevice } from "@/lib/data/transfer";
 
 /** "erro": havia sessão, mas não deu para conferir (sem internet, API fora do ar, limite de tentativas). */
 export type AuthStatus = "carregando" | "logado" | "deslogado" | "erro";
@@ -73,12 +75,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(nextUser);
       setStatus(nextUser ? "logado" : "deslogado");
       setEndReason(nextUser ? null : (reason ?? null));
-      if (!nextUser && reason) {
-        setNotice(
-          reason === "logout"
-            ? "Você saiu da sua conta."
-            : "Sua sessão terminou. Entre de novo para continuar."
-        );
+      // Sessão que terminou sem "Sair da conta" (30 dias, saída em outro aparelho):
+      // vale como "Manter". Os baralhos continuam aqui, editáveis sem login, e a
+      // lista avisa que a sessão terminou.
+      if (!nextUser && reason === "expired") {
+        const saved = getSavedAccount();
+        if (saved) convertCopiesToDevice(saved.id, "sessao");
+        clearSavedAccount();
       }
     });
 
@@ -100,6 +103,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       stop();
       window.removeEventListener("storage", handleStorage);
     };
+  }, [restore]);
+
+  // Diz à camada de dados de quem são as cópias e se dá para falar com a API.
+  // Sem internet com sessão salva ("erro") continua no modo conta: as edições
+  // vão para a fila em vez de virarem baralhos só do aparelho.
+  useEffect(() => {
+    if (status === "logado" && user) {
+      saveAccount({ id: user.id, name: user.name, email: user.email });
+      setActiveAccount(getSavedAccount());
+      setOnline(true);
+      void syncAccount();
+    } else if (status === "erro") {
+      setActiveAccount(getSavedAccount());
+      setOnline(false);
+    } else if (status === "deslogado") {
+      setActiveAccount(null);
+      setOnline(false);
+    }
+  }, [status, user]);
+
+  // Voltou a internet: se a sessão não pôde ser conferida (aberto sem internet),
+  // confere de novo; logado, envia a fila e atualiza as cópias
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  useEffect(() => {
+    const handleOnline = () => {
+      const action = reconnectAction(statusRef.current);
+      if (action === "restaurar") restore();
+      else if (action === "sincronizar") void syncAccount();
+    };
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
   }, [restore]);
 
   const value = useMemo<AuthContextValue>(

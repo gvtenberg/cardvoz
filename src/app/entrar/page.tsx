@@ -16,6 +16,7 @@ import { ApiError, errorMessage } from "@/lib/http";
 import { loginWithGoogleCode, loginWithPassword } from "@/lib/auth/session";
 import { getGoogleRedirectUri, isGoogleConfigured, readGoogleCallback } from "@/lib/auth/google";
 import { takeNotice } from "@/lib/notice";
+import { markOfferTransfer, takeOfferTransfer } from "@/lib/data/transfer";
 import { routes, safeRedirect } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -86,11 +87,14 @@ function EntrarContent() {
       return;
     }
 
+    // Marca antes de entrar: ao ficar logado, o CardVoz pergunta se leva os baralhos do aparelho
+    markOfferTransfer();
     loginWithGoogleCode({
       code: callback.code,
       codeVerifier: callback.verifier,
       redirectUri: getGoogleRedirectUri(),
     }).catch((err) => {
+      takeOfferTransfer();
       setError(
         err instanceof ApiError ? err.message : "Não foi possível entrar. Tente de novo."
       );
@@ -130,8 +134,10 @@ function EntrarContent() {
     setSubmitting(true);
     try {
       // Ao dar certo, o AuthProvider fica logado e o efeito acima segue para "voltar"
+      markOfferTransfer();
       await loginWithPassword({ email: typedEmail, password });
     } catch (err) {
+      takeOfferTransfer();
       setSubmitting(false);
       if (err instanceof ApiError && err.status === 401) {
         setError(

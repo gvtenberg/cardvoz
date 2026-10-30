@@ -30,6 +30,7 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 
 - O frontend chama a API em `NEXT_PUBLIC_API_URL` (ex.: `https://cardvoz-api.onrender.com/api`). Essa variável é **gravada no build**: mudou, precisa gerar o site de novo.
 - A API libera o domínio do site pela variável `CORS_ALLOWED_ORIGINS` (sem barra no final).
+- **A conta é opcional no site.** Sem login, baralhos, fichas e estudo ficam só no aparelho (`localStorage`). Com login, os baralhos da conta também ficam guardados no aparelho (cópias) e as mudanças vão para a API por uma fila. Ver seção 6.
 - **A API exige login.** Todas as rotas, exceto `/api/auth/*`, pedem `Authorization: Bearer <accessToken>`, e cada pessoa só acessa os próprios baralhos, fichas e sessões (recurso de outra pessoa responde 404). O fluxo de tokens (acesso de 15 min + renovação de 30 dias com rotação) está documentado no README da `cardvoz-api`, seção "Como o frontend deve usar".
 - **Duas formas de entrar:** e-mail e senha (`/entrar/` chama `POST /api/auth/login`; `/cadastro/` chama `POST /api/auth/register`) e Google (fluxo *authorization code* + PKCE, com redirecionamento: o Google devolve a pessoa para `/entrar/` com um código, e a API o troca em `POST /api/auth/google`, com o segredo do cliente que fica só na API). As três devolvem os mesmos tokens próprios. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build, o botão do Google some e só o login com senha aparece. Configuração do Google: README, seção "Login com Google".
 - **A API não junta contas:** se o e-mail do Google já tem uma conta criada com senha, `/api/auth/google` responde `409` e a pessoa entra com a senha. O cadastro com senha não confirma o e-mail, então juntar as contas deixaria quem cadastrou o e-mail de outra pessoa entrar na conta dela com a própria senha.
@@ -70,6 +71,11 @@ src/
 ├── components/                 # Um componente por pasta + barrel em index.ts
 ├── lib/
 │   ├── api.ts                  # Cliente da API C# (token, renovação no 401, ApiError)
+│   ├── data/index.ts           # O que as páginas usam: ler/mudar baralhos (aparelho + fila), sincronizar, hooks
+│   ├── data/transfer.ts        # Levar para a conta, repetidos, converter cópias ao sair
+│   ├── local/                  # localStorage: storage.ts, decks.ts, queue.ts (fila), account.ts (conta ativa)
+│   ├── exportDecks.ts          # Exportar baralhos em JSON (mesmo formato da importação)
+│   ├── install.ts              # Cartão "Instalar o CardVoz" (regras e janela do Android)
 │   ├── http.ts                 # URL da API, ApiError, errorMessage
 │   ├── auth/session.ts         # Tokens, renovação (uma por vez, entre abas), logout
 │   ├── auth/google.ts          # Ida ao Google (PKCE + state) e leitura da volta
@@ -81,6 +87,8 @@ src/
     ├── _mixins.scss            # Mixins (surface, back-link, focus-ring, respond-to...)
     └── globals.scss            # Variáveis CSS dos temas claro/escuro + reset
 public/modelos/                 # Arquivos de exemplo para importação (TXT, CSV, JSON)
+public/manifest.webmanifest     # App instalável (ícones em public/icones/)
+scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do next build
 .github/workflows/deploy.yml    # Lint + build e deploy no Render via deploy hook
 ```
 
@@ -102,7 +110,7 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 | `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id |
 
 - **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
-- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/`). Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
+- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
 - Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
@@ -110,7 +118,18 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 
 ---
 
-## 6. Dados (`src/lib/api.ts`)
+## 6. Dados (`src/lib/data`, `src/lib/local` e `src/lib/api.ts`)
+
+**As páginas não chamam `@/lib/api` para baralhos:** usam `@/lib/data`. Tudo é lido do aparelho (`cardvoz.baralhos.v1`) e as escritas são síncronas:
+- `useDecks()` / `useDeck(id)` (hooks que se atualizam sozinhos), `listDecks`, `findDeck`, `createDeck`, `renameDeck`, `deleteDeck`, `addCards`, `editCard`, `deleteCard`, `saveStudyResult`, `listSharedDecks`, `copySharedDeck`, `announce(texto)` (aviso global).
+- Cada baralho guardado tem `kind`: `"aparelho"` (só no aparelho) ou `"conta"` (cópia de um baralho da conta ativa). Mudança numa cópia da conta entra na **fila** (`cardvoz.fila.v1`), enviada em ordem por `syncAccount()` quando há sessão e internet; depois as cópias são atualizadas com a conta. O aviso da fila aparece no `SyncStatus` (layout).
+- Sem internet com sessão salva (`status "erro"`), continua no modo conta (cópias e fila). A conta ativa fica em `cardvoz.conta.v1` (sem token).
+- Ids de baralhos criados sem internet mudam quando a fila os envia; o id antigo fica em `aliases` e o endereço antigo continua abrindo o baralho.
+- Se o mesmo baralho for editado em dois aparelhos, vale a última alteração enviada (decisão do grupo).
+- Ao entrar, `AccountTransfer` pergunta se leva os baralhos do aparelho para a conta; ao sair, `LogoutDialog` pergunta se mantém ou apaga as cópias. Sessão que termina sozinha vale como "manter". Regras em `data/transfer.ts`.
+- Rotas novas da API (parte 4: `importDeck`, `getDeckChanges`, `completeStudySession`) são usadas quando existem; 404/405 lança `RouteMissingError` e o código cai no caminho antigo.
+
+**Cliente da API (`src/lib/api.ts`)**
 
 - Funções disponíveis: `getDecks`, `getDeck`, `createDeck`, `updateDeck`, `deleteDeck`, `getCategories`, `getCards`, `createCard`, `createCards` (lote, em sequência, preservando a ordem), `updateCard`, `deleteCard`, `getSharedDecks`, `copySharedDeck`, `startStudySession`, `recordStudyReview`, `finishStudySession`, `getStudyHistory`.
 - Os tipos (`DeckResponse`, `DeckDetailResponse`, `CardResponse`, `StudySessionResponse`...) espelham os DTOs da API em camelCase. Todos os IDs são `string` (UUID).
@@ -120,7 +139,7 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 - Para a mensagem na tela, use `errorMessage(error, "Texto padrão.")`: ela mostra a mensagem da API quando é falta de conexão ou limite de tentativas, e o texto padrão no resto.
 - A API exige `category` ao criar baralho; o frontend envia `"Geral"` e só **exibe** a categoria quando ela for diferente de `"Geral"`.
 - O campo `voiceNotes` existe na API, mas **não é exibido** (costumava repetir a resposta como "dica").
-- A sessão de estudo é **otimista**: a tela avança na hora e as chamadas à API entram numa fila (`enqueue` em `estudar/page.tsx`).
+- O estudo não fala com a API durante a rodada: no fim, `saveStudyResult` põe a sessão inteira na fila (baralho só do aparelho não guarda histórico).
 
 **Login e sessão** (`src/lib/auth/`, `AuthProvider`, `AuthGate`)
 - `accessToken` **só em memória**; `refreshToken` no `localStorage` (`cardvoz.refreshToken`). Nunca coloque token em URL, `console.log` ou mensagem de erro, e não use `dangerouslySetInnerHTML` (um XSS leria o `localStorage`).
@@ -152,6 +171,7 @@ public/modelos/                 # Arquivos de exemplo para importação (TXT, CS
 - **Login:** formulário de e-mail e senha primeiro ("Entrar", variante `primary`, `lg`), depois "ou" e o `GoogleButton` (variante `secondary`, `lg`, redirecionamento da página inteira). Não use o botão oficial do Google (iframe que não controlamos) nem o One Tap (abre sozinho e atrapalha o leitor de tela).
 - **Senha:** sempre com `PasswordInput`, que tem "Mostrar senha" (o leitor de tela não lê o que foi digitado num campo de senha). Use `autoComplete="current-password"` para entrar e `"new-password"` para criar a conta, para o gerenciador de senhas funcionar. Sem campo "confirmar senha": o "Mostrar senha" cumpre esse papel.
 - **Botão de enviar do login e do cadastro:** `aria-disabled` e uma trava no envio, em vez de `disabled`. Um botão desativado perde o foco, e o leitor de tela ficaria sem posição se der erro.
+- **Avisos do modo sem login:** `LocalNotice` (lista, sem conta) e `SyncStatus` (fila, global) usam texto visível sem foco automático. O único diálogo que abre sozinho é o "Levar para sua conta?", logo depois de entrar. O cartão `InstallCard` aparece na lista depois do primeiro estudo e nunca rouba o foco.
 - **Diálogos:** use sempre o componente `<Dialog>` (elemento nativo `<dialog>` com `showModal`): foco preso, `Esc` e anúncio corretos. Não crie modais com `div role="dialog"`.
 
 **Rótulos**
@@ -280,7 +300,7 @@ export default function ExemploPage() {
 - Conteúdo agrupado em painéis com `@include surface` e `border-radius: $radius-xl`.
 - Ações empilhadas em largura total no celular (`block`); lado a lado a partir de `sm`.
 - **Estados obrigatórios** de qualquer tela com dados: carregando (skeleton), vazio (mensagem + ação para começar), não encontrado (mensagem + voltar), erro ao carregar (mensagem em `role="alert"` + "Tentar de novo") e feedback de sucesso/erro em `role="status"`.
-- A página não precisa checar login: o `AuthGate` só a mostra com a pessoa logada (use `useAuth().user` se precisar dos dados da conta).
+- Páginas de baralho funcionam com e sem login: leia e mude dados por `@/lib/data` e use `useAuth().status` só para o que depende da conta (ex.: baralhos prontos, "Levar para a conta").
 - Na tela de estudo, `main` ocupa a altura da tela (`.studyMain`) e os botões ficam em uma barra `position: sticky; bottom: 0`.
 
 ---
@@ -334,6 +354,11 @@ export default function ExemploPage() {
 | `Header` | Logo, Ajuda e botão **Menu** (padrão *disclosure*, `<nav>` com lista, sem `role="menu"`) abaixo de `md`; links em linha (Meus baralhos, Perfil ou Entrar) e tema a partir de `md`. Esc fecha o menu e devolve o foco; fecha ao trocar de página e ao tocar fora |
 | `AuthProvider`, `useAuth` | Contexto da sessão: `status`, `user`, `logout()`, `retry()`. Restaura a sessão ao abrir o site |
 | `AuthGate` | No layout: protege as páginas fora de `PUBLIC_PATHS` (skeleton enquanto confere, redireciona para `/entrar/`, erro com "Tentar de novo") |
+| `SyncStatus` | Aviso global da fila de alterações e mensagens de `announce()` (`role="status"`) |
+| `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
+| `AccountTransfer` | Diálogos "Levar para sua conta?" e de repetidos (montado no layout; o botão do baralho usa `requestTransfer`) |
+| `LogoutDialog` | "Sair da conta": manter ou apagar os baralhos do aparelho |
+| `InstallCard`, `ServiceWorkerRegister` | Sugestão de instalar na tela inicial; registro do service worker e da janela de instalação do Android |
 | `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
 | `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
 | `FileImport` | Seleção de arquivo TXT/CSV/JSON com prévia; não salva nada (a página decide) |
@@ -380,12 +405,13 @@ export default function ExemploPage() {
 npm run dev           # desenvolvimento (http://localhost:3000)
 npm run lint          # ESLint
 npx tsc --noEmit      # tipos
-npm run build         # gera o site estático em out/
+npm test              # Vitest (lógica de src/lib e scripts/)
+npm run build         # gera o site estático em out/ e o service worker out/sw.js
 npx serve out         # pré-visualiza o resultado do build
 ```
 
 - Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
-- **Antes de concluir uma mudança:** lint, tipos e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
+- **Antes de concluir uma mudança:** lint, tipos, testes e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
 
 ---
@@ -398,5 +424,7 @@ npx serve out         # pré-visualiza o resultado do build
 - **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
 - **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
 - **Excluir conta e exportar dados** ainda não existem (a política de privacidade orienta pedir à equipe).
+- **Dados no aparelho:** limpar os dados do navegador apaga os baralhos que estão só no aparelho. Mudar o formato do que fica no `localStorage` exige nova chave (`.v2`) e migração; dados inválidos vão para `<chave>.corrompido` em vez de quebrar a tela.
+- **Service worker:** depois de publicar, quem já abriu o site recebe a versão nova na próxima visita com internet. Para testar offline, use o build (`npx serve out`), não o `npm run dev`.
 - **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.

@@ -1,0 +1,16 @@
+{
+  "name": "CardVoz",
+  "short_name": "CardVoz",
+  "description": "Fichas de estudo que o seu leitor de tela entende.",
+  "lang": "pt-BR",
+  "start_url": "/baralhos/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EE",
+  "theme_color": "#2846C4",
+  "icons": [
+    { "src": "/icones/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icones/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icones/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -19,6 +19,16 @@ export interface FileImportProps {
   disabled?: boolean;
 }
 
+/** "12 fichas encontradas" ou, no arquivo de vários baralhos, "3 baralhos com 40 fichas" */
+function foundText(result: ImportResult): string {
+  const count = result.cards.length;
+  const cards = `${count} ${count === 1 ? "ficha" : "fichas"}`;
+  if (result.decks && result.decks.length > 1) {
+    return `${result.decks.length} baralhos com ${cards}`;
+  }
+  return `${cards} ${count === 1 ? "encontrada" : "encontradas"}`;
+}
+
 /**
  * Seletor de arquivo TXT/CSV/JSON que lê as fichas e mostra uma prévia
  * antes de importar. A importação em si fica a cargo da página.
@@ -44,9 +54,7 @@ export function FileImport({ value, onChange, disabled = false }: FileImportProp
     try {
       const result = await readImportFile(file);
       onChange(result);
-      setAnnouncement(
-        `${result.cards.length} ${result.cards.length === 1 ? "ficha encontrada" : "fichas encontradas"} no arquivo ${result.fileName}.`
-      );
+      setAnnouncement(`${foundText(result)} no arquivo ${result.fileName}.`);
     } catch (err) {
       const message =
         err instanceof ImportError ? err.message : "Não foi possível ler este arquivo.";
@@ -120,7 +128,7 @@ export function FileImport({ value, onChange, disabled = false }: FileImportProp
             </span>
             <div>
               <p className={styles.summaryTitle}>
-                {count} {count === 1 ? "ficha encontrada" : "fichas encontradas"}
+                {foundText(value)}
               </p>
               <p className={styles.summaryMeta}>
                 {value.fileName}

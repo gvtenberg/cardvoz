@@ -108,6 +108,10 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
 
         <details className={styles.section} open={current === "conta"}>
           <summary className={styles.summary}>Entrar e sair da conta</summary>
+          <p className={styles.text}>
+            Você não precisa de conta para usar o CardVoz: seus baralhos ficam guardados
+            neste aparelho. Com uma conta, eles ficam guardados também na internet.
+          </p>
           <ol className={styles.steps}>
             <li>
               Para criar sua conta, toque em <strong>Criar conta</strong> e escreva
@@ -126,15 +130,39 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               navegador.
             </li>
             <li>
+              Se você tem baralhos neste aparelho, ao entrar o CardVoz pergunta se quer{" "}
+              <strong>Levar para a conta</strong>. Se preferir depois, use o botão na
+              página do baralho.
+            </li>
+            <li>
               Para sair, abra o <strong>Menu</strong> e toque em{" "}
               <strong>Sair da conta</strong>. No computador, essa opção fica no{" "}
-              <strong>Perfil</strong>.
+              <strong>Perfil</strong>. Você escolhe se os baralhos continuam neste
+              aparelho ou são apagados dele.
             </li>
           </ol>
           <p className={styles.text}>
             Se o Google mostrar um erro ao abrir o CardVoz de dentro de outro
             aplicativo, como o Instagram, abra o endereço no Chrome.
           </p>
+        </details>
+
+        <details className={styles.section}>
+          <summary className={styles.summary}>Instalar no celular</summary>
+          <p className={styles.text}>
+            Instalado, o CardVoz abre direto da tela inicial, como um aplicativo, e
+            funciona mesmo sem internet.
+          </p>
+          <ol className={styles.steps}>
+            <li>
+              No Android, abra o menu do Chrome (três pontos) e toque em{" "}
+              <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.
+            </li>
+            <li>
+              No iPhone, abra no Safari, toque em <strong>Compartilhar</strong> e depois
+              em <strong>Adicionar à Tela de Início</strong>.
+            </li>
+          </ol>
         </details>
 
         <details className={styles.section}>
