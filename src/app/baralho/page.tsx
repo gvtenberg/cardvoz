@@ -1,20 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Play, Plus, Trash2,Pencil } from "lucide-react";
 import { Button, Dialog, Skeleton, LoadingStatus } from "@/components";
-import { 
-  getDeck, 
-  deleteDeck, 
-  updateDeck, 
-  errorMessage,
-  updateCard, 
-  deleteCard,  
-  type DeckDetailResponse, 
-  CardResponse
- } from "@/lib/api";
+import { errorMessage, type CardResponse } from "@/lib/api";
+import { announce, deleteCard, deleteDeck, editCard, renameDeck, useDeck } from "@/lib/data";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
 
@@ -76,9 +68,8 @@ function DeckDetailContent() {
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameError, setRenameError] = useState<string | null>(null);
 
-  const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  // Lido do aparelho e atualizado sozinho quando o baralho muda
+  const { deck, loading, error: loadError } = useDeck(deckIdOrSlug);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
@@ -92,7 +83,7 @@ function DeckDetailContent() {
   const [deletingCard, setDeletingCard] = useState<{ card: CardResponse; index: number } | null>(null);
   const [isDeletingCard, setIsDeletingCard] = useState(false);
 
-  const handleRename = async (e: React.FormEvent) =>{
+  const handleRename = (e: React.FormEvent) =>{
     e.preventDefault(); 
     const trimmed = renameTitle.trim();
 
@@ -110,53 +101,29 @@ function DeckDetailContent() {
     try { 
         setIsRenaming(true);
         setRenameError(null);
-        await updateDeck(deck.id, { title: trimmed });  
-      deck.title = trimmed; 
+        renameDeck(deck.id, trimmed);
       setStatusMessage("Nome do baralho atualizado."); 
       setShowRenameModal(false);
-      } catch { 
-        setRenameError("Não foi possível renomear o baralho. Tente novamente."); 
+      } catch (err) { 
+        setRenameError(errorMessage(err, "Não foi possível renomear o baralho. Tente novamente.")); 
         } finally { 
         setIsRenaming(false); 
       } 
     };
 
-  const loadDeck = useCallback(async () => {
-    if (!deckIdOrSlug) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setLoadError("");
-    try {
-      const data = await getDeck(deckIdOrSlug);
-      setDeck(data);
-    } catch (err) {
-      setLoadError(errorMessage(err, "Não foi possível carregar o baralho. Tente de novo."));
-    } finally {
-      setLoading(false);
-    }
-  }, [deckIdOrSlug]);
-
-  useEffect(() => {
-    loadDeck();
-  }, [loadDeck]);
-
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deck) return;
     setIsDeleting(true);
     try {
-      await deleteDeck(deck.id);
+      deleteDeck(deck.id);
       setShowConfirmDelete(false);
-      setStatusMessage("Baralho excluído.");
-      setTimeout(() => {
-        router.push(routes.decks);
-      }, 600);
+      // O baralho some na hora: o aviso vai para o anúncio global e a lista abre já
+      announce("Baralho excluído.");
+      router.push(routes.decks);
     } catch (error) {
-      console.error(error);
       setIsDeleting(false);
       setShowConfirmDelete(false);
-      setStatusMessage("Não foi possível excluir o baralho. Tente novamente.");
+      setStatusMessage(errorMessage(error, "Não foi possível excluir o baralho. Tente novamente."));
     }
   };
 
@@ -168,7 +135,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
     setCardEditError(null);
   };
 
-  const handleSaveCard = async (e: React.FormEvent) => {
+  const handleSaveCard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCard || !deck) return;
 
@@ -188,16 +155,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
       setIsSavingCard(true);
       setCardEditError(null);
 
-      const updated = await updateCard(editingCard.card.id, {
-        question: trimmedQuestion,
-        answer: trimmedAnswer,
-      });
-
-      const updatedCards = (deck.cards || []).map((c) =>
-        c.id === editingCard.card.id ? { ...c, question: updated.question, answer: updated.answer } : c
-      );
-
-      setDeck({ ...deck, cards: updatedCards });
+      editCard(deck.id, editingCard.card.id, { question: trimmedQuestion, answer: trimmedAnswer });
       setStatusMessage(`Ficha ${editingCard.index + 1} atualizada.`);
       setEditingCard(null);
     } catch (err) {
@@ -207,25 +165,16 @@ const openEditCardModal = (card: CardResponse, index: number) => {
     }
   };
 
-  const handleConfirmDeleteCard = async () => {
+  const handleConfirmDeleteCard = () => {
     if (!deletingCard || !deck) return;
 
     try {
       setIsDeletingCard(true);
-      await deleteCard(deletingCard.card.id);
-
-      const updatedCards = (deck.cards || []).filter((c) => c.id !== deletingCard.card.id);
-      setDeck({
-        ...deck,
-        cards: updatedCards,
-        cardCount: updatedCards.length,
-      });
-
+      deleteCard(deck.id, deletingCard.card.id);
       setStatusMessage("Ficha excluída.");
       setDeletingCard(null);
     } catch (err) {
-      console.error(err);
-      setStatusMessage("Não foi possível excluir a ficha. Tente novamente.");
+      setStatusMessage(errorMessage(err, "Não foi possível excluir a ficha. Tente novamente."));
     } finally {
       setIsDeletingCard(false);
     }
@@ -244,7 +193,7 @@ const openEditCardModal = (card: CardResponse, index: number) => {
           <p role="alert" className={styles.emptyText}>
             {loadError}
           </p>
-          <Button variant="primary" onClick={loadDeck}>
+          <Button variant="primary" onClick={() => window.location.reload()}>
             Tentar de novo
           </Button>
         </div>

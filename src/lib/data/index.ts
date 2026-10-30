@@ -69,6 +69,8 @@ export interface SyncState {
   /** Quando a última sincronização enviou alguma alteração (para o aviso de enviado) */
   lastSentAt: number | null;
   message: string;
+  /** Muda a cada announce, para o aviso reaparecer mesmo com o mesmo texto */
+  messageAt: number;
 }
 
 const syncListeners = new Set<(s: SyncState) => void>();
@@ -77,6 +79,7 @@ let lastOffline = false;
 let lastFailures: string[] = [];
 let lastSentAt: number | null = null;
 let message = "";
+let messageAt = 0;
 
 function currentState(): SyncState {
   const account = getActiveAccount();
@@ -88,6 +91,7 @@ function currentState(): SyncState {
     lastFailures,
     lastSentAt,
     message,
+    messageAt,
   };
 }
 
@@ -112,6 +116,7 @@ export function onSyncState(listener: (s: SyncState) => void): () => void {
 /** Mensagem avulsa no aviso global (ex.: "3 baralhos levados para sua conta."). */
 export function announce(text: string): void {
   message = text;
+  messageAt = Date.now();
   emit();
 }
 
@@ -426,7 +431,10 @@ export function useDeck(idOrSlug: string): { deck: DeckDetail | null; loading: b
       return local;
     };
     setError("");
-    if (read()) {
+    if (!idOrSlug) {
+      setDeck(null);
+      setLoading(false);
+    } else if (read()) {
       setLoading(false);
     } else if (getActiveAccount() && conn === "desconhecida") {
       // Ainda conferindo o login: espera antes de dizer "não encontrado"

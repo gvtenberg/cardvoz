@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Input, Button, FileImport } from "@/components";
-import { createDeck, createCards, errorMessage } from "@/lib/api";
+import { errorMessage } from "@/lib/api";
+import { createDeck } from "@/lib/data";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -18,7 +19,6 @@ export default function NovoBaralhoPage() {
   const [imported, setImported] = useState<ImportResult | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const handleImport = (result: ImportResult | null) => {
     // Sugere o nome do arquivo se a pessoa ainda não digitou um nome
@@ -29,7 +29,7 @@ export default function NovoBaralhoPage() {
     setImported(result);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const title = name.trim();
     if (!title) {
@@ -41,39 +41,26 @@ export default function NovoBaralhoPage() {
     setIsSubmitting(true);
     setNameError("");
     try {
-      const created = await createDeck({ title, category: "Geral" });
-
-      if (imported && imported.cards.length > 0) {
-        const total = imported.cards.length;
-        setStatusMessage(`Importando ${total} fichas...`);
-        setProgress({ done: 0, total });
-        const saved = await createCards(created.id, imported.cards, {
-          onProgress: (done) => setProgress({ done, total }),
-        });
-        setStatusMessage(
-          saved === total
-            ? `Baralho criado com ${saved} fichas.`
-            : `Baralho criado. ${saved} de ${total} fichas foram importadas.`
-        );
-      } else {
-        setStatusMessage("Baralho criado.");
-      }
+      // Salva no aparelho na hora; com conta, a fila envia depois
+      const cards = imported?.cards ?? [];
+      const created = createDeck({ title, cards });
+      setStatusMessage(
+        cards.length > 0
+          ? `Baralho criado com ${cards.length} ${cards.length === 1 ? "ficha" : "fichas"}.`
+          : "Baralho criado."
+      );
 
       setTimeout(() => {
-        router.push(routes.deck(created.slug || created.id));
+        router.push(routes.deck(created.id));
       }, 800);
     } catch (error) {
-      console.error(error);
       setIsSubmitting(false);
-      setProgress(null);
       setStatusMessage(errorMessage(error, "Não foi possível salvar o baralho. Tente novamente."));
     }
   };
 
   const count = imported?.cards.length ?? 0;
-  const submitLabel = progress
-    ? `Importando ${progress.done} de ${progress.total}...`
-    : isSubmitting
+  const submitLabel = isSubmitting
       ? "Salvando..."
       : count > 0
         ? `Criar baralho com ${count} ${count === 1 ? "ficha" : "fichas"}`

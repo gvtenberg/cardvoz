@@ -20,6 +20,7 @@ function pendingText(n: number) {
 export function SyncStatus() {
   const [state, setState] = useState<SyncState | null>(null);
   const [showSent, setShowSent] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => onSyncState(setState), []);
 
@@ -32,9 +33,18 @@ export function SyncStatus() {
     return () => window.clearTimeout(timer);
   }, [sentAt]);
 
+  // Mensagens avulsas ("Baralho excluído.") também somem depois de um tempo
+  const messageAt = state?.messageAt ?? 0;
+  useEffect(() => {
+    if (!messageAt) return;
+    setShowMessage(true);
+    const timer = window.setTimeout(() => setShowMessage(false), SENT_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [messageAt]);
+
   let tone = "";
   let content: React.ReactNode = null;
-  if (state?.message) {
+  if (state?.message && showMessage) {
     tone = styles.success;
     content = state.message;
   } else if (state && state.lastFailures.length > 0) {

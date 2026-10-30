@@ -1,17 +1,12 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Textarea, Button, FileImport, Skeleton } from "@/components";
-import {
-  getDeck,
-  createCard,
-  createCards,
-  errorMessage,
-  type DeckDetailResponse,
-} from "@/lib/api";
+import { errorMessage } from "@/lib/api";
+import { addCards, useDeck } from "@/lib/data";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -22,9 +17,10 @@ function NovoCartaoContent() {
   const deckIdOrSlug = searchParams.get("id") || "";
   const questionRef = useRef<HTMLTextAreaElement>(null);
 
-  const [deck, setDeck] = useState<DeckDetailResponse | null>(null);
-  const [deckLoading, setDeckLoading] = useState(Boolean(deckIdOrSlug));
-  const [loadError, setLoadError] = useState("");
+  const { deck, loading: deckLoading, error: deckError } = useDeck(deckIdOrSlug);
+  const loadError =
+    deckError ||
+    (!deckLoading && !deck ? "Este baralho não existe mais ou o endereço está incorreto." : "");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [formError, setFormError] = useState("");
@@ -34,28 +30,10 @@ function NovoCartaoContent() {
 
   const [imported, setImported] = useState<ImportResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  useEffect(() => {
-    if (deckIdOrSlug) {
-      getDeck(deckIdOrSlug)
-        .then((data) => {
-          if (data) setDeck(data);
-          else setLoadError("Este baralho não existe mais ou o endereço está incorreto.");
-        })
-        .catch((error) =>
-          setLoadError(errorMessage(error, "Não foi possível carregar o baralho. Volte e tente de novo."))
-        )
-        .finally(() => setDeckLoading(false));
-    } else {
-      setLoadError("Este baralho não existe mais ou o endereço está incorreto.");
-    }
-  }, [deckIdOrSlug]);
+  const targetSlug = deck?.id || deckIdOrSlug;
 
-  const targetSlug = deck?.slug || deckIdOrSlug;
-  const nextOrder = (deck?.cards.length ?? 0) + savedCount + 1;
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!deck) return;
     if (!question.trim() || !answer.trim()) {
@@ -67,12 +45,7 @@ function NovoCartaoContent() {
     setIsSubmitting(true);
     setFormError("");
     try {
-      await createCard({
-        deckId: deck.id,
-        question: question.trim(),
-        answer: answer.trim(),
-        displayOrder: nextOrder,
-      });
+      addCards(deck.id, [{ question: question.trim(), answer: answer.trim() }]);
 
       // Mantém a pessoa na página para escrever a próxima ficha
       // O número muda a cada ficha para o leitor de tela anunciar de novo
@@ -84,31 +57,25 @@ function NovoCartaoContent() {
       );
       questionRef.current?.focus();
     } catch (error) {
-      console.error(error);
       setStatusMessage(errorMessage(error, "Não foi possível salvar a ficha. Tente novamente."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleImport = async () => {
+  const handleImport = () => {
     if (!imported || !deck) return;
     const total = imported.cards.length;
     setIsImporting(true);
-    setProgress({ done: 0, total });
-    setStatusMessage(`Importando ${total} fichas...`);
-
-    const saved = await createCards(deck.id, imported.cards, {
-      startOrder: nextOrder,
-      onProgress: (done) => setProgress({ done, total }),
-    });
-
-    setStatusMessage(
-      saved === total
-        ? `${saved} fichas adicionadas ao baralho.`
-        : `${saved} de ${total} fichas foram adicionadas.`
-    );
-    setTimeout(() => router.push(routes.deck(targetSlug)), 800);
+    try {
+      // Salva no aparelho na hora; com conta, a fila envia depois
+      addCards(deck.id, imported.cards);
+      setStatusMessage(`${total} ${total === 1 ? "ficha adicionada" : "fichas adicionadas"} ao baralho.`);
+      setTimeout(() => router.push(routes.deck(targetSlug)), 800);
+    } catch (error) {
+      setIsImporting(false);
+      setStatusMessage(errorMessage(error, "Não foi possível adicionar as fichas. Tente novamente."));
+    }
   };
 
   const importCount = imported?.cards.length ?? 0;
@@ -197,9 +164,7 @@ function NovoCartaoContent() {
             onClick={handleImport}
             disabled={busy || !deck}
           >
-            {progress
-              ? `Importando ${progress.done} de ${progress.total}...`
-              : `Adicionar ${importCount} ${importCount === 1 ? "ficha" : "fichas"}`}
+            {`Adicionar ${importCount} ${importCount === 1 ? "ficha" : "fichas"}`}
           </Button>
         )}
       </section>
