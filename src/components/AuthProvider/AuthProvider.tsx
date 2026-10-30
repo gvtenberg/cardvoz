@@ -13,9 +13,9 @@ import {
   type UserResponse,
 } from "@/lib/auth/session";
 import { errorMessage } from "@/lib/http";
-import { setNotice } from "@/lib/notice";
 import { setActiveAccount, setOnline, syncAccount } from "@/lib/data";
-import { getSavedAccount, saveAccount } from "@/lib/local/account";
+import { clearSavedAccount, getSavedAccount, saveAccount } from "@/lib/local/account";
+import { convertCopiesToDevice } from "@/lib/data/transfer";
 
 /** "erro": havia sessão, mas não deu para conferir (sem internet, API fora do ar, limite de tentativas). */
 export type AuthStatus = "carregando" | "logado" | "deslogado" | "erro";
@@ -75,12 +75,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(nextUser);
       setStatus(nextUser ? "logado" : "deslogado");
       setEndReason(nextUser ? null : (reason ?? null));
-      if (!nextUser && reason) {
-        setNotice(
-          reason === "logout"
-            ? "Você saiu da sua conta."
-            : "Sua sessão terminou. Entre de novo para continuar."
-        );
+      // Sessão que terminou sem "Sair da conta" (30 dias, saída em outro aparelho):
+      // vale como "Manter". Os baralhos continuam aqui, editáveis sem login, e a
+      // lista avisa que a sessão terminou.
+      if (!nextUser && reason === "expired") {
+        const saved = getSavedAccount();
+        if (saved) convertCopiesToDevice(saved.id);
+        clearSavedAccount();
       }
     });
 

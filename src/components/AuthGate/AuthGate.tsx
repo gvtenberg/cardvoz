@@ -21,10 +21,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isPublic || status !== "deslogado") return;
-    // Quem saiu por conta própria vai para a tela de entrar; quem perdeu a sessão
-    // volta para a mesma página depois de entrar de novo.
+    // Quem saiu por conta própria vai para os baralhos (que funcionam sem conta);
+    // quem perdeu a sessão volta para a mesma página depois de entrar de novo.
     const here = window.location.pathname + window.location.search;
-    router.replace(endReason === "logout" ? routes.login : routes.loginThenReturn(here));
+    router.replace(endReason === "logout" ? routes.decks : routes.loginThenReturn(here));
   }, [isPublic, status, endReason, router, pathname]);
 
   if (isPublic || status === "logado") {

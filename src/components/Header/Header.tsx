@@ -2,20 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { CircleHelp, Layers, LogIn, LogOut, Menu, User, X } from "lucide-react";
 import { ThemeToggle } from "../ThemeToggle";
 import { HelpDialog } from "../HelpDialog";
 import { useAuth } from "../AuthProvider";
+import { LogoutDialog } from "../LogoutDialog";
 import { routes, samePath } from "@/lib/routes";
 import { Logo } from "../Logo";
 import styles from "./Header.module.scss";
 
 export function Header() {
-  const { status, logout } = useAuth();
+  const { status } = useAuth();
   const pathname = usePathname() || "/";
-  const router = useRouter();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -45,10 +46,10 @@ export function Header() {
     };
   }, [menuOpen]);
 
-  // Sai e vai para a tela de entrar, que anuncia "Você saiu da sua conta."
+  // Pergunta antes de sair se os baralhos continuam no aparelho
   const handleLogout = () => {
-    logout();
-    router.replace(routes.login);
+    setMenuOpen(false);
+    setLogoutOpen(true);
   };
 
   const isLoggedIn = status === "logado";
@@ -141,6 +142,7 @@ export function Header() {
       </nav>
 
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <LogoutDialog open={logoutOpen} onClose={() => setLogoutOpen(false)} />
     </header>
   );
 }
