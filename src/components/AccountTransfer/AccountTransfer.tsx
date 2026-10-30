@@ -103,7 +103,7 @@ export function AccountTransfer() {
         parts.push(`Não foi possível levar “${title}”. Tente de novo na página do baralho.`);
       }
       if (offlineMessage) parts.push(offlineMessage);
-      if (parts.length > 0) announce(parts.join(" "));
+      if (parts.length > 0) announce(parts.join(" "), failed.length > 0 ? "erro" : "sucesso");
       void syncAccount();
     },
     [user]

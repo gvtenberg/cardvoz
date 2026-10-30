@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Input, Button, FileImport } from "@/components";
 import { errorMessage } from "@/lib/api";
-import { createDeck } from "@/lib/data";
+import { createDeck, createDecks } from "@/lib/data";
 import type { ImportResult } from "@/lib/importCards";
 import { routes } from "@/lib/routes";
 import styles from "./page.module.scss";
@@ -37,7 +37,8 @@ export default function NovoBaralhoPage() {
     if (importedDecks) {
       setIsSubmitting(true);
       try {
-        importedDecks.forEach((deck) => createDeck({ title: deck.title, cards: deck.cards }));
+        // Tudo ou nada: se faltar espaço no meio, nenhum fica pela metade
+        createDecks(importedDecks);
         setStatusMessage(`${importedDecks.length} baralhos importados.`);
         setTimeout(() => router.push(routes.decks), 800);
       } catch (error) {

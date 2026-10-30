@@ -8,7 +8,7 @@
  * enviada (decisão do grupo; sincronização completa fica para o futuro).
  */
 import { ApiError, RouteMissingError, type CardResponse, type DeckDetailResponse } from "@/lib/api";
-import { findLocalDeck, updateLocalDeck } from "./decks";
+import { findLocalDeck, listLocalDecks, updateLocalDeck } from "./decks";
 import { readJson, removeKey, writeJson } from "./storage";
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
@@ -20,6 +20,8 @@ export type QueueItem = { id: string; createdAt: string } & (
       title: string;
       category: string;
       cards: { localId: string; question: string; answer: string }[];
+      /** Já houve uma tentativa: a API pode ter criado o baralho e a resposta se perdido */
+      attempted?: boolean;
     }
   | { type: "renomearBaralho"; deckId: string; title: string }
   | { type: "excluirBaralho"; deckId: string }
@@ -32,6 +34,9 @@ export type QueueItem = { id: string; createdAt: string } & (
       startedAt: string;
       completedAt: string;
       answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
+      /** Caminho antigo: sessão já aberta na API e quantas respostas ela já tem */
+      sessionId?: string;
+      sentAnswers?: number;
     }
 );
 
@@ -156,7 +161,9 @@ export function enqueue(userId: string, item: NewQueueItem): void {
 
 export type QueueApi = Pick<
   typeof import("@/lib/api"),
-  "createDeck" | "importDeck" | "updateDeck" | "deleteDeck" | "createCard" | "updateCard" | "deleteCard" | "saveStudySession"
+  | "createDeck" | "importDeck" | "updateDeck" | "deleteDeck" | "createCard" | "updateCard" | "deleteCard"
+  | "completeStudySession" | "startStudySession" | "recordStudyReview" | "finishStudySession"
+  | "getDecks" | "getDeck"
 >;
 
 export interface QueueResult {
@@ -215,10 +222,83 @@ function removeFirst(userId: string, id: string) {
   writeQueue(userId, readQueue(userId).filter((i) => i.id !== id));
 }
 
+/** Atualiza um item da fila (progresso de uma retomada). */
+function patchItem(userId: string, id: string, change: Partial<QueueItem>) {
+  writeQueue(
+    userId,
+    readQueue(userId).map((i) => (i.id === id ? ({ ...i, ...change } as QueueItem) : i))
+  );
+}
+
+/**
+ * Baralho que a API criou numa tentativa cuja resposta se perdeu: mesmo nome e
+ * ainda desconhecido no aparelho. O mais novo, se houver mais de um.
+ */
+export async function findOrphanDeck(
+  api: Pick<QueueApi, "getDecks">,
+  title: string,
+  knownIds: Set<string>
+): Promise<string | null> {
+  const remotes = await api.getDecks();
+  const orphans = remotes
+    .filter((d) => d.title === title && !knownIds.has(d.id))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return orphans[0]?.id ?? null;
+}
+
+function knownRemoteIds(): Set<string> {
+  const ids = new Set<string>();
+  for (const deck of listLocalDecks()) {
+    ids.add(deck.id);
+    deck.aliases.forEach((a) => ids.add(a));
+    if (deck.account?.remoteId) ids.add(deck.account.remoteId);
+    if (deck.upload?.remoteId) ids.add(deck.upload.remoteId);
+  }
+  return ids;
+}
+
+/** Continua a partir de um baralho que já existe na API (criado antes, resposta perdida). */
+async function adoptDeck(
+  userId: string,
+  item: Extract<QueueItem, { type: "criarBaralho" }>,
+  remote: DeckDetailResponse
+) {
+  const ordered = [...remote.cards].sort((a, b) => a.displayOrder - b.displayOrder);
+  const ids = new Map<string, string>();
+  item.cards.forEach((c, i) => {
+    if (ordered[i]) ids.set(c.localId, ordered[i].id);
+  });
+  // As fichas que não chegaram viram itens próprios, na ordem
+  const now = new Date().toISOString();
+  const missing: QueueItem[] = item.cards.slice(ordered.length).map((c, i) => ({
+    id: crypto.randomUUID(),
+    createdAt: now,
+    type: "criarFicha",
+    deckId: remote.id,
+    localId: c.localId,
+    question: c.question,
+    answer: c.answer,
+    displayOrder: ordered.length + i + 1,
+  }));
+  const rest = readQueue(userId).filter((i) => i.id !== item.id);
+  writeQueue(userId, [...missing, ...rest]);
+  applyIds(userId, item.deckId, remote, ids);
+}
+
 /** Envia um item. Devolve uma frase de falha quando ele não pôde ser aplicado. */
 async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise<string | null> {
   switch (item.type) {
     case "criarBaralho": {
+      if (item.attempted) {
+        const orphanId = await findOrphanDeck(api, item.title, knownRemoteIds());
+        const orphan = orphanId ? await api.getDeck(orphanId) : null;
+        if (orphan) {
+          await adoptDeck(userId, item, orphan);
+          return null;
+        }
+      }
+      // Marca antes de criar: se a resposta se perder, a próxima vez procura antes
+      patchItem(userId, item.id, { attempted: true });
       try {
         const created = await api.importDeck({ title: item.title, category: item.category, cards: item.cards });
         const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
@@ -272,12 +352,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
       await api.deleteCard(item.cardId);
       break;
     case "estudo":
-      await api.saveStudySession({
-        deckId: item.deckId,
-        startedAt: item.startedAt,
-        completedAt: item.completedAt,
-        answers: item.answers,
-      });
+      await sendStudy(userId, item, api);
       break;
   }
   removeFirst(userId, item.id);
@@ -297,6 +372,48 @@ function failureFor(item: QueueItem, status: number): string | null {
     return `O baralho “${deckTitle(item.deckId)}” não existe mais na sua conta.`;
   }
   return `Não foi possível enviar uma alteração de “${deckTitle(item.deckId)}”.`;
+}
+
+/**
+ * Estudo: uma chamada com a rota nova. Sem ela, abre a sessão, registra cada
+ * resposta e conclui, guardando o progresso para retomar a mesma sessão se cair
+ * a internet (em vez de deixar uma sessão pela metade e abrir outra).
+ */
+async function sendStudy(userId: string, item: Extract<QueueItem, { type: "estudo" }>, api: QueueApi) {
+  if (!item.sessionId) {
+    try {
+      await api.completeStudySession({
+        deckId: item.deckId,
+        startedAt: item.startedAt,
+        completedAt: item.completedAt,
+        answers: item.answers,
+      });
+      return;
+    } catch (error) {
+      if (!(error instanceof RouteMissingError)) throw error;
+    }
+  }
+
+  let sessionId = item.sessionId;
+  if (!sessionId) {
+    sessionId = (await api.startStudySession({ deckId: item.deckId })).id;
+    patchItem(userId, item.id, { sessionId, sentAnswers: 0 });
+  }
+  for (let i = item.sentAnswers ?? 0; i < item.answers.length; i++) {
+    const answer = item.answers[i];
+    try {
+      await api.recordStudyReview(sessionId, {
+        cardId: answer.cardId,
+        wasCorrect: answer.wasCorrect,
+        voiceUsed: false,
+      });
+    } catch (error) {
+      // Ficha excluída enquanto a pessoa estudava: pula só ela
+      if (!(error instanceof ApiError && error.status === 404)) throw error;
+    }
+    patchItem(userId, item.id, { sentAnswers: i + 1 });
+  }
+  await api.finishStudySession(sessionId);
 }
 
 /** Recusa definitiva da API (4xx): não adianta tentar de novo. */

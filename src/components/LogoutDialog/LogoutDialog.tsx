@@ -30,7 +30,7 @@ export function LogoutDialog({ open, onClose }: LogoutDialogProps) {
     // Primeiro desliga a conta: uma sincronização ainda em andamento para de gravar
     setActiveAccount(null);
     if (user) {
-      if (keep) convertCopiesToDevice(user.id);
+      if (keep) convertCopiesToDevice(user.id, "manual");
       else removeAccountCopies(user.id);
     }
     clearSavedAccount();

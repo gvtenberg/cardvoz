@@ -211,3 +211,28 @@ describe("camada de dados: correções da revisão", () => {
     expect(reconnectAction("deslogado")).toBe("nada");
   });
 });
+
+describe("camada de dados: pontos menores", () => {
+  it("anúncio de falha chega com o tom de erro", async () => {
+    const { announce, onSyncState } = await import("./index");
+    let tone = "";
+    const stop = onSyncState((s) => (tone = s.messageTone));
+    announce("Não foi possível levar “Bio”.", "erro");
+    stop();
+    expect(tone).toBe("erro");
+  });
+
+  it("importar vários baralhos é tudo ou nada", async () => {
+    const { createDecks } = await import("./index");
+    const storage = await import("@/lib/local/storage");
+    let writes = 0;
+    const real = localStorage.setItem.bind(localStorage);
+    const spy = vi.spyOn(localStorage, "setItem").mockImplementation((k, v) => {
+      if (k === "cardvoz.baralhos.v1" && ++writes === 2) throw new DOMException("cheio", "QuotaExceededError");
+      real(k, v);
+    });
+    expect(() => createDecks([{ title: "A" }, { title: "B" }])).toThrow(storage.StorageFullError);
+    spy.mockRestore();
+    expect(listDecks()).toEqual([]);
+  });
+});

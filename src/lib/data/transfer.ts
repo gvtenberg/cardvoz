@@ -13,12 +13,13 @@ import {
   updateLocalDeck,
   type LocalDeck,
 } from "@/lib/local/decks";
-import { clearQueue, hasEditsPendingFor } from "@/lib/local/queue";
+import { clearQueue, findOrphanDeck, hasEditsPendingFor } from "@/lib/local/queue";
+import { readJson, writeJson } from "@/lib/local/storage";
 import { isCurrentAccount } from "./index";
 
 export type TransferApi = Pick<
   typeof import("@/lib/api"),
-  "importDeck" | "createDeck" | "createCard" | "getDeck" | "deleteDeck"
+  "importDeck" | "createDeck" | "createCard" | "getDeck" | "deleteDeck" | "getDecks"
 >;
 
 /** Baralho da conta que "repete" um do aparelho (mesma origem ou mesmo nome). */
@@ -72,6 +73,12 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
   let remoteId = local.upload?.remoteId ?? null;
   let sentCount = 0;
 
+  if (remoteId === "") {
+    // A tentativa anterior não teve resposta: a conta pode ter criado o baralho
+    const known = new Set(listLocalDecks().flatMap((d) => [d.id, ...d.aliases]));
+    remoteId = await findOrphanDeck(api, title, known);
+  }
+
   if (remoteId) {
     // Retomada: continua de onde a conta parou (as fichas vão uma a uma, em ordem)
     const partial = await api.getDeck(remoteId);
@@ -80,6 +87,8 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
   }
 
   if (!remoteId) {
+    // Marca a tentativa antes de criar: se a resposta se perder, a próxima procura antes
+    updateLocalDeck(local.id, (d) => ({ ...d, upload: { remoteId: "" } }));
     try {
       const created = await api.importDeck({
         title,
@@ -150,8 +159,21 @@ export async function transferDeck(
   }
 }
 
+const LEAVE_KEY = "cardvoz.motivoSaida.v1";
+export type LeaveReason = "manual" | "sessao";
+
+const isReason = (v: unknown): v is LeaveReason => v === "manual" || v === "sessao";
+
+/** Como os baralhos da conta viraram do aparelho: a pessoa saiu ou a sessão terminou. */
+export function leaveReason(): LeaveReason | null {
+  return readJson<LeaveReason | null>(LEAVE_KEY, null, isReason);
+}
+
 /** Sair mantendo: as cópias viram baralhos do aparelho, livres para editar sem login. */
-export function convertCopiesToDevice(userId: string): void {
+export function convertCopiesToDevice(userId: string, reason: LeaveReason = "manual"): void {
+  try {
+    writeJson(LEAVE_KEY, reason);
+  } catch {}
   for (const deck of listLocalDecks()) {
     if (deck.kind !== "conta" || deck.account?.userId !== userId) continue;
     const neverSent = !deck.account.remoteId;

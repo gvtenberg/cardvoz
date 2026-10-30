@@ -50,3 +50,13 @@ describe("cartão de instalar", () => {
     expect(detectPlatform("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130", 0)).toBe("outro");
   });
 });
+
+describe("janela de instalação antes da página carregar", () => {
+  it("usa o evento guardado pelo script do início da página", async () => {
+    const { takeEarlyPrompt } = await import("./install");
+    const event = { prompt: async () => {} };
+    (window as unknown as { __cardvozInstallPrompt?: unknown }).__cardvozInstallPrompt = event;
+    expect(takeEarlyPrompt()).toBe(event);
+    expect(takeEarlyPrompt()).toBeNull();
+  });
+});

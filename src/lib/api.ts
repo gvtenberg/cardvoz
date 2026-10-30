@@ -279,35 +279,30 @@ export async function getDeckChanges(
   since: string | null
 ): Promise<{ decks: DeckDetailResponse[]; allIds: string[]; serverTime: string }> {
   const query = since ? `?since=${encodeURIComponent(since)}` : "";
-  return fetchNewRoute("changes", `/decks/changes${query}`);
+  const result = await fetchNewRoute<{ decks?: unknown; allIds?: unknown; serverTime?: unknown }>(
+    "changes",
+    `/decks/changes${query}`
+  );
+  // Na API sem a rota, um baralho com endereço "changes" responde aqui: não é a lista de alterações
+  if (!Array.isArray(result?.decks) || !Array.isArray(result?.allIds) || typeof result?.serverTime !== "string") {
+    throw new RouteMissingError();
+  }
+  return result as { decks: DeckDetailResponse[]; allIds: string[]; serverTime: string };
 }
 
 /**
- * Guarda uma sessão de estudo já concluída (feita com ou sem internet).
- * Sem a rota nova, abre a sessão, registra cada resposta e a conclui.
+ * Guarda uma sessão de estudo já concluída (feita com ou sem internet). Sem a
+ * rota nova, a fila usa start + review + finish e guarda o progresso para
+ * retomar a mesma sessão (ver lib/local/queue.ts).
  */
-export async function saveStudySession(data: {
+export async function completeStudySession(data: {
   deckId: string;
   startedAt: string;
   completedAt: string;
   answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
 }): Promise<void> {
-  try {
-    await fetchNewRoute("complete", "/study-sessions/complete", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    return;
-  } catch (error) {
-    if (!(error instanceof RouteMissingError)) throw error;
-  }
-  const session = await startStudySession({ deckId: data.deckId });
-  for (const answer of data.answers) {
-    await recordStudyReview(session.id, {
-      cardId: answer.cardId,
-      wasCorrect: answer.wasCorrect,
-      voiceUsed: false,
-    });
-  }
-  await finishStudySession(session.id);
+  await fetchNewRoute("complete", "/study-sessions/complete", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }

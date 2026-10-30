@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Nunito, Atkinson_Hyperlegible } from "next/font/google";
 import "@/styles/globals.scss";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -52,6 +53,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* Guarda o aviso de instalação do Chrome que chega antes de o React carregar.
+            Código fixo, sem dados de fora */}
+        <Script id="cardvoz-instalar" strategy="beforeInteractive">
+          {`window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__cardvozInstallPrompt=e;});`}
+        </Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

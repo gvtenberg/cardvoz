@@ -45,7 +45,7 @@ export function SyncStatus() {
   let tone = "";
   let content: React.ReactNode = null;
   if (state?.message && showMessage) {
-    tone = styles.success;
+    tone = state.messageTone === "erro" ? styles.error : styles.success;
     content = state.message;
   } else if (state && state.lastFailures.length > 0) {
     tone = styles.error;

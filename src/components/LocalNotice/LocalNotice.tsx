@@ -2,6 +2,7 @@
 
 import { Button } from "../Button";
 import { findLocalDeck } from "@/lib/local/decks";
+import { leaveReason } from "@/lib/data/transfer";
 import type { DeckItem } from "@/lib/data";
 import { routes } from "@/lib/routes";
 import styles from "./LocalNotice.module.scss";
@@ -18,11 +19,13 @@ export function LocalNotice({ decks }: LocalNoticeProps) {
   const deviceDecks = decks.filter((d) => d.kind === "aparelho");
   if (deviceDecks.length === 0) return null;
 
-  // Baralhos que vieram de uma conta: a sessão terminou (ou a pessoa saiu mantendo)
+  // Baralhos que vieram de uma conta: a sessão terminou ou a pessoa saiu mantendo
   const cameFromAccount = deviceDecks.some((d) => findLocalDeck(d.id)?.account);
-  const text = cameFromAccount
-    ? "Sua sessão terminou. Seus baralhos continuam neste aparelho. Entre de novo para guardá-los na conta."
-    : "Seus baralhos estão só neste aparelho. Entre na sua conta para guardá-los.";
+  const text = !cameFromAccount
+    ? "Seus baralhos estão só neste aparelho. Entre na sua conta para guardá-los."
+    : leaveReason() === "sessao"
+      ? "Sua sessão terminou. Seus baralhos continuam neste aparelho. Entre de novo para guardá-los na conta."
+      : "Você saiu da sua conta. Seus baralhos continuam neste aparelho. Entre de novo para guardá-los na conta.";
 
   return (
     <section className={styles.notice} aria-label="Onde seus baralhos estão guardados">

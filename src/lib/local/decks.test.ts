@@ -74,4 +74,13 @@ describe("baralhos no aparelho", () => {
     localStorage.setItem(DECKS_KEY, JSON.stringify([...stored, { id: "x", title: "sem fichas" }]));
     expect(listLocalDecks().map((d) => d.id)).toEqual([ok.id]);
   });
+
+  it("guarda uma cópia quando descarta um baralho inválido", () => {
+    newDeviceDeck({ title: "Ok" });
+    const stored = JSON.parse(localStorage.getItem(DECKS_KEY) as string);
+    const raw = JSON.stringify([...stored, { id: "x", title: "sem fichas" }]);
+    localStorage.setItem(DECKS_KEY, raw);
+    listLocalDecks();
+    expect(localStorage.getItem(`${DECKS_KEY}.corrompido`)).toBe(raw);
+  });
 });

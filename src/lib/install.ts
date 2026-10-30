@@ -71,6 +71,18 @@ export function detectPlatform(userAgent: string, maxTouchPoints: number): Platf
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 const promptListeners = new Set<() => void>();
 
+/**
+ * O Chrome pode avisar que dá para instalar antes de o React carregar. Um
+ * script no início da página (layout) guarda o evento em
+ * window.__cardvozInstallPrompt; aqui ele é recolhido uma vez.
+ */
+export function takeEarlyPrompt(): BeforeInstallPromptEvent | null {
+  const holder = window as unknown as { __cardvozInstallPrompt?: BeforeInstallPromptEvent | null };
+  const event = holder.__cardvozInstallPrompt ?? null;
+  holder.__cardvozInstallPrompt = null;
+  return event;
+}
+
 export function setInstallPrompt(event: BeforeInstallPromptEvent | null): void {
   deferredPrompt = event;
   promptListeners.forEach((listener) => listener());

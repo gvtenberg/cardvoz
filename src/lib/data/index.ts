@@ -90,6 +90,7 @@ export interface SyncState {
   message: string;
   /** Muda a cada announce, para o aviso reaparecer mesmo com o mesmo texto */
   messageAt: number;
+  messageTone: "sucesso" | "erro";
 }
 
 const syncListeners = new Set<(s: SyncState) => void>();
@@ -99,6 +100,7 @@ let lastFailures: string[] = [];
 let lastSentAt: number | null = null;
 let message = "";
 let messageAt = 0;
+let messageTone: "sucesso" | "erro" = "sucesso";
 
 function currentState(): SyncState {
   const account = getActiveAccount();
@@ -111,6 +113,7 @@ function currentState(): SyncState {
     lastSentAt,
     message,
     messageAt,
+    messageTone,
   };
 }
 
@@ -133,8 +136,9 @@ export function onSyncState(listener: (s: SyncState) => void): () => void {
 }
 
 /** Mensagem avulsa no aviso global (ex.: "3 baralhos levados para sua conta."). */
-export function announce(text: string): void {
+export function announce(text: string, tone: "sucesso" | "erro" = "sucesso"): void {
   message = text;
+  messageTone = tone;
   messageAt = Date.now();
   emit();
 }
@@ -201,6 +205,26 @@ export function createDeck(data: {
   });
   kick();
   return toDeckResponse(copy);
+}
+
+/**
+ * Vários baralhos de uma vez (arquivo de "Exportar todos"): tudo ou nada. Se o
+ * espaço acabar no meio, os já criados são desfeitos, para tentar de novo não
+ * duplicar.
+ */
+export function createDecks(decks: { title: string; cards?: { question: string; answer: string }[] }[]): DeckItem[] {
+  const created: DeckItem[] = [];
+  try {
+    for (const deck of decks) created.push(createDeck(deck));
+    return created;
+  } catch (error) {
+    for (const deck of created) {
+      try {
+        deleteDeck(deck.id);
+      } catch {}
+    }
+    throw error;
+  }
 }
 
 export function renameDeck(id: string, title: string): void {

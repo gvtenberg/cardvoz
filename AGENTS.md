@@ -127,7 +127,7 @@ scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do 
 - Ids de baralhos criados sem internet mudam quando a fila os envia; o id antigo fica em `aliases` e o endereço antigo continua abrindo o baralho.
 - Se o mesmo baralho for editado em dois aparelhos, vale a última alteração enviada (decisão do grupo).
 - Ao entrar, `AccountTransfer` pergunta se leva os baralhos do aparelho para a conta; ao sair, `LogoutDialog` pergunta se mantém ou apaga as cópias. Sessão que termina sozinha vale como "manter". Regras em `data/transfer.ts`.
-- Rotas novas da API (parte 4: `importDeck`, `getDeckChanges`, `saveStudySession`) são usadas quando existem; 404/405 lança `RouteMissingError` e o código cai no caminho antigo.
+- Rotas novas da API (parte 4: `importDeck`, `getDeckChanges`, `completeStudySession`) são usadas quando existem; 404/405 lança `RouteMissingError` e o código cai no caminho antigo.
 
 **Cliente da API (`src/lib/api.ts`)**
 

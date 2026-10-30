@@ -55,6 +55,7 @@ function fakeApi() {
     createCard: vi.fn().mockImplementation(async (c) => ({ ...c, id: `id-${c.question}`, createdAt: "x" })),
     getDeck: vi.fn().mockResolvedValue(remote("novo", ["a", "b", "c", "d", "e"])),
     deleteDeck: vi.fn().mockResolvedValue(undefined),
+    getDecks: vi.fn().mockResolvedValue([]),
   } satisfies Record<keyof TransferApi, unknown>;
 }
 
@@ -192,5 +193,34 @@ describe("sair da conta: estudo pendente", () => {
     enqueue(USER, { type: "estudo", deckId: "c1", startedAt: "a", completedAt: "b", answers: [] });
     convertCopiesToDevice(USER);
     expect(findLocalDeck("c1")?.editedOffAccount).toBe(false);
+  });
+});
+
+describe("retomadas e motivo da saída", () => {
+  it("baralho levado cuja resposta se perdeu não é criado de novo", async () => {
+    const local = deck("l1");
+    const api = fakeApi();
+    api.importDeck.mockRejectedValueOnce(new ApiError(0, "resposta perdida"));
+    await expect(transferDeck(local, "levar", USER, api, null)).rejects.toThrow();
+    expect(findLocalDeck("l1")?.upload).toEqual({ remoteId: "" });
+
+    api.getDecks.mockResolvedValue([{ id: "novo", slug: "novo", title: "Biologia", category: "Geral", cardCount: 2, createdAt: "x" }]);
+    api.getDeck
+      .mockResolvedValueOnce(remote("novo", ["a", "b"]))
+      .mockResolvedValueOnce(remote("novo", ["a", "b", "c", "d", "e"]));
+    await transferDeck(findLocalDeck("l1")!, "levar", USER, api, null);
+
+    expect(api.importDeck).toHaveBeenCalledTimes(1);
+    expect(api.createDeck).not.toHaveBeenCalled();
+    expect(api.createCard.mock.calls.map((c) => c[0].question)).toEqual(["c", "d", "e"]);
+  });
+
+  it("guarda se a saída foi pela pessoa ou pelo fim da sessão", async () => {
+    const { leaveReason } = await import("./transfer");
+    deck("c1", { kind: "conta", account: fromAccount("c1") });
+    convertCopiesToDevice(USER, "manual");
+    expect(leaveReason()).toBe("manual");
+    convertCopiesToDevice(USER, "sessao");
+    expect(leaveReason()).toBe("sessao");
   });
 });

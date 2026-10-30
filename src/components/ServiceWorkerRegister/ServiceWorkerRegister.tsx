@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { setInstallPrompt, type BeforeInstallPromptEvent } from "@/lib/install";
+import { setInstallPrompt, takeEarlyPrompt, type BeforeInstallPromptEvent } from "@/lib/install";
 
 /**
  * Registra o service worker (gerado no build) para o CardVoz abrir sem
@@ -11,6 +11,9 @@ export function ServiceWorkerRegister() {
   // Android: guarda a janela de instalação para o cartão "Instalar o CardVoz"
   // abrir na hora certa, em vez do aviso automático do navegador
   useEffect(() => {
+    // Aviso que chegou antes de a página carregar (guardado pelo script do layout)
+    const early = takeEarlyPrompt();
+    if (early) setInstallPrompt(early);
     const handlePrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);

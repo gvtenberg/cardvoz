@@ -75,7 +75,16 @@ const isArray = (v: unknown): v is unknown[] => Array.isArray(v);
 
 function readAll(): LocalDeck[] {
   // Valida item a item: um baralho estragado não some com os outros
-  return readJson<unknown[]>(DECKS_KEY, [], isArray).filter(isDeck);
+  const items = readJson<unknown[]>(DECKS_KEY, [], isArray);
+  const decks = items.filter(isDeck);
+  if (decks.length < items.length) {
+    // A próxima gravação apagaria o baralho estragado: guarda o original antes
+    try {
+      const raw = localStorage.getItem(DECKS_KEY);
+      if (raw !== null) localStorage.setItem(`${DECKS_KEY}.corrompido`, raw);
+    } catch {}
+  }
+  return decks;
 }
 
 function writeAll(decks: LocalDeck[]) {

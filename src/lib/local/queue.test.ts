@@ -61,7 +61,12 @@ function fakeApi(): { [K in keyof QueueApi]: ReturnType<typeof vi.fn> } & QueueA
     createCard: vi.fn(),
     updateCard: vi.fn().mockResolvedValue({}),
     deleteCard: vi.fn().mockResolvedValue(undefined),
-    saveStudySession: vi.fn().mockResolvedValue(undefined),
+    completeStudySession: vi.fn().mockResolvedValue(undefined),
+    startStudySession: vi.fn().mockResolvedValue({ id: "s1" }),
+    recordStudyReview: vi.fn().mockResolvedValue(undefined),
+    finishStudySession: vi.fn().mockResolvedValue({}),
+    getDecks: vi.fn().mockResolvedValue([]),
+    getDeck: vi.fn().mockResolvedValue(null),
   } as never;
 }
 
@@ -119,7 +124,7 @@ describe("fila de alterações", () => {
     const result = await processQueue(USER, api);
 
     expect(result.sent).toBe(2);
-    expect(api.saveStudySession).toHaveBeenCalledWith(
+    expect(api.completeStudySession).toHaveBeenCalledWith(
       expect.objectContaining({ deckId: "r1", answers: [expect.objectContaining({ cardId: "rc1" })] })
     );
     const local = findLocalDeck("l1");
@@ -228,5 +233,69 @@ describe("fila: erros da API", () => {
     const card = findLocalDeck("d1")?.cards[0];
     expect(card?.id).toBe("rc1");
     expect(card?.aliases).toContain("c1");
+  });
+});
+
+describe("fila: retomadas sem duplicar", () => {
+  const estudo = (answers: string[]) => ({
+    type: "estudo" as const, deckId: "d1", startedAt: "a", completedAt: "b",
+    answers: answers.map((cardId) => ({ cardId, wasCorrect: true, answeredAt: "b" })),
+  });
+
+  it("estudo pelo caminho antigo continua a mesma sessão depois de cair a internet", async () => {
+    contaDeck("d1");
+    enqueue(USER, estudo(["c1", "c2"]));
+    const api = fakeApi();
+    api.completeStudySession.mockRejectedValue(new RouteMissingError());
+    api.recordStudyReview.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new ApiError(0, "sem internet"));
+
+    await processQueue(USER, api);
+    expect(readQueue(USER)[0]).toMatchObject({ sessionId: "s1", sentAnswers: 1 });
+
+    api.recordStudyReview.mockResolvedValue(undefined);
+    await processQueue(USER, api);
+
+    expect(api.startStudySession).toHaveBeenCalledTimes(1);
+    expect(api.recordStudyReview.mock.calls.map((c) => c[1].cardId)).toEqual(["c1", "c2", "c2"]);
+    expect(api.finishStudySession).toHaveBeenCalledWith("s1");
+    expect(pendingCount(USER)).toBe(0);
+  });
+
+  it("ficha excluída no meio do estudo é pulada e a sessão termina", async () => {
+    contaDeck("d1");
+    enqueue(USER, estudo(["c1", "sumiu", "c3"]));
+    const api = fakeApi();
+    api.completeStudySession.mockRejectedValue(new RouteMissingError());
+    api.recordStudyReview
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new ApiError(404, "não achou"))
+      .mockResolvedValueOnce(undefined);
+
+    const result = await processQueue(USER, api);
+
+    expect(result.failures).toEqual([]);
+    expect(api.finishStudySession).toHaveBeenCalledWith("s1");
+  });
+
+  it("baralho criado cuja resposta se perdeu não é criado de novo", async () => {
+    contaDeck("l1", [{ id: "c1", question: "q0" }]);
+    enqueue(USER, {
+      type: "criarBaralho", deckId: "l1", title: "Bio", category: "Geral",
+      cards: [{ localId: "c1", question: "q0", answer: "r" }],
+    });
+    const api = fakeApi();
+    api.importDeck.mockRejectedValueOnce(new ApiError(0, "resposta perdida"));
+    await processQueue(USER, api);
+
+    // A API tinha criado: o próximo envio acha o baralho em vez de criar outro
+    api.getDecks.mockResolvedValue([{ id: "r1", slug: "r1", title: "Bio", category: "Geral", cardCount: 1, createdAt: "x" }]);
+    api.getDeck.mockResolvedValue(apiDeck("r1", ["rc1"]));
+    await processQueue(USER, api);
+
+    expect(api.importDeck).toHaveBeenCalledTimes(1);
+    expect(api.createDeck).not.toHaveBeenCalled();
+    expect(findLocalDeck("l1")?.id).toBe("r1");
+    expect(findLocalDeck("r1")?.cards[0].id).toBe("rc1");
+    expect(pendingCount(USER)).toBe(0);
   });
 });

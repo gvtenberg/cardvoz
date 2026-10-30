@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // lista avisa que a sessão terminou.
       if (!nextUser && reason === "expired") {
         const saved = getSavedAccount();
-        if (saved) convertCopiesToDevice(saved.id);
+        if (saved) convertCopiesToDevice(saved.id, "sessao");
         clearSavedAccount();
       }
     });
