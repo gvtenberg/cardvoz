@@ -32,8 +32,21 @@ export const routes = {
   study: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}`,
 };
 
-/** Páginas que abrem sem login. As demais mandam para /entrar/. */
-export const PUBLIC_PATHS = [routes.home, routes.login, routes.register, routes.privacy];
+/**
+ * Páginas que abrem sem login. As demais mandam para /entrar/. Baralhos e
+ * estudo funcionam sem conta, com tudo guardado no aparelho.
+ */
+export const PUBLIC_PATHS = [
+  routes.home,
+  routes.login,
+  routes.register,
+  routes.privacy,
+  routes.decks,
+  routes.newDeck,
+  "/baralho/",
+  "/baralho/adicionar/",
+  "/estudar/",
+];
 
 /** Compara caminhos ignorando a barra final ("/entrar" e "/entrar/"). */
 export function samePath(a: string, b: string): boolean {

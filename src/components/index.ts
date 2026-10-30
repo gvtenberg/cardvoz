@@ -20,3 +20,4 @@ export * from "./AuthGate";
 export * from "./PasswordInput";
 export * from "./GoogleButton";
 export * from "./SyncStatus";
+export * from "./LocalNotice";

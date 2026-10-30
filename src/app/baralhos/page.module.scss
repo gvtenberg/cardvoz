@@ -156,3 +156,10 @@
   font-weight: 700;
   color: var(--success-soft-text);
 }
+
+.inlineLink {
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

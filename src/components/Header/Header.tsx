@@ -62,7 +62,10 @@ export function Header() {
         { href: routes.profile, label: "Perfil", icon: User },
       ]
     : isLoggedOut
-      ? [{ href: routes.login, label: "Entrar", icon: LogIn }]
+      ? [
+          { href: routes.decks, label: "Meus baralhos", icon: Layers },
+          { href: routes.login, label: "Entrar", icon: LogIn },
+        ]
       : [];
 
   return (
