@@ -95,6 +95,8 @@ O `npm run build` roda `next build` e depois `scripts/gerar-sw.mjs`, que cria o 
 
 ### Deploy no Render
 
+**Conferir se a versão nova está no ar:** o rodapé da página inicial (e o fim da Ajuda) mostra "Versão 0.5.0 (fcd98c7)". O código entre parênteses é o commit publicado (variável `RENDER_GIT_COMMIT` do Render) e deve bater com o último commit da `main`. Histórico em `CHANGELOG.md`.
+
 **Site (Static Site)**
 - Build Command: `npm install && npm run build`
 - Publish Directory: `out`
