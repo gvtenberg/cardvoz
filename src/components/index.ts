@@ -19,3 +19,4 @@ export * from "./AuthProvider";
 export * from "./AuthGate";
 export * from "./PasswordInput";
 export * from "./GoogleButton";
+export * from "./SyncStatus";

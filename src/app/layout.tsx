@@ -6,6 +6,7 @@ import { SkipLink } from "@/components/SkipLink";
 import { Header } from "@/components/Header";
 import { AuthProvider } from "@/components/AuthProvider";
 import { AuthGate } from "@/components/AuthGate";
+import { SyncStatus } from "@/components/SyncStatus";
 import styles from "./layout.module.scss";
 
 const nunito = Nunito({
@@ -50,6 +51,7 @@ export default function RootLayout({
           <AuthProvider>
             <SkipLink />
             <Header />
+            <SyncStatus />
             <div className={styles.content}>
               <AuthGate>{children}</AuthGate>
             </div>

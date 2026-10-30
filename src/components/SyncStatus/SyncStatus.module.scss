@@ -1,0 +1,33 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  width: 100%;
+  max-width: 1120px;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+}
+
+.message {
+  padding: 1rem 1.25rem;
+  font-size: $font-size-base;
+  font-weight: 700;
+  border-radius: $radius-md;
+  color: var(--primary-soft-text);
+  background-color: var(--primary-soft);
+}
+
+.success {
+  color: var(--success-soft-text);
+  background-color: var(--success-soft);
+}
+
+.error {
+  color: var(--danger-text);
+  background-color: var(--danger-soft);
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.25rem;
+}

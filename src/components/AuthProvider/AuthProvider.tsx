@@ -14,6 +14,8 @@ import {
 } from "@/lib/auth/session";
 import { errorMessage } from "@/lib/http";
 import { setNotice } from "@/lib/notice";
+import { setActiveAccount, setOnline, syncAccount } from "@/lib/data";
+import { getSavedAccount, saveAccount } from "@/lib/local/account";
 
 /** "erro": havia sessão, mas não deu para conferir (sem internet, API fora do ar, limite de tentativas). */
 export type AuthStatus = "carregando" | "logado" | "deslogado" | "erro";
@@ -101,6 +103,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("storage", handleStorage);
     };
   }, [restore]);
+
+  // Diz à camada de dados de quem são as cópias e se dá para falar com a API.
+  // Sem internet com sessão salva ("erro") continua no modo conta: as edições
+  // vão para a fila em vez de virarem baralhos só do aparelho.
+  useEffect(() => {
+    if (status === "logado" && user) {
+      saveAccount({ id: user.id, name: user.name, email: user.email });
+      setActiveAccount(getSavedAccount());
+      setOnline(true);
+      void syncAccount();
+    } else if (status === "erro") {
+      setActiveAccount(getSavedAccount());
+      setOnline(false);
+    } else if (status === "deslogado") {
+      setActiveAccount(null);
+      setOnline(false);
+    }
+  }, [status, user]);
+
+  // Voltou a internet: envia a fila e atualiza as cópias
+  useEffect(() => {
+    const handleOnline = () => void syncAccount();
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({ status, user, endReason, restoreError, retry: restore, logout: endSession }),
