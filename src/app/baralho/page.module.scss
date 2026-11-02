@@ -190,13 +190,17 @@
   max-width: 26rem;
 }
 
+// Até cinco botões: empilhados no celular. Numa fileira só, passavam da
+// largura da tela, a página ganhava rolagem lateral e os diálogos esticavam junto.
 .dangerZone {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
   padding-top: 1rem;
 
   @include respond-to(sm) {
-    justify-content: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 

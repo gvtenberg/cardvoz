@@ -4,6 +4,13 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.8.1 — 01/11/2026
+
+- Diálogos de editar ficha e renomear baralho cabem na tela do celular, com o botão "Fechar" visível (issues #10 e #11). A causa era a fileira de botões no fim da página do baralho ("Idioma das fichas", "Exportar baralho", "Renomear baralho", "Excluir baralho"), mais larga que a tela: a página ganhava rolagem lateral e os diálogos esticavam junto. Agora os botões ficam empilhados no celular.
+- Nome de baralho ou ficha com palavra longa sem espaço (ex.: um link) quebra a linha em vez de passar da largura da tela.
+- `npm run telas`: confere todas as telas no Chromium e no Firefox, de 320 a 412px, procurando rolagem lateral, texto abaixo de 16px e diálogos fora da tela.
+- `AGENTS.md` com os combinados da equipe (seção 16), para quem não usa o Claude Code seguir as mesmas regras.
+
 ## 0.8.0 — 30/10/2026
 
 - Busca de fichas na página do baralho (RF09): procura na pergunta e na resposta, sem diferenciar acentos, e anuncia quantas fichas encontrou.

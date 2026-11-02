@@ -99,6 +99,9 @@ body {
   display: flex;
   flex-direction: column;
   transition: background-color $transition-fast, color $transition-fast;
+  // Nome de baralho ou ficha com palavra longa (ex.: um link) quebra a linha em
+  // vez de passar da largura da tela
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
