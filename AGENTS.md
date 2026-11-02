@@ -90,6 +90,7 @@ src/
 public/modelos/                 # Arquivos de exemplo para importação (TXT, CSV, JSON)
 public/manifest.webmanifest     # App instalável (ícones em public/icones/)
 scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do next build
+scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e diálogos no celular
 .github/workflows/deploy.yml    # Lint + build e deploy no Render via deploy hook
 ```
 
@@ -413,10 +414,11 @@ npx tsc --noEmit      # tipos
 npm test              # Vitest (lógica de src/lib e scripts/)
 npm run build         # gera o site estático em out/ e o service worker out/sw.js
 npx serve out         # pré-visualiza o resultado do build
+npm run telas         # confere todas as telas no celular (com o site rodando; ver README)
 ```
 
 - Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
-- **Antes de concluir uma mudança:** lint, tipos, testes e build passando; tela conferida em **375px** e **320px** (zoom de 200%) de largura, sem rolagem horizontal, e no **tema escuro**; navegação por teclado funcionando; nenhum texto abaixo de 16px.
+- **Antes de concluir uma mudança:** lint, tipos, testes e build passando; `npm run telas` sem problemas (sem rolagem lateral de 320 a 412px, nenhum texto abaixo de 16px, diálogos dentro da tela); tela conferida também à mão no **tema escuro** e com zoom de 200%; navegação por teclado funcionando. Se a mudança cria uma tela ou um diálogo novo, inclua-o em `PAGINAS` ou `DIALOGOS` do script.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
 - **Textos de apoio em toda mudança:** confira e atualize junto o `README.md`, as **perguntas frequentes** (`DUVIDAS` em `src/app/page.tsx`), a **Ajuda** (`HelpDialog`), o `docs/guia-de-uso.md`, este `AGENTS.md` e o `CHANGELOG.md`. Se nenhum precisou mudar, diga isso no PR.
 - **Branch e PR:** trabalhe numa branch (`feat/...`, `fix/...`, `docs/...`) e abra PR para a `main`; o merge na `main` publica no Render. Depois do deploy, confira a versão no rodapé.
@@ -438,3 +440,17 @@ npx serve out         # pré-visualiza o resultado do build
 - **Service worker:** depois de publicar, quem já abriu o site recebe a versão nova na próxima visita com internet. Para testar offline, use o build (`npx serve out`), não o `npm run dev`.
 - **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.
+- **Fileira de botões no celular:** mais de dois botões lado a lado passam da largura da tela. A página ganha rolagem lateral e, como o `<dialog>` mede a largura pela página, os diálogos abertos nela também passam da tela, com o "Fechar" escondido (issues #10 e #11). Empilhe em coluna no celular e só ponha lado a lado a partir de `sm`, com `flex-wrap`. Nomes longos sem espaço (links colados numa ficha) quebram a linha por causa do `overflow-wrap` do `body`; num item de `flex`, use também `min-width: 0`.
+
+---
+
+## 16. Combinados da equipe
+
+Estas regras vieram de conversas da equipe com assistentes de IA e valem para todo mundo, use ou não uma ferramenta de IA. Os `AGENTS.md` da `cardvoz-api` e do `cardvoz-db` têm a mesma seção, adaptada a cada repositório.
+
+- **Português do Brasil** em respostas, comentários, commits, PRs e documentação. Quando a pessoa disser que entendeu, siga para o próximo passo sem repetir a explicação.
+- **Textos de apoio em toda mudança:** antes de dar uma mudança por concluída, confira README, perguntas frequentes, Ajuda, guia de uso, `AGENTS.md`, `CHANGELOG.md` e a versão no `package.json` (seção 14). No resumo ou no PR, diga o que mudou neles ou que não precisou.
+- **Quem usa o CardVoz:** a cliente é cega e estuda com o TalkBack; o público inclui pessoas com baixa visão. Letras grandes, contraste AAA e as recomendações da WCAG valem mais que qualquer escolha visual (seção 1). Digitar e-mail e senha no TalkBack é trabalhoso: por isso existe o modo sem login.
+- **Trabalho dividido:** cada repositório tem dono no grupo. Mudança de código na `cardvoz-api` ou no `cardvoz-db` só depois de combinar; descreva a tarefa em `docs/tarefas/` do repositório e abra PR para o dono.
+- **Problemas de tela viram issue** no GitHub do site, com captura e o aparelho usado (ex.: "Galaxy S25+ no modo de celular do Firefox"). O commit que corrige cita a issue (`Closes #10`), e ela fecha sozinha quando o PR entra na `main`.
+- **Histórico de pedidos da cliente (out/2026):** modo sem login (partes 1 a 3 publicadas na 0.5.0; a parte 4, três rotas na API para reduzir chamadas, está descrita na `cardvoz-api`, aguardando o dono); leitura contínua com o TalkBack (0.6.0); Ajuda aberta e privacidade (0.7.0); busca e idioma das fichas (0.8.0; guardar o idioma na conta depende da migration do `cardvoz-db` e da API, ver `docs/tarefas/idioma-das-fichas.md` da `cardvoz-api`). Designs em `docs/superpowers/specs/`.

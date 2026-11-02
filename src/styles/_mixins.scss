@@ -52,6 +52,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: calc(100% + 0.75rem);
   min-height: $touch-sm;
   padding: 0.5rem 1rem 0.5rem 0.75rem;
   margin-left: -0.75rem;
@@ -74,6 +75,12 @@
     width: 1.375rem;
     height: 1.375rem;
     flex-shrink: 0;
+  }
+
+  // O texto pode ser o nome do baralho: nome longo quebra em vez de alargar a página
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 

@@ -43,6 +43,8 @@
 .title {
   font-size: $font-size-2xl;
   padding-top: 0.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .closeButton {
@@ -75,6 +77,8 @@
 .body {
   font-size: $font-size-base;
   line-height: 1.6;
+  // Palavra longa sem espaço (ex.: um link numa ficha) quebra em vez de alargar o diálogo
+  overflow-wrap: anywhere;
 }
 
 .footer {

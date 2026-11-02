@@ -2,7 +2,7 @@
 
 ## Outros documentos do projeto
 
-Leia conforme a tarefa. As regras de fluxo de trabalho da equipe estão no `AGENTS.md` (seção 14) e valem para todos os integrantes:
+Leia conforme a tarefa. As regras de fluxo de trabalho (seção 14) e os combinados da equipe (seção 16) estão no `AGENTS.md` e valem para todos os integrantes, com ou sem ferramenta de IA:
 
 - `README.md`: como rodar, testar, publicar no Render e conferir a versão.
 - `CHANGELOG.md`: histórico de versões; registre cada mudança publicada.

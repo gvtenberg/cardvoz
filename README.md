@@ -82,9 +82,14 @@ Só `/perfil/` pede login. Baralhos, fichas, importação, exportação e estudo
 
 ```bash
 npm test           # Vitest: lógica de src/lib (armazenamento, fila, levar para a conta, exportar, instalar)
+npm run telas      # Playwright: todas as telas em larguras de celular (com o site rodando)
 ```
 
-Os testes rodam no Node, sem navegador. As telas são conferidas à mão (checklist no `AGENTS.md`, seção 14).
+Os testes do `npm test` rodam no Node, sem navegador.
+
+O `npm run telas` abre cada página no Chromium e no Firefox, em 320, 360, 375 e 412px de largura, e confere se a página ganhou rolagem lateral, se algum texto ficou abaixo de 16px e se os diálogos da página do baralho cabem na tela. Repete tudo com um baralho de nome longo sem espaço. Precisa do site rodando (`npm run dev` ou `npx serve out`; outro endereço vai em `SITE=http://...`) e, na primeira vez, de `npx playwright install chromium firefox`.
+
+O resto (leitor de tela, teclado, tema escuro) é conferido à mão: checklist no `AGENTS.md`, seção 14.
 
 ### Build de Produção (site estático)
 
@@ -210,7 +215,7 @@ cardvoz/
 │   │   ├── routes.ts           # Endereços internos e páginas públicas
 │   │   └── importCards.ts      # Leitura de fichas de arquivos TXT/CSV/JSON
 │   └── styles/                 # Tokens, mixins e temas claro/escuro
-├── scripts/                    # gerar-sw.mjs: service worker gerado depois do build
+├── scripts/                    # gerar-sw.mjs (service worker) e conferir-telas.mjs (npm run telas)
 ├── AGENTS.md                   # Guia de referência para agentes de IA (regras e arquitetura)
 └── next.config.mjs             # Export estático (out/)
 ```
