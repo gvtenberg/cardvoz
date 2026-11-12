@@ -92,6 +92,7 @@ public/manifest.webmanifest     # App instalável (ícones em public/icones/)
 scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do next build
 scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e diálogos no celular (Perfil com API simulada)
 .github/workflows/deploy.yml    # Lint + build e deploy no Render via deploy hook
+.github/workflows/testes.yml    # Cartões de teste: um issue por teste do TESTES-PENDENTES.md (scripts em .github/scripts/)
 ```
 
 ---
@@ -426,6 +427,7 @@ npm run telas         # confere todas as telas no celular (com o site rodando; v
 
 - Desenvolvimento local: `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:5000/api` e `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, e a `cardvoz-api` rodando com `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. O endereço `http://localhost:3000/entrar/` precisa estar cadastrado no cliente OAuth do Google.
 - **Antes de concluir uma mudança:** lint, tipos, testes e build passando; `npm run telas` sem problemas (sem rolagem lateral de 320 a 412px, nenhum texto abaixo de 16px, diálogos dentro da tela); tela conferida também à mão no **tema escuro** e com zoom de 200%; navegação por teclado funcionando. Se a mudança cria uma tela ou um diálogo novo, inclua-o em `PAGINAS` ou `DIALOGOS` do script.
+- **Testes à mão viram cartões (issues):** o `TESTES-PENDENTES.md` é só a fonte dos cartões, compacto: "## seção", "> antes de testar" (opcional), "### Tnn – título (vX.Y.Z)", "F: o que fazer" e "E: o que deve acontecer", uma linha cada, escritos para quem não é de TI; pergunta é "### Pn – título" e "?: pergunta". Quando o arquivo muda na `main`, a Action "Cartões de teste" (`.github/workflows/testes.yml`) cria um cartão por teste novo, com as caixas "✅ Passou" e "❌ Falhou", e fecha os cartões dos testes que saíram do arquivo. Para ler as respostas: `node .github/scripts/ler-resultados.js`; para tirar os que passaram: `node .github/scripts/apagar-testes.js T03 T05`. Teste novo vai no fim, com número novo (nunca reaproveitado); só apague um teste com "Passou" no cartão.
 - **Commits:** Conventional Commits em português (`feat:`, `fix:`, `refactor:`, `chore:`, `ci:`), **sem atribuição a IA**.
 - **Textos de apoio em toda mudança:** confira e atualize junto o `README.md`, as **perguntas frequentes** (`DUVIDAS` em `src/app/page.tsx`), a **Ajuda** (`HelpDialog`), o `docs/guia-de-uso.md`, este `AGENTS.md` e o `CHANGELOG.md`. Se nenhum precisou mudar, diga isso no PR.
 - **Branch e PR:** trabalhe numa branch (`feat/...`, `fix/...`, `docs/...`) e abra PR para a `main` de `gvtenberg/cardvoz`; o merge na `main` publica no Render. Depois do deploy, confira a versão no rodapé. Regras completas do fluxo (ordem entre repositórios e o que informar ao terminar) na seção 16.
