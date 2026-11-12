@@ -13,7 +13,7 @@ import {
   updateLocalDeck,
   type LocalDeck,
 } from "@/lib/local/decks";
-import { clearQueue, findOrphanDeck, hasEditsPendingFor } from "@/lib/local/queue";
+import { clearQueue, findOrphanDeck, hasEditsPendingFor, languagesInput } from "@/lib/local/queue";
 import { readJson, writeJson } from "@/lib/local/storage";
 import { statsPayload } from "@/lib/studyStats";
 import { isCurrentAccount } from "./index";
@@ -66,7 +66,7 @@ function replaceWithRemote(local: LocalDeck, remote: DeckDetailResponse, userId:
   const keepOld = local.id !== local.account?.remoteId;
   const aliases = keepOld ? [...local.aliases, local.id] : local.aliases;
   removeLocalDeck(local.id);
-  // O idioma fica só no aparelho (a API ainda não guarda)
+  // O idioma escolhido no aparelho (foi junto no envio)
   saveLocalDeck({
     ...fromApiDeck(remote, userId),
     aliases,
@@ -100,6 +100,7 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
       const created = await api.importDeck({
         title,
         category: local.category,
+        ...languagesInput(local.questionLang, local.answerLang),
         // O histórico estudado sem login vai junto, para não recomeçar do zero
         cards: cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
       });
@@ -108,7 +109,11 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
     } catch (error) {
       if (!(error instanceof RouteMissingError)) throw error;
     }
-    const created = await api.createDeck({ title, category: local.category });
+    const created = await api.createDeck({
+      title,
+      category: local.category,
+      ...languagesInput(local.questionLang, local.answerLang),
+    });
     remoteId = created.id;
     // Guarda antes das fichas: se cair a internet, a próxima tentativa continua daqui
     updateLocalDeck(local.id, (d) => ({ ...d, upload: { remoteId: created.id } }));

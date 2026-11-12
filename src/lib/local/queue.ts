@@ -20,9 +20,13 @@ export type QueueItem = { id: string; createdAt: string } & (
       title: string;
       category: string;
       cards: { localId: string; question: string; answer: string }[];
+      /** Idioma escolhido antes de o baralho chegar à conta (null = português) */
+      questionLang?: string | null;
+      answerLang?: string | null;
       /** Já houve uma tentativa: a API pode ter criado o baralho e a resposta se perdido */
       attempted?: boolean;
     }
+  | { type: "idiomaBaralho"; deckId: string; questionLang: string | null; answerLang: string | null }
   | { type: "renomearBaralho"; deckId: string; title: string }
   | { type: "excluirBaralho"; deckId: string }
   | { type: "criarFicha"; deckId: string; localId: string; question: string; answer: string; displayOrder: number }
@@ -106,6 +110,17 @@ export function enqueue(userId: string, item: NewQueueItem): void {
         writeQueue(userId, items);
         return;
       }
+      break;
+
+    case "idiomaBaralho":
+      if (pendingDeck) {
+        pendingDeck.questionLang = item.questionLang;
+        pendingDeck.answerLang = item.answerLang;
+        writeQueue(userId, items);
+        return;
+      }
+      // Só a escolha mais nova precisa ir
+      items = items.filter((i) => !(i.type === "idiomaBaralho" && i.deckId === item.deckId));
       break;
 
     case "criarFicha":
@@ -285,6 +300,14 @@ async function adoptDeck(
   applyIds(userId, item.deckId, remote, ids);
 }
 
+/** Idioma para criar na API: só o que não é português (ausente = português). */
+export function languagesInput(questionLang?: string | null, answerLang?: string | null) {
+  return {
+    ...(questionLang ? { questionLanguage: questionLang } : {}),
+    ...(answerLang ? { answerLanguage: answerLang } : {}),
+  };
+}
+
 /** Envia um item. Devolve uma frase de falha quando ele não pôde ser aplicado. */
 async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise<string | null> {
   switch (item.type) {
@@ -306,6 +329,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
           id: item.deckId,
           title: item.title,
           category: item.category,
+          ...languagesInput(item.questionLang, item.answerLang),
           cards: item.cards.map((c) => ({ question: c.question, answer: c.answer })),
         });
         const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
@@ -318,7 +342,11 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
       }
       // Sem a rota nova: cria o baralho e troca este item por uma ficha por item,
       // para um envio interrompido não criar o baralho de novo
-      const deck = await api.createDeck({ title: item.title, category: item.category });
+      const deck = await api.createDeck({
+        title: item.title,
+        category: item.category,
+        ...languagesInput(item.questionLang, item.answerLang),
+      });
       const now = new Date().toISOString();
       const cardItems: QueueItem[] = item.cards.map((c, i) => ({
         id: crypto.randomUUID(),
@@ -351,6 +379,12 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
       break;
     case "excluirBaralho":
       await api.deleteDeck(item.deckId);
+      break;
+    case "idiomaBaralho":
+      await api.updateDeck(item.deckId, {
+        questionLanguage: item.questionLang ?? "",
+        answerLanguage: item.answerLang ?? "",
+      });
       break;
     case "editarFicha":
       await api.updateCard(item.cardId, { question: item.question, answer: item.answer });

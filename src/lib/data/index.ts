@@ -208,6 +208,8 @@ export function createDeck(data: {
     title: copy.title,
     category: copy.category,
     cards: copy.cards.map((c) => ({ localId: c.id, question: c.question, answer: c.answer })),
+    questionLang: copy.questionLang ?? null,
+    answerLang: copy.answerLang ?? null,
   });
   kick();
   return toDeckResponse(copy);
@@ -234,11 +236,18 @@ export function createDecks(decks: Parameters<typeof createDeck>[0][]): DeckItem
 }
 
 /**
- * Idioma das perguntas e das respostas, para o leitor de tela trocar a voz.
- * Só no aparelho (a API ainda não tem esses campos), então não entra na fila.
+ * Idioma das perguntas e das respostas, para o leitor de tela trocar a voz. Com
+ * conta, vai também para a API (a fila manda só a escolha mais nova).
  */
 export function setDeckLanguages(id: string, languages: DeckLanguages): void {
-  updateLocalDeck(id, (d) => ({ ...d, ...languages }));
+  const deck = findLocalDeck(id);
+  if (!deck) return;
+  updateLocalDeck(deck.id, (d) => ({ ...d, ...languages }));
+  const account = accountOf(deck);
+  if (account) {
+    enqueue(account.id, { type: "idiomaBaralho", deckId: deck.id, ...languages });
+    kick();
+  }
 }
 
 export function renameDeck(id: string, title: string): void {
@@ -355,12 +364,17 @@ function storeCopy(remote: DeckDetailResponse, userId: string) {
   const existing = findLocalDeck(remote.id);
   // Só herda os endereços antigos do próprio baralho (não de outro que use este id como antigo)
   const same = existing?.id === remote.id ? existing : null;
-  // O idioma fica só no aparelho: a versão da conta não o traz
+  // A API nova guarda o idioma (campos ausentes = português). A antiga não tem esses
+  // campos: aí fica o do aparelho. Ela se reconhece pelo nível de revisão das fichas
+  const knowsLanguages =
+    remote.questionLanguage !== undefined ||
+    remote.answerLanguage !== undefined ||
+    (remote.cards ?? []).some((c) => c.reviewLevel !== undefined);
   saveLocalDeck({
     ...keepLocalStats(fromApiDeck(remote, userId), same),
     aliases: same?.aliases ?? [],
-    questionLang: same?.questionLang ?? null,
-    answerLang: same?.answerLang ?? null,
+    questionLang: knowsLanguages ? remote.questionLanguage ?? null : same?.questionLang ?? null,
+    answerLang: knowsLanguages ? remote.answerLanguage ?? null : same?.answerLang ?? null,
   });
 }
 

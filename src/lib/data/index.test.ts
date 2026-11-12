@@ -282,21 +282,28 @@ describe("acertos e erros na sincronização", () => {
 });
 
 describe("idioma das fichas na camada de dados", () => {
-  it("guarda o idioma só no aparelho, sem enviar à conta", async () => {
+  it("baralho do aparelho guarda o idioma só nele; o da conta também manda à conta", async () => {
     const { setDeckLanguages } = await import("./index");
+    const device = createDeck({ title: "Inglês" });
+    setDeckLanguages(device.id, { questionLang: "en", answerLang: null });
+    expect(findLocalDeck(device.id)).toMatchObject({ questionLang: "en", answerLang: null });
+    expect(readQueue(USER.id)).toHaveLength(0);
+
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
+    setDeckLanguages("r1", { questionLang: "es", answerLang: null });
     setDeckLanguages("r1", { questionLang: "en", answerLang: null });
-    expect(findLocalDeck("r1")).toMatchObject({ questionLang: "en", answerLang: null });
-    expect(readQueue(USER.id)).toHaveLength(0);
+    // Só a escolha mais nova vai
+    expect(readQueue(USER.id)).toMatchObject([{ type: "idiomaBaralho", deckId: "r1", questionLang: "en", answerLang: null }]);
   });
 
-  it("atualizar a cópia com a conta não apaga o idioma escolhido", async () => {
+  it("API sem o campo de idioma não apaga o idioma escolhido no aparelho", async () => {
     const { setDeckLanguages } = await import("./index");
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
     setDeckLanguages("r1", { questionLang: "en", answerLang: "pt-BR" });
+    vi.mocked(api.updateDeck).mockResolvedValue(remote("r1", "t2") as never);
     vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
     vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t2", 2), cards: undefined } as never]);
     vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t2", 2));
@@ -304,7 +311,24 @@ describe("idioma das fichas na camada de dados", () => {
     setOnline(true);
     await syncAccount();
 
+    expect(api.updateDeck).toHaveBeenCalledWith("r1", { questionLanguage: "en", answerLanguage: "pt-BR" });
     expect(findLocalDeck("r1")).toMatchObject({ questionLang: "en", answerLang: "pt-BR" });
     expect(findLocalDeck("r1")?.cards).toHaveLength(2);
+  });
+
+  it("API nova traz o idioma escolhido em outro aparelho (ausente = português)", async () => {
+    saveAccount(USER);
+    setActiveAccount(USER);
+    saveLocalDeck({ ...fromApiDeck(remote("r1", "t1"), USER.id), questionLang: "es" });
+    const novo = remote("r1", "t2");
+    novo.cards[0] = { ...novo.cards[0], reviewLevel: 0 };
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    vi.mocked(api.getDecks).mockResolvedValue([{ ...novo, answerLanguage: "en", cards: undefined } as never]);
+    vi.mocked(api.getDeck).mockResolvedValue({ ...novo, answerLanguage: "en" });
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(findLocalDeck("r1")).toMatchObject({ questionLang: null, answerLang: "en" });
   });
 });

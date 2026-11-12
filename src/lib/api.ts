@@ -25,7 +25,13 @@ export interface DeckResponse {
   sourceDeckId?: string | null;
   /** Última vez que o baralho foi estudado (estudar não muda o updatedAt) */
   lastStudiedAt?: string | null;
+  /** Idioma das perguntas e das respostas (ex.: "en"); ausente = português ou API sem o campo */
+  questionLanguage?: string | null;
+  answerLanguage?: string | null;
 }
+
+/** Idiomas para a API: "" volta para português (null não muda nada no PUT). */
+export type DeckLanguagesInput = { questionLanguage?: string; answerLanguage?: string };
 
 export interface DeckDetailResponse extends DeckResponse {
   cards: CardResponse[];
@@ -124,14 +130,14 @@ export async function createDeck(data: {
   title: string;
   category: string;
   description?: string;
-}): Promise<DeckResponse> {
+} & DeckLanguagesInput): Promise<DeckResponse> {
   return fetchApi<DeckResponse>("/decks", { method: "POST", body: JSON.stringify(data) });
 }
 
 /** Edição parcial: campos vazios são ignorados pela API (valide antes de enviar). */
 export async function updateDeck(
   id: string,
-  data: { title?: string; category?: string; description?: string }
+  data: { title?: string; category?: string; description?: string } & DeckLanguagesInput
 ): Promise<DeckResponse> {
   return fetchApi<DeckResponse>(`/decks/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
@@ -249,7 +255,7 @@ export async function importDeck(data: {
   category: string;
   description?: string;
   cards: ({ question: string; answer: string } & CardStats)[];
-}): Promise<DeckDetailResponse> {
+} & DeckLanguagesInput): Promise<DeckDetailResponse> {
   return fetchNewRoute("import", "/decks/import", { method: "POST", body: JSON.stringify(data) });
 }
 
