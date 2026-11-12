@@ -4,6 +4,13 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.11.0 — 13/11/2026
+
+- **Confirmação de e-mail:** o cadastro com senha manda um link (`/confirmar-email/`). Confirmar não é obrigatório; com o e-mail confirmado, entrar com o Google no mesmo endereço entra na mesma conta, em vez de dar erro. O Perfil mostra se o e-mail está confirmado e tem "Enviar link de confirmação".
+- **Abrir mais rápido:** a API fica acordada (Action a cada 10 minutos na `cardvoz-api`), sem a espera de até 1 minuto em "Verificando sua sessão...".
+- **Código mais simples:** saiu o caminho antigo usado enquanto a API não tinha as rotas novas. Criar, levar para a conta, estudar e atualizar os baralhos usam uma chamada cada, e repetir um envio não duplica nada.
+- Depende da API e da migration `20261113000000_confirmar_email.sql`.
+
 ## 0.10.0 — 12/11/2026
 
 - **Revisão espaçada** (pedido da cliente): o CardVoz lembra quando revisar cada ficha. Errou, ela volta na hora; acertou, volta depois de 1 dia, 3 dias, 1 semana, 2 semanas, 1 mês e 3 meses. **Revisar agora** substitui "Estudar só as que errei" na página do baralho e no fim da rodada; sem fichas da vez, o aviso diz a data da próxima revisão. Em Meus baralhos, cada baralho diz quantas fichas há para revisar.
