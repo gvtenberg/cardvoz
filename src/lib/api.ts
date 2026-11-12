@@ -218,6 +218,18 @@ export async function getStudyHistory(deckId?: string): Promise<StudySessionResp
   return fetchApi<StudySessionResponse[]>(`/study-sessions/history${query}`);
 }
 
+// --- Dados da conta (LGPD) ---------------------------------------------------
+
+/** Tudo o que a conta guarda, para baixar em JSON. */
+export async function exportAccount(): Promise<unknown> {
+  return fetchApi<unknown>("/account/export");
+}
+
+/** Exclui a conta com tudo o que ela guarda. Erros de campo: ConfirmEmail e Password. */
+export async function deleteAccount(data: { confirmEmail: string; password?: string }): Promise<void> {
+  await fetchApi<void>("/account/delete", { method: "POST", body: JSON.stringify(data) });
+}
+
 // --- Rotas com menos chamadas (parte 4, na cardvoz-api) ----------------------
 // Enquanto a API não as tiver, respondem 404/405 e o site usa o caminho antigo.
 

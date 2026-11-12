@@ -18,6 +18,8 @@ export interface UserResponse {
   name: string;
   email: string;
   createdAt: string;
+  /** A conta tem senha (ausente na API antiga: o site pede a senha por garantia) */
+  hasPassword?: boolean;
 }
 
 export interface AuthResponse {

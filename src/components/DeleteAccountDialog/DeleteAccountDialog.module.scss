@@ -1,0 +1,30 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.error {
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  color: var(--danger-text);
+  background-color: var(--danger-soft);
+  border-radius: $radius-md;
+}
+
+// Empilhados no celular, lado a lado a partir de sm (ver AGENTS.md, seção 15)
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

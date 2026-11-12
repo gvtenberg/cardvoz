@@ -365,6 +365,7 @@ export default function ExemploPage() {
 | `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
 | `AccountTransfer` | Diálogos "Levar para sua conta?" e de repetidos (montado no layout; o botão do baralho usa `requestTransfer`) |
 | `LogoutDialog` | "Sair da conta": manter ou apagar os baralhos do aparelho |
+| `DeleteAccountDialog` | "Excluir conta" do Perfil: confirma com o e-mail e a senha |
 | `InstallCard`, `ServiceWorkerRegister` | Sugestão de instalar na tela inicial; registro do service worker e da janela de instalação do Android |
 | `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
 | `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
@@ -436,7 +437,7 @@ npm run telas         # confere todas as telas no celular (com o site rodando; v
 - **Navegadores dentro de apps** (Instagram e parecidos) são bloqueados pelo Google (`disallowed_useragent`). A Ajuda orienta abrir no Chrome.
 - **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
 - **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
-- **Excluir conta e exportar dados** ainda não existem (a política de privacidade orienta pedir à equipe).
+- **Baixar meus dados e Excluir conta** ficam no Perfil (`DeleteAccountDialog`, `exportAccount`/`deleteAccount`). Excluir pede o e-mail e, se a conta tiver senha (`user.hasPassword`), a senha; depois tira as cópias da conta do aparelho.
 - **Dados no aparelho:** limpar os dados do navegador apaga os baralhos que estão só no aparelho. Mudar o formato do que fica no `localStorage` exige nova chave (`.v2`) e migração; dados inválidos vão para `<chave>.corrompido` em vez de quebrar a tela.
 - **Service worker:** depois de publicar, quem já abriu o site recebe a versão nova na próxima visita com internet. Para testar offline, use o build (`npx serve out`), não o `npm run dev`.
 - **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
