@@ -11,7 +11,7 @@ import { markFirstStudyDone } from "@/lib/install";
 import { langAttr } from "@/lib/languages";
 import { routes } from "@/lib/routes";
 import { useShortcutsEnabled } from "@/lib/shortcuts";
-import { missedCards } from "@/lib/studyStats";
+import { dueCards, reviewState } from "@/lib/studyStats";
 import styles from "./page.module.scss";
 
 const ACTION_LOCK_MS = 400;
@@ -65,8 +65,10 @@ function isInteractiveTarget(el: Element | null): boolean {
 function EstudarContent() {
   const searchParams = useSearchParams();
   const deckSlug = searchParams.get("deck") || "";
-  // "Estudar só as que errei": a rodada tem só as fichas erradas na última vez
-  const [onlyMissed, setOnlyMissed] = useState(searchParams.get("so") === "erradas");
+  // "Revisar agora": a rodada tem só as fichas erradas e as que chegaram na data de
+  // revisão (o endereço antigo, so=erradas, continua valendo)
+  const so = searchParams.get("so");
+  const [onlyMissed, setOnlyMissed] = useState(so === "revisar" || so === "erradas");
 
   // O baralho vem do aparelho; as fichas da rodada são fixadas ao começar, para
   // uma atualização vinda da conta não mudar as fichas no meio do estudo
@@ -96,7 +98,7 @@ function EstudarContent() {
   const cardsFor = useCallback(
     (missedOnly: boolean): CardResponse[] => {
       const all = deck?.cards || [];
-      return missedOnly ? missedCards(all) : all;
+      return missedOnly ? dueCards(all) : all;
     },
     [deck]
   );
@@ -253,16 +255,27 @@ function EstudarContent() {
   }
 
   const deckHref = routes.deck(deck.slug || deck.id);
+  // Depois de salvar a rodada, o baralho já tem a revisão nova de cada ficha
+  const dueNow = dueCards(deck.cards || []).length;
+  // Data da revisão mais próxima, para o aviso de "nenhuma para revisar"
+  const upcoming = (deck.cards || [])
+    .map((c) => reviewState(c).nextReviewAt)
+    .filter((d): d is string => d !== null)
+    .sort()[0];
+  const nextReview = upcoming
+    ? new Date(upcoming).toLocaleDateString("pt-BR", { day: "numeric", month: "long" })
+    : null;
 
   if (roundCards.length === 0 && onlyMissed && (deck.cards?.length ?? 0) > 0) {
     return (
       <main id="main-content" className={styles.main}>
         <BackLink href={deckHref} label={deck.title} />
         <section className={styles.messageCard}>
-          <h1 className={styles.messageTitle}>Nenhuma ficha para revisar</h1>
+          <h1 className={styles.messageTitle}>Nenhuma ficha para revisar agora</h1>
           <p className={styles.messageText}>
-            Você não errou nenhuma ficha de <strong>{deck.title}</strong> na última vez que
-            a estudou.
+            {nextReview
+              ? <>A próxima revisão de <strong>{deck.title}</strong> é em {nextReview}.</>
+              : <>Você ainda não estudou <strong>{deck.title}</strong>. Comece estudando todas.</>}
           </p>
           <Button href={routes.study(deck.slug || deck.id)} variant="primary" size="lg">
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
@@ -311,7 +324,7 @@ function EstudarContent() {
           <p className={styles.messageText}>
             Você {onlyMissed ? "revisou" : "estudou"}{" "}
             {total === 1 ? "a ficha" : `as ${total} fichas`}
-            {onlyMissed ? " que tinha errado" : ""} de <strong>{deck.title}</strong>.
+            {onlyMissed ? " para revisar" : ""} de <strong>{deck.title}</strong>.
           </p>
 
           {/* Só visual: o título acima já anuncia acertos e aproveitamento */}
@@ -335,15 +348,15 @@ function EstudarContent() {
           </ul>
 
           <div className={styles.finishedActions}>
-            {/* Errou alguma: revisar só elas é o próximo passo mais útil, então vem primeiro */}
-            {incorrectCount > 0 && (
+            {/* Errou alguma: revisar é o próximo passo mais útil, então vem primeiro */}
+            {incorrectCount > 0 && dueNow > 0 && (
               <Button variant="primary" size="lg" block onClick={() => restartSession(true)}>
                 <RotateCcw aria-hidden="true" />
-                <span>Estudar só as que errei ({incorrectCount})</span>
+                <span>Revisar agora ({dueNow})</span>
               </Button>
             )}
             <Button
-              variant={incorrectCount > 0 ? "secondary" : "primary"}
+              variant={incorrectCount > 0 && dueNow > 0 ? "secondary" : "primary"}
               size="lg"
               block
               onClick={() => restartSession(false)}
@@ -380,7 +393,7 @@ function EstudarContent() {
       <article className={styles.studyCard}>
         <h1 className={styles.deckTitle}>
           {deck.title}
-          {onlyMissed && " · só as que errei"}
+          {onlyMissed && " · revisão"}
         </h1>
 
         <h2 ref={questionRef} tabIndex={-1} className={styles.faceBlock}>

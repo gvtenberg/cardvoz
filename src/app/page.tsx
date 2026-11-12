@@ -50,7 +50,7 @@ const DUVIDAS = [
   { pergunta: "Dá para estudar inglês ou espanhol?", resposta: "Sim. Na página do baralho, toque em Idioma das fichas e escolha o idioma das perguntas e das respostas. Assim o leitor de tela pronuncia as palavras nesse idioma, e não com a pronúncia do português." },
   { pergunta: "Funciona com o meu leitor de tela?", resposta: "Sim. Funciona com o TalkBack, no Android, e com o NVDA, no Windows." },
   { pergunta: "Dá para usar no computador?", resposta: "Sim. No computador, dá para estudar só com o teclado, usando Tab e Enter nos botões. Se preferir, ligue na Ajuda os atalhos de uma tecla: a barra de espaço mostra a resposta, a tecla 1 marca “Acertei” e a tecla 2 marca “Errei”." },
-  { pergunta: "O CardVoz guarda meus acertos e erros?", resposta: "Sim. A página de cada baralho mostra quantas vezes você acertou e errou, e o botão Estudar só as que errei revisa só as fichas que você errou na última vez. Sem conta, os números ficam neste aparelho; com conta, ficam guardados também na sua conta." },
+  { pergunta: "O CardVoz guarda meus acertos e erros?", resposta: "Sim. A página de cada baralho mostra quantas vezes você acertou e errou. O CardVoz também lembra quando revisar cada ficha: a que você errou volta na hora, e a que acertou volta depois de 1 dia, 3 dias, 1 semana e assim por diante, até 3 meses. O botão Revisar agora estuda só as fichas da vez. Sem conta, tudo fica neste aparelho; com conta, também na sua conta." },
   { pergunta: "Minhas fichas ficam salvas?", resposta: "Sim. Ficam guardados neste aparelho e, se você entrar na sua conta, também na sua conta. Para levar para outro lugar, use Exportar." },
 ];
 

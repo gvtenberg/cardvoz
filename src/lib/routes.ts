@@ -30,8 +30,8 @@ export const routes = {
   deck: (idOrSlug: string) => `/baralho/?id=${idParam(idOrSlug)}`,
   addCards: (idOrSlug: string) => `/baralho/adicionar/?id=${idParam(idOrSlug)}`,
   study: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}`,
-  /** Estudar só as fichas que a pessoa errou na última vez */
-  studyMissed: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}&so=erradas`,
+  /** Revisar agora: as fichas erradas e as que chegaram na data de revisão */
+  review: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}&so=revisar`,
 };
 
 /**

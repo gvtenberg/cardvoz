@@ -24,6 +24,7 @@ import {
   toDeckDetail,
   toDeckResponse,
   updateLocalDeck,
+  type DeckDue,
   type DeckLanguages,
   type LocalDeck,
 } from "@/lib/local/decks";
@@ -32,8 +33,8 @@ import { onLocalChange } from "@/lib/local/storage";
 import { applyAnswers, type StudyAnswer } from "@/lib/studyStats";
 
 export type DeckKind = LocalDeck["kind"];
-export type DeckItem = DeckResponse & { kind: DeckKind } & DeckLanguages;
-export type DeckDetail = DeckDetailResponse & { kind: DeckKind } & DeckLanguages;
+export type DeckItem = DeckResponse & { kind: DeckKind } & DeckLanguages & DeckDue;
+export type DeckDetail = DeckDetailResponse & { kind: DeckKind } & DeckLanguages & DeckDue;
 
 // --- Conta ativa e conexão ---------------------------------------------------
 
@@ -480,7 +481,7 @@ export async function copySharedDeck(id: string): Promise<DeckItem> {
   const copy = await api.copySharedDeck(id);
   const detail = await api.getDeck(copy.id);
   if (account && detail) storeCopy(detail, account.id);
-  return findDeck(copy.id) ?? { ...copy, kind: "conta", questionLang: null, answerLang: null };
+  return findDeck(copy.id) ?? { ...copy, kind: "conta", questionLang: null, answerLang: null, dueCount: 0 };
 }
 
 // --- Hooks -------------------------------------------------------------------
