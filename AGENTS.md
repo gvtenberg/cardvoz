@@ -11,7 +11,7 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 1. **Sem áudio próprio.** Nunca use `speechSynthesis`, TTS, sons ou leitura automática. O leitor de tela da pessoa já fala; uma segunda voz se sobrepõe e atrapalha. A leitura acontece movendo o **foco** (ver seção 7).
 2. **Nada de letra pequena.** O menor texto da interface é **16px** (`$font-size-sm`). Texto corrido é 18px. Use só os tokens `$font-size-*`; nunca escreva tamanhos menores em `px`/`rem`.
 3. **Áreas de toque grandes.** Todo botão ou link de ação tem no mínimo **48px** de altura (`$touch-sm`); ações principais usam 56–72px (`$touch-md`, `$touch-lg`). Os botões da tela de estudo têm 88px no celular.
-4. **Contraste alto.** Texto precisa de contraste **≥ 7:1** (WCAG AAA) nos dois temas. Use apenas as cores dos tokens (`var(--...)`); se criar um par novo de cores, calcule o contraste antes. Confira também sobre os fundos suaves (`--primary-soft`, `--success-soft`, `--danger-soft`), e não só sobre o fundo da página. Contornos de campos e controles (`--border-strong`) precisam de **≥ 3:1** (WCAG 1.4.11): é por eles que a pessoa com baixa visão acha onde tocar.
+4. **Contraste alto.** Texto precisa de contraste **≥ 7:1** (WCAG AAA) nos dois temas. Use apenas as cores dos tokens (`var(--...)`); se criar um par novo de cores, calcule o contraste antes. Confira também sobre os fundos suaves (`--primary-soft`, `--success-soft`, `--danger-soft`), e não só sobre o fundo da página. Contornos de campos e controles precisam de **≥ 3:1** (WCAG 1.4.11): é por eles que a pessoa com baixa visão acha onde tocar. Botão sem fundo forte leva contorno visível: `--border-strong` (secundário, Menu, tema, Fechar), `--primary-soft-text` (suave, Ajuda) ou `--danger-text` (excluir). O `src/styles/contrast.test.ts` confere os pares de cores a cada `npm test`; par novo entra na lista dele.
 5. **Menos coisas na tela.** A pergunta, a resposta e os botões essenciais são o destaque. Não adicione painéis decorativos, guias fixos, contadores extras, etiquetas de atalho (`<kbd>`) na interface nem textos explicativos longos. A ajuda fica no diálogo **Ajuda** do topo.
 6. **O site é estático** (`output: "export"`). Não use nada que dependa de um servidor Next: rotas dinâmicas `[id]`, API routes, `rewrites`, middleware, Server Actions, otimização do `next/image` ou `fetch` em Server Component em tempo de requisição. Os dados vêm da API C# chamada **pelo navegador**.
 7. **Commits sem atribuição a IA.** Não adicione `Co-Authored-By`, "Generated with…" ou qualquer menção a IA em commits e PRs. Use a identidade git já configurada no repositório.
@@ -90,7 +90,7 @@ src/
 public/modelos/                 # Arquivos de exemplo para importação (TXT, CSV, JSON)
 public/manifest.webmanifest     # App instalável (ícones em public/icones/)
 scripts/gerar-sw.mjs            # Gera out/sw.js (abrir sem internet) depois do next build
-scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e diálogos no celular
+scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e diálogos no celular (Perfil com API simulada)
 .github/workflows/deploy.yml    # Lint + build e deploy no Render via deploy hook
 ```
 
@@ -116,7 +116,7 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 
 - **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.review(slug)` (Revisar agora), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.forgotPassword`, `routes.resetPassword`, `routes.confirmEmail`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
 - **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/esqueci-senha/`, `/redefinir-senha/`, `/confirmar-email/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
-- Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
+- Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*). Ela resolve o endereço com `new URL`, como o navegador: conferir só os primeiros caracteres deixa passar `/%09/site.com` (o navegador apaga o tab e lê `//site.com`).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
 - Nova página: crie `src/app/<rota>/page.tsx` + `page.module.scss` e adicione o endereço em `routes.ts`.
@@ -323,7 +323,7 @@ export default function ExemploPage() {
 
 **Tokens SCSS** (`_variables.scss`)
 - Toque: `$touch-sm` 48px · `$touch-md` 56px · `$touch-lg` 72px
-- Raios: `$radius-sm` 12px · `md` 16px (campos) · `lg` 24px (itens, botões grandes) · `xl` 32px (painéis) · `full` (botões em pílula)
+- Raios: `$radius-xs` 4px (foco de links no meio do texto) · `$radius-sm` 12px · `md` 16px (campos) · `lg` 24px (itens, botões grandes) · `xl` 32px (painéis) · `full` (botões em pílula)
 - Sombras: use `var(--shadow-soft)` e `var(--shadow-raised)` (mudam com o tema)
 - Breakpoints (mobile-first, `min-width`): `sm` 640px · `md` 768px · `lg` 1024px · `xl` 1280px — via `@include respond-to(sm)`
 
@@ -370,7 +370,7 @@ export default function ExemploPage() {
 | `LogoutDialog` | "Sair da conta": manter ou apagar os baralhos do aparelho |
 | `DeleteAccountDialog` | "Excluir conta" do Perfil: confirma com o e-mail e a senha |
 | `InstallCard`, `ServiceWorkerRegister` | Sugestão de instalar na tela inicial; registro do service worker e da janela de instalação do Android |
-| `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
+| `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista e sua versão de carregamento. O título não é link (seriam duas paradas para o mesmo lugar no leitor de tela): botões Estudar, Revisar agora (quando há fichas da vez) e Ver fichas |
 | `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
 | `FileImport` | Seleção de arquivo TXT/CSV/JSON com prévia; não salva nada (a página decide) |
 | `Skeleton`, `LoadingStatus` | Bloco de carregamento decorativo + texto anunciado ao leitor de tela |

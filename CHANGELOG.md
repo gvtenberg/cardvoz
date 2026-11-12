@@ -4,6 +4,20 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.12.0 — 13/11/2026
+
+Revisão antes da publicação (code-review, segurança, crítica de UX e padronização visual).
+
+- **Segurança:** o retorno depois de entrar (`/entrar/?voltar=`) não leva mais para outro site com um tab ou quebra de linha escondidos no endereço (`/%09/site-falso.com`). Isso permitiria mandar a pessoa, logo depois do login, para uma página falsa que pedisse a senha de novo.
+- **Revisar agora** no cartão de cada baralho em Meus baralhos. O nome do baralho deixou de ser link: no leitor de tela, cada cartão tem uma parada a menos (o nome e "Ver fichas" levavam ao mesmo lugar).
+- **Opções do baralho:** Renomear, Idioma das fichas, Exportar e Levar para a conta ficam juntos, com título próprio; **Excluir baralho** fica separado, por último, para não ser tocado no lugar de Renomear.
+- **"Estudar todas"**, na tela "Nenhuma ficha para revisar agora", não fazia nada. Agora começa a rodada com todas as fichas.
+- **Contorno visível nos botões** secundários, suaves e de excluir, e nos botões Ajuda, Menu, tema e Fechar: o contorno ia de 1,1:1 a 1,5:1 e agora passa de 3:1 (WCAG 1.4.11). Um teste confere o contraste das cores a cada mudança.
+- A lista se chama **Meus baralhos**, como no menu e nos links de voltar.
+- Os botões de salvar em Novo baralho e Adicionar fichas não perdem mais o foco durante o envio (`aria-disabled` no lugar de `disabled`).
+- Se a API devolver uma resposta fora do formato, as cópias da conta não são mais apagadas do aparelho.
+- `npm run telas` confere também os diálogos do Perfil (Sair da conta e Excluir conta).
+
 ## 0.11.0 — 13/11/2026
 
 - **Confirmação de e-mail:** o cadastro com senha manda um link (`/confirmar-email/`). Confirmar não é obrigatório; com o e-mail confirmado, entrar com o Google no mesmo endereço entra na mesma conta, em vez de dar erro. O Perfil mostra se o e-mail está confirmado e tem "Enviar link de confirmação".

@@ -55,7 +55,8 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             O CardVoz lembra quando revisar cada ficha. Errou: ela volta para revisar na
             hora. Acertou: a próxima revisão fica para depois de 1 dia, depois 3 dias, 1
             semana, 2 semanas, 1 mês e 3 meses. Toque em <strong>Revisar agora</strong>, no
-            fim da rodada ou na página do baralho, para estudar só as fichas da vez.
+            fim da rodada, em Meus baralhos ou na página do baralho, para estudar só as
+            fichas da vez.
           </p>
         </>
       ),
@@ -75,7 +76,8 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             </li>
             <li>
               Para corrigir, use <strong>Editar</strong> ou <strong>Excluir</strong> em
-              cada ficha e <strong>Renomear baralho</strong> no fim da página do baralho.
+              cada ficha e <strong>Renomear baralho</strong> em Opções do baralho, no fim da
+              página do baralho.
             </li>
             <li>
               Para achar uma ficha, escreva em <strong>Buscar fichas</strong>, na página

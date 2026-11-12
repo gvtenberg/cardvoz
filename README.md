@@ -83,13 +83,13 @@ Só `/perfil/` pede login. Baralhos, fichas, importação, exportação e estudo
 ### Testes
 
 ```bash
-npm test           # Vitest: lógica de src/lib (armazenamento, fila, levar para a conta, exportar, instalar)
+npm test           # Vitest: lógica de src/lib (armazenamento, fila, levar para a conta, exportar, instalar) e contraste das cores
 npm run telas      # Playwright: todas as telas em larguras de celular (com o site rodando)
 ```
 
 Os testes do `npm test` rodam no Node, sem navegador.
 
-O `npm run telas` abre cada página no Chromium e no Firefox, em 320, 360, 375 e 412px de largura, e confere se a página ganhou rolagem lateral, se algum texto ficou abaixo de 16px e se os diálogos da página do baralho cabem na tela. Repete tudo com um baralho de nome longo sem espaço. Precisa do site rodando (`npm run dev` ou `npx serve out`; outro endereço vai em `SITE=http://...`) e, na primeira vez, de `npx playwright install chromium firefox`.
+O `npm run telas` abre cada página no Chromium e no Firefox, em 320, 360, 375 e 412px de largura, e confere se a página ganhou rolagem lateral, se algum texto ficou abaixo de 16px e se os diálogos da página do baralho e do Perfil cabem na tela. No Perfil, que pede login, a API é simulada pelo próprio script (nenhum pedido sai do navegador; outro endereço da API vai em `API=http://...`). Repete tudo com um baralho de nome longo sem espaço. Precisa do site rodando (`npm run dev` ou `npx serve out`; outro endereço vai em `SITE=http://...`) e, na primeira vez, de `npx playwright install chromium firefox`.
 
 O resto (leitor de tela, teclado, tema escuro) é conferido à mão: checklist no `AGENTS.md`, seção 14.
 
