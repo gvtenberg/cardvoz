@@ -36,7 +36,8 @@ function NovoCartaoContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deck) return;
+    // Trava no lugar de disabled: o botão desativado perderia o foco do leitor de tela
+    if (!deck || isSubmitting || isImporting) return;
     if (!question.trim() || !answer.trim()) {
       setFormError("Preencha a pergunta e a resposta.");
       if (!question.trim()) questionRef.current?.focus();
@@ -65,7 +66,7 @@ function NovoCartaoContent() {
   };
 
   const handleImport = () => {
-    if (!imported || !deck) return;
+    if (!imported || !deck || isSubmitting || isImporting) return;
     const total = imported.cards.length;
     setIsImporting(true);
     try {
@@ -141,7 +142,7 @@ function NovoCartaoContent() {
         )}
 
         <div className={styles.actions}>
-          <Button type="submit" variant="primary" size="lg" block disabled={busy || !deck}>
+          <Button type="submit" variant="primary" size="lg" block aria-disabled={busy || !deck || undefined}>
             {isSubmitting ? "Salvando..." : "Salvar ficha"}
           </Button>
           <Button href={routes.deck(targetSlug)} variant="secondary" size="md" block>
@@ -166,7 +167,7 @@ function NovoCartaoContent() {
             size="lg"
             block
             onClick={handleImport}
-            disabled={busy || !deck}
+            aria-disabled={busy || !deck || undefined}
           >
             {`Adicionar ${importCount} ${importCount === 1 ? "ficha" : "fichas"}`}
           </Button>

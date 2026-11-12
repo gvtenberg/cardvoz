@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { Play } from "lucide-react";
+import { Play, RotateCcw } from "lucide-react";
 import { routes } from "@/lib/routes";
 import { Button } from "../Button";
 import { Skeleton } from "../Skeleton";
@@ -33,22 +32,21 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
           {deck.title.trim().charAt(0).toUpperCase() || "?"}
         </span>
         <div className={styles.info}>
+          {/* Título sem link: o leitor de tela para no nome e depois só nos botões.
+              Com link, o nome e "Ver fichas" eram duas paradas para o mesmo lugar */}
           <h2 id={`deck-title-${deck.id}`} className={styles.title}>
-            <Link href={routes.deck(targetSlug)} className={styles.titleLink}>
-              {deck.title}
-              {/* O leitor de tela lê nome e quantidade de uma vez */}
-              <span className="sr-only">
-                , {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
-                {showCategory && `, ${deck.category}`}
-                {due > 0 && `, ${due} para revisar agora`}
-              </span>
-            </Link>
+            {deck.title}
+            {/* O leitor de tela lê nome e quantidade de uma vez */}
+            <span className="sr-only">
+              , {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
+              {showCategory && `, ${deck.category}`}
+              {due > 0 && `, ${due} para revisar agora`}
+            </span>
           </h2>
           <p className={styles.meta} aria-hidden="true">
             {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
             {showCategory && ` · ${deck.category}`}
           </p>
-          {/* Saber por onde começar sem abrir cada baralho */}
           {due > 0 && (
             <p className={styles.due} aria-hidden="true">
               {due} para revisar agora
@@ -68,11 +66,25 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
           <Play style={{ fill: "currentColor" }} aria-hidden="true" />
           <span>Estudar</span>
         </Button>
+        {/* Saber por onde começar sem abrir cada baralho */}
+        {due > 0 && (
+          <Button
+            href={routes.review(targetSlug)}
+            variant="secondary"
+            size="md"
+            block
+            aria-label={`Revisar agora (${due}) ${deck.title}`}
+          >
+            <RotateCcw aria-hidden="true" />
+            <span>Revisar agora ({due})</span>
+          </Button>
+        )}
         <Button
           href={routes.deck(targetSlug)}
           variant="secondary"
           size="md"
           block
+          className={due > 0 ? styles.wide : undefined}
           aria-label={`Ver fichas de ${deck.title}`}
         >
           Ver fichas

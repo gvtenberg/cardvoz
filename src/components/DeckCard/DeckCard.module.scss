@@ -73,19 +73,6 @@
   overflow-wrap: anywhere;
 }
 
-.titleLink {
-  color: inherit;
-  border-radius: 6px;
-
-  &:hover {
-    color: var(--primary);
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
 .meta {
   font-size: $font-size-base;
   color: var(--text-muted);
@@ -104,5 +91,12 @@
 
   @include respond-to(sm) {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+// Com "Revisar agora" são três botões: "Ver fichas" ocupa a linha inteira
+.wide {
+  @include respond-to(sm) {
+    grid-column: 1 / -1;
   }
 }
