@@ -1,0 +1,32 @@
+# Cartões de teste: a cada envio (push) que muda o TESTES-PENDENTES.md, cria um cartão (issue) para cada teste
+# ou pergunta nova e fecha os cartões dos testes que saíram do arquivo. Quem testa marca "Passou" ou "Falhou"
+# no cartão e comenta; o /testes lê os cartões (node .github/scripts/ler-resultados.js).
+name: Cartões de teste
+
+on:
+  push:
+    branches: [main]
+    paths: [TESTES-PENDENTES.md]
+  workflow_dispatch: # permite rodar à mão na aba Actions
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  cartoes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v5
+
+      - name: Instalar o Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Criar e fechar os cartões
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/testes-para-cartoes.js
