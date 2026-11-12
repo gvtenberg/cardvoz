@@ -89,3 +89,10 @@ export function safeRedirect(voltar: string | null): string {
     return routes.decks;
   }
 }
+
+/**
+ * Painel da equipe (cardvoz-admin), outro site. Gravado no build; sem a variável,
+ * usa o endereço publicado no Render.
+ */
+export const adminPanelUrl =
+  process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/+$/, "") || "https://cardvoz-admin.onrender.com";

@@ -4,6 +4,11 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.13.0 — 12/11/2026
+
+- **Entrar com o Google mais rápido:** a API do plano gratuito dorme quando ninguém usa, e a volta do Google ficava uns 20 segundos em "Entrando...". Agora as telas Entrar e Criar conta acordam a API assim que abrem, enquanto a pessoa escolhe a conta.
+- **Painel da equipe no Perfil:** quem é admin vê no Perfil o botão "Abrir o painel da equipe".
+
 ## 0.12.1 — 13/11/2026
 
 Correções na fila de envio para a conta (vistas no code-review antes da publicação).

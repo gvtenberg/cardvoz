@@ -22,6 +22,8 @@ export interface UserResponse {
   hasPassword?: boolean;
   /** E-mail confirmado (link do e-mail, Google ou "Esqueci minha senha") */
   emailConfirmed?: boolean;
+  /** Pessoa da equipe: o Perfil mostra o link do painel (quem protege o painel é a API) */
+  isAdmin?: boolean;
 }
 
 export interface AuthResponse {
