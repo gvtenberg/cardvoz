@@ -13,6 +13,24 @@ export function getApiBaseUrl(): string {
   );
 }
 
+let woke = false;
+
+/**
+ * Acorda a API (e o banco) antes de precisar dela. No plano gratuito do Render a
+ * API dorme depois de um tempo parado e a primeira chamada espera ela subir. Chamada
+ * ao abrir Entrar e Cadastro: enquanto a pessoa escolhe a conta no Google ou digita
+ * a senha, a API acorda, e o "Entrando..." da volta não fica parado. Uma vez por
+ * página; "no-cors" e "keepalive" porque a resposta não importa e a ida ao Google
+ * troca de página logo em seguida.
+ */
+export function wakeApi(): void {
+  if (woke || typeof fetch === "undefined") return;
+  woke = true;
+  fetch(`${getApiBaseUrl()}/health`, { mode: "no-cors", cache: "no-store", keepalive: true }).catch(() => {
+    // Sem internet ou API fora do ar: a chamada de verdade mostra a mensagem
+  });
+}
+
 /** Mensagem para quando a API nem respondeu (sem internet, API fora do ar). */
 export const OFFLINE_MESSAGE =
   "Não foi possível falar com o CardVoz. Confira sua internet e tente de novo.";

@@ -116,6 +116,7 @@ O `npm run build` roda `next build` e depois `scripts/gerar-sw.mjs`, que cria o 
 - Variáveis de ambiente (gravadas no build; ao mudar, refaça o deploy):
   - `NEXT_PUBLIC_API_URL=https://<sua-api>.onrender.com/api`
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=<id>.apps.googleusercontent.com`
+  - `NEXT_PUBLIC_ADMIN_URL=https://<painel>.onrender.com` (opcional): link "Abrir o painel da equipe" do Perfil, só para admins. Sem ela, vale `https://cardvoz-admin.onrender.com`.
 
 **API (`cardvoz-api`)**
 - `CORS_ALLOWED_ORIGINS=https://<seu-site>.onrender.com` para liberar o site a chamar a API.

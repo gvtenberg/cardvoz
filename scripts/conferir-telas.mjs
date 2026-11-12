@@ -51,7 +51,7 @@ async function simularApi(contexto, origem) {
         accessToken: "teste", accessTokenExpiresAt: agora, refreshToken: "teste", refreshTokenExpiresAt: agora,
         user: {
           id: "00000000-0000-0000-0000-000000000001", name: "Pessoa de Teste",
-          email: "teste@example.com", createdAt: agora, hasPassword: true, emailConfirmed: false,
+          email: "teste@example.com", createdAt: agora, hasPassword: true, emailConfirmed: false, isAdmin: true,
         },
       };
     } else if (url.includes("/decks/changes")) {

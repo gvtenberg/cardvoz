@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Download, LogOut, Trash2 } from "lucide-react";
+import { Download, LayoutDashboard, LogOut, Trash2 } from "lucide-react";
 import { Button, DeleteAccountDialog, LogoutDialog, useAuth } from "@/components";
 import { errorMessage, exportAccount, resendEmailConfirmation } from "@/lib/api";
 import { downloadJson } from "@/lib/exportDecks";
+import { adminPanelUrl } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" });
@@ -92,6 +93,20 @@ export default function PerfilPage() {
           </div>
         )}
       </section>
+
+      {/* Só para a equipe: atalho para o painel, que pede login de novo (é outro site) */}
+      {user.isAdmin && (
+        <section className={styles.panel} aria-labelledby="painel-titulo">
+          <h2 id="painel-titulo" className={styles.panelTitle}>
+            Painel da equipe
+          </h2>
+          <p>No painel, você cuida das contas e dos baralhos prontos.</p>
+          <Button href={adminPanelUrl} variant="soft" size="md">
+            <LayoutDashboard aria-hidden="true" />
+            <span>Abrir o painel da equipe</span>
+          </Button>
+        </section>
+      )}
 
       <Button variant="secondary" size="lg" block onClick={() => setLogoutOpen(true)}>
         <LogOut aria-hidden="true" />

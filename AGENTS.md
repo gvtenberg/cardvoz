@@ -35,7 +35,7 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 - **Duas formas de entrar:** e-mail e senha (`/entrar/` chama `POST /api/auth/login`; `/cadastro/` chama `POST /api/auth/register`) e Google (fluxo *authorization code* + PKCE, com redirecionamento: o Google devolve a pessoa para `/entrar/` com um código, e a API o troca em `POST /api/auth/google`, com o segredo do cliente que fica só na API). As três devolvem os mesmos tokens próprios. Sem `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build, o botão do Google some e só o login com senha aparece. Configuração do Google: README, seção "Login com Google".
 - **A API só junta contas com o e-mail confirmado:** o cadastro com senha manda um link de confirmação (`/confirmar-email/#codigo=...`; confirmar é opcional). Com o e-mail confirmado, entrar com o Google no mesmo endereço liga o Google à conta com senha. Sem confirmar, `/api/auth/google` responde `409` e a mensagem orienta entrar com a senha e confirmar o e-mail no Perfil (botão "Enviar link de confirmação"). Juntar sem confirmar deixaria quem cadastrou o e-mail de outra pessoa entrar na conta dela com a própria senha.
 - **Os baralhos são privados** de quem os cria. **Baralhos compartilhados** são baralhos sem dono, criados pela equipe no `cardvoz-admin`: não aparecem na lista de ninguém, e em `/baralhos/` (seção "Baralhos prontos") a pessoa adiciona uma cópia aos seus (`getSharedDecks`, `copySharedDeck`). A cópia é independente: editar ou excluir o compartilhado não muda as cópias. A cópia guarda `sourceDeckId`, e a seção mostra "Já está nos seus baralhos." no lugar do botão.
-- **Admin:** contas com `isAdmin` entram no `cardvoz-admin` e usam `/api/admin/*`. O site do CardVoz não mostra nada de admin.
+- **Admin:** contas com `isAdmin` entram no `cardvoz-admin` e usam `/api/admin/*`. No site do CardVoz, o único sinal de admin é o painel "Painel da equipe" no Perfil, com o link do painel (`adminPanelUrl` em `routes.ts`, variável `NEXT_PUBLIC_ADMIN_URL`). O painel pede login de novo (é outro site) e a API confere o admin em toda chamada.
 - **Todos os IDs são UUID (texto)**, não números.
 - Mudança de tabela/coluna começa em **cardvoz-db** (nova migration) e precisa bater com o modelo do Entity Framework da **cardvoz-api**. Os nomes no banco são PascalCase (`"Decks"`, `"Cards"`, `"StudySessions"`, `"StudyReviews"`).
 
@@ -107,7 +107,7 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 | `/redefinir-senha/` | Criar a nova senha com o código do link, pública | `#codigo=` (depois do `#`, não vai a servidor nenhum) |
 | `/confirmar-email/` | Confirma o e-mail sozinha ao abrir o link, pública | `#codigo=` |
 | `/privacidade/` | Política de privacidade, pública | — |
-| `/perfil/` | Dados da conta e "Sair da conta" | — |
+| `/perfil/` | Dados da conta, "Sair da conta" e, para admins, o link do painel da equipe | — |
 | `/baralhos/` | Lista de baralhos | — |
 | `/baralhos/novo/` | Novo baralho (âncora `#importar` leva à importação) | — |
 | `/baralho/?id=<slug>` | Detalhe do baralho | `id` = slug ou id |
@@ -440,7 +440,7 @@ npm run telas         # confere todas as telas no celular (com o site rodando; v
 - **Ordem de publicação de mudanças de login:** migration no `cardvoz-db` → API → site. O site chama rotas que precisam existir na API.
 - **Google em modo de teste:** se o app OAuth estiver "Em teste" no Google Cloud, só entram os e-mails cadastrados como usuários de teste. Publique o app ou cadastre cada participante antes dos testes.
 - **Navegadores dentro de apps** (Instagram e parecidos) são bloqueados pelo Google (`disallowed_useragent`). A Ajuda orienta abrir no Chrome.
-- **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
+- **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão..." ou, na volta do Google, "Entrando...". Por isso `/entrar/` e `/cadastro/` chamam `wakeApi()` (`lib/http.ts`) ao abrir: a API acorda enquanto a pessoa escolhe a conta. A Action "Manter ativo" da API não basta: o GitHub atrasa ou pula agendamentos (em 12/11/2026 rodou 3 vezes no dia, em vez de a cada 10 minutos); um serviço externo de monitoramento chamando `/api/health` a cada 10 minutos resolve.
 - **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
 - **Baixar meus dados e Excluir conta** ficam no Perfil (`DeleteAccountDialog`, `exportAccount`/`deleteAccount`). Excluir pede o e-mail e, se a conta tiver senha (`user.hasPassword`), a senha; depois tira as cópias da conta do aparelho.
 - **Dados no aparelho:** limpar os dados do navegador apaga os baralhos que estão só no aparelho. Mudar o formato do que fica no `localStorage` exige nova chave (`.v2`) e migração; dados inválidos vão para `<chave>.corrompido` em vez de quebrar a tela.

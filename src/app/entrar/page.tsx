@@ -12,7 +12,7 @@ import {
   Skeleton,
   useAuth,
 } from "@/components";
-import { ApiError, errorMessage } from "@/lib/http";
+import { ApiError, errorMessage, wakeApi } from "@/lib/http";
 import { loginWithGoogleCode, loginWithPassword } from "@/lib/auth/session";
 import { getGoogleRedirectUri, isGoogleConfigured, readGoogleCallback } from "@/lib/auth/google";
 import { markOfferTransfer, takeOfferTransfer } from "@/lib/data/transfer";
@@ -65,7 +65,11 @@ function EntrarContent() {
     handledRef.current = true;
 
     const callback = readGoogleCallback(new URLSearchParams(window.location.search));
-    if (!callback) return;
+    if (!callback) {
+      // A API pode estar dormindo: acorda enquanto a pessoa escolhe como entrar
+      wakeApi();
+      return;
+    }
 
     // Tira o código do endereço (e do histórico), mantendo só o "voltar"
     window.history.replaceState(

@@ -12,7 +12,7 @@ import {
   Skeleton,
   useAuth,
 } from "@/components";
-import { ApiError, errorMessage } from "@/lib/http";
+import { ApiError, errorMessage, wakeApi } from "@/lib/http";
 import { register } from "@/lib/auth/session";
 import { isGoogleConfigured } from "@/lib/auth/google";
 import { routes, safeRedirect } from "@/lib/routes";
@@ -68,6 +68,11 @@ function CadastroContent() {
     password: useRef<HTMLInputElement>(null),
   };
   const hasGoogle = isGoogleConfigured();
+
+  // A API pode estar dormindo: acorda enquanto a pessoa preenche o cadastro
+  useEffect(() => {
+    wakeApi();
+  }, []);
 
   // Logado (já estava ou acabou de criar a conta): segue para onde ia
   useEffect(() => {
