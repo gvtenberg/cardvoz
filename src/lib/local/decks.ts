@@ -7,7 +7,7 @@
  * outra aba acabou de salvar.
  */
 import type { CardResponse, DeckDetailResponse, DeckResponse } from "@/lib/api";
-import type { CardStats } from "@/lib/studyStats";
+import { dueCards, statsPayload, type CardStats } from "@/lib/studyStats";
 import { readJson, requestPersistentStorage, writeJson } from "./storage";
 
 /** Acertos e erros são opcionais: fichas guardadas antes deles continuam válidas. */
@@ -139,7 +139,7 @@ export function removeLocalDeck(id: string): void {
 }
 
 export function newLocalCards(
-  cards: { question: string; answer: string }[],
+  cards: ({ question: string; answer: string } & CardStats)[],
   startOrder = 1
 ): LocalCard[] {
   const now = new Date().toISOString();
@@ -147,6 +147,8 @@ export function newLocalCards(
     id: crypto.randomUUID(),
     question: c.question,
     answer: c.answer,
+    // Arquivo exportado pelo CardVoz: o histórico da ficha vem junto
+    ...statsPayload(c),
     displayOrder: startOrder + i,
     createdAt: now,
   }));
@@ -155,7 +157,7 @@ export function newLocalCards(
 export function newDeviceDeck(data: {
   title: string;
   category?: string;
-  cards?: { question: string; answer: string }[];
+  cards?: ({ question: string; answer: string } & CardStats)[];
   questionLang?: string | null;
   answerLang?: string | null;
 }): LocalDeck {
@@ -204,6 +206,8 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
         incorrectCount: c.incorrectCount,
         lastAnsweredAt: c.lastAnsweredAt,
         lastWasCorrect: c.lastWasCorrect,
+        reviewLevel: c.reviewLevel,
+        nextReviewAt: c.nextReviewAt,
       })),
     kind: "conta",
     account: { userId, remoteId: d.id, remoteUpdatedAt: d.updatedAt ?? null },
@@ -233,6 +237,8 @@ export function keepLocalStats(remote: LocalDeck, existing: LocalDeck | null): L
         incorrectCount: old?.incorrectCount ?? 0,
         lastAnsweredAt: old?.lastAnsweredAt ?? null,
         lastWasCorrect: old?.lastWasCorrect ?? null,
+        reviewLevel: old?.reviewLevel,
+        nextReviewAt: old?.nextReviewAt,
       };
     }),
   };
@@ -240,7 +246,10 @@ export function keepLocalStats(remote: LocalDeck, existing: LocalDeck | null): L
 
 export type DeckLanguages = { questionLang: string | null; answerLang: string | null };
 
-export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["kind"] } & DeckLanguages {
+/** Fichas para "Revisar agora": a lista de baralhos mostra sem abrir cada um. */
+export type DeckDue = { dueCount: number };
+
+export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["kind"] } & DeckLanguages & DeckDue {
   return {
     id: d.id,
     slug: d.id,
@@ -255,10 +264,11 @@ export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["
     kind: d.kind,
     questionLang: d.questionLang ?? null,
     answerLang: d.answerLang ?? null,
+    dueCount: dueCards(d.cards).length,
   };
 }
 
-export function toDeckDetail(d: LocalDeck): DeckDetailResponse & { kind: LocalDeck["kind"] } & DeckLanguages {
+export function toDeckDetail(d: LocalDeck): DeckDetailResponse & { kind: LocalDeck["kind"] } & DeckLanguages & DeckDue {
   const cards: CardResponse[] = d.cards.map((c) => ({ ...c, deckId: d.id, voiceNotes: null }));
   return { ...toDeckResponse(d), cards };
 }

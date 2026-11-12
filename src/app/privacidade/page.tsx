@@ -81,14 +81,15 @@ export default function PrivacidadePage() {
       <section className={styles.panel} aria-labelledby="direitos">
         <h2 id="direitos" className={styles.panelTitle}>Seus direitos</h2>
         <p className={styles.text}>
-          Você pode baixar seus baralhos a qualquer momento com Exportar. Também pode
-          pedir uma cópia, a correção ou a exclusão dos seus dados. Fale com a equipe do
-          projeto: Élida Cristina, Gutemberg Oliveira e Heitor Oliveira, do{" "}
-          <Instituicao />.
+          Você pode baixar seus baralhos a qualquer momento com Exportar. Com conta, no{" "}
+          <strong>Perfil</strong>, <strong>Baixar meus dados</strong> entrega tudo o que a
+          conta guarda, e <strong>Excluir conta</strong> apaga a conta e tudo o que ela
+          guarda. Para corrigir dados ou tirar dúvidas, fale com a equipe do projeto:
+          Élida Cristina, Gutemberg Oliveira e Heitor Oliveira, do <Instituicao />.
         </p>
       </section>
 
-      <p className={styles.updated}>Atualizada em 30 de outubro de 2026.</p>
+      <p className={styles.updated}>Atualizada em 12 de novembro de 2026.</p>
 
       <Button href={routes.home} variant="secondary" size="md" block>
         Voltar ao início

@@ -267,7 +267,7 @@ function DeckDetailContent() {
               {languageName(deck.answerLang).toLowerCase()}
             </p>
           )}
-          {/* Acertos e erros somados de todas as vezes que o baralho foi estudado */}
+          {/* Acertos e erros de todas as vezes e quantas fichas revisar agora */}
           {statsText && <p className={styles.meta}>{statsText}</p>}
           {deck.description && <p className={styles.description}>{deck.description}</p>}
         </div>
@@ -279,10 +279,10 @@ function DeckDetailContent() {
               <span>Estudar</span>
             </Button>
           )}
-          {stats.missed > 0 && (
-            <Button href={routes.studyMissed(targetSlug)} variant="secondary" size="lg">
+          {stats.due > 0 && (
+            <Button href={routes.review(targetSlug)} variant="secondary" size="lg">
               <RotateCcw aria-hidden="true" />
-              <span>Estudar só as que errei ({stats.missed})</span>
+              <span>Revisar agora ({stats.due})</span>
             </Button>
           )}
           <Button

@@ -91,6 +91,12 @@
   color: var(--text-muted);
 }
 
+.due {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: var(--primary-soft-text);
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr;

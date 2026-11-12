@@ -17,9 +17,9 @@ import { chromium, firefox } from "playwright";
 const SITE = (process.env.SITE || "http://localhost:3000").replace(/\/$/, "");
 const LARGURAS = [320, 360, 375, 412];
 const PAGINAS = [
-  "/", "/entrar/", "/cadastro/", "/privacidade/", "/perfil/", "/baralhos/",
+  "/", "/entrar/", "/esqueci-senha/", "/redefinir-senha/#codigo=teste", "/cadastro/", "/privacidade/", "/perfil/", "/baralhos/",
   "/baralhos/novo/", "/baralho/?id=teste", "/baralho/adicionar/?id=teste", "/estudar/?deck=teste",
-  "/estudar/?deck=teste&so=erradas",
+  "/estudar/?deck=teste&so=revisar",
 ];
 // Botões que abrem diálogos na página do baralho
 const DIALOGOS = [/^Renomear baralho/, /^Editar ficha 1/, /^Excluir ficha 1/, /^Idioma das fichas/, /^Excluir baralho/];
@@ -31,7 +31,7 @@ function baralho(titulo, pergunta) {
     sourceDeckId: null, createdAt: data, updatedAt: data, kind: "aparelho", account: null,
     editedOffAccount: false, upload: null,
     cards: [
-      // Estudada e errada na última vez: a página mostra os acertos e erros e "Estudar só as que errei"
+      // Estudada e errada na última vez: a página mostra os acertos e erros e "Revisar agora"
       { id: "f1", question: pergunta, answer: "4", displayOrder: 0, createdAt: data,
         correctCount: 1, incorrectCount: 2, lastAnsweredAt: data, lastWasCorrect: false },
       { id: "f2", question: "Quanto é 3²?", answer: "9", displayOrder: 1, createdAt: data },

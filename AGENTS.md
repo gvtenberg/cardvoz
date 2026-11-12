@@ -103,16 +103,18 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 | `/` | Landing page (apresentação do produto), pública | — |
 | `/entrar/` | Entrar com e-mail e senha ou com Google, pública. Também recebe a volta do Google (`?code=&state=` ou `?error=`) | `voltar` = caminho interno para depois de entrar |
 | `/cadastro/` | Criar conta com nome, e-mail e senha, pública | `voltar`, como em `/entrar/` |
+| `/esqueci-senha/` | Pedir o link de nova senha por e-mail, pública | — |
+| `/redefinir-senha/` | Criar a nova senha com o código do link, pública | `#codigo=` (depois do `#`, não vai a servidor nenhum) |
 | `/privacidade/` | Política de privacidade, pública | — |
 | `/perfil/` | Dados da conta e "Sair da conta" | — |
 | `/baralhos/` | Lista de baralhos | — |
 | `/baralhos/novo/` | Novo baralho (âncora `#importar` leva à importação) | — |
 | `/baralho/?id=<slug>` | Detalhe do baralho | `id` = slug ou id |
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
-| `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id; `so=erradas` = só as fichas erradas na última vez |
+| `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id; `so=revisar` = Revisar agora (erradas e as da data de revisão) |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.studyMissed(slug)` (só as fichas erradas na última vez), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
-- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.review(slug)` (Revisar agora), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.forgotPassword`, `routes.resetPassword`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
+- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/esqueci-senha/`, `/redefinir-senha/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
 - Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
@@ -142,7 +144,7 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 - A API exige `category` ao criar baralho; o frontend envia `"Geral"` e só **exibe** a categoria quando ela for diferente de `"Geral"`.
 - O campo `voiceNotes` existe na API, mas **não é exibido** (costumava repetir a resposta como "dica").
 - O estudo não fala com a API durante a rodada: no fim, `saveStudyResult` soma os acertos e erros nas fichas do aparelho (sempre, com ou sem conta) e, com conta, põe a sessão inteira na fila; a API soma os mesmos números. Estudar não muda o `updatedAt` do baralho; quem avisa que os números mudaram em outro aparelho é o `lastStudiedAt`.
-- **Acertos e erros** (`src/lib/studyStats.ts`): cada ficha tem `correctCount`, `incorrectCount`, `lastAnsweredAt` e `lastWasCorrect` (opcionais no aparelho). "Estudar só as que errei" (`routes.studyMissed`, `?so=erradas`) usa as fichas com `lastWasCorrect === false`. Fichas criadas com conta vão para a API sem números (o estudo delas segue na fila como item próprio; mandar os dois contaria duas vezes); só "Levar para a conta" envia o histórico (`statsPayload`). API sem os campos: `keepLocalStats` mantém os números do aparelho.
+- **Acertos e erros** (`src/lib/studyStats.ts`): cada ficha tem `correctCount`, `incorrectCount`, `lastAnsweredAt` e `lastWasCorrect` (opcionais no aparelho). **Revisão espaçada** (caixa de Leitner): `reviewLevel` (0 a 6) e `nextReviewAt`; "Errei" volta a 0 (revisar na hora), "Acertei" sobe um nível (1 dia, 3 dias, 1 semana, 2 semanas, 1 mês, 3 meses). A tabela `REVIEW_INTERVALS_MS` é a mesma de `Card.ReviewIntervals` na API: mude as duas. "Revisar agora" (`routes.review`, `?so=revisar`; o antigo `?so=erradas` continua valendo) usa `dueCards`; fichas antigas sem nível passam por `reviewState`. A lista mostra `dueCount` de cada baralho. Fichas criadas com conta vão para a API sem números (o estudo delas segue na fila como item próprio; mandar os dois contaria duas vezes); só "Levar para a conta" envia o histórico (`statsPayload`). API sem os campos: `keepLocalStats` mantém os números do aparelho.
 
 **Login e sessão** (`src/lib/auth/`, `AuthProvider`, `AuthGate`)
 - `accessToken` **só em memória**; `refreshToken` no `localStorage` (`cardvoz.refreshToken`). Nunca coloque token em URL, `console.log` ou mensagem de erro, e não use `dangerouslySetInnerHTML` (um XSS leria o `localStorage`).
@@ -365,6 +367,7 @@ export default function ExemploPage() {
 | `LocalNotice` | Aviso fixo na lista: baralhos só neste aparelho / sessão terminou |
 | `AccountTransfer` | Diálogos "Levar para sua conta?" e de repetidos (montado no layout; o botão do baralho usa `requestTransfer`) |
 | `LogoutDialog` | "Sair da conta": manter ou apagar os baralhos do aparelho |
+| `DeleteAccountDialog` | "Excluir conta" do Perfil: confirma com o e-mail e a senha |
 | `InstallCard`, `ServiceWorkerRegister` | Sugestão de instalar na tela inicial; registro do service worker e da janela de instalação do Android |
 | `DeckCard`, `DeckCardSkeleton` | Cartão de baralho da lista de baralhos e sua versão de carregamento |
 | `LandingDemo` | Demonstração da landing page: 3 fichas de exemplo com o mesmo comportamento da tela de estudo |
@@ -401,7 +404,7 @@ export default function ExemploPage() {
 
 - **TXT:** uma ficha por linha (`pergunta; resposta`, também TAB ou `|`), blocos separados por linha em branco, ou linhas `P:` / `R:`.
 - **CSV:** vírgula ou ponto e vírgula (padrão do Excel em português), com ou sem cabeçalho (`pergunta`/`resposta`, `question`/`answer`, `frente`/`verso`).
-- **JSON:** lista de fichas ou `{ "titulo": "...", "fichas": [...] }`.
+- **JSON:** lista de fichas ou `{ "titulo": "...", "fichas": [...] }`. O arquivo exportado pelo CardVoz leva também o histórico de cada ficha estudada (`acertos`, `erros`, `ultimaResposta`, `acertouUltima`, `nivelRevisao`, `proximaRevisao`), lido de volta na importação; valores estranhos são ignorados.
 - Limites: 2 MB e 1000 fichas. Exemplos em `public/modelos/`.
 
 ---
@@ -436,10 +439,10 @@ npm run telas         # confere todas as telas no celular (com o site rodando; v
 - **Navegadores dentro de apps** (Instagram e parecidos) são bloqueados pelo Google (`disallowed_useragent`). A Ajuda orienta abrir no Chrome.
 - **API "dormindo" no Render (plano gratuito):** a primeira chamada depois de um tempo parado pode levar ~1 minuto. Durante esse tempo a tela mostra "Verificando sua sessão...".
 - **Limite por IP na API:** 10/min para login com senha e 60/min para Google, renovação e logout. Numa rede compartilhada (Wi-Fi da escola) todos dividem o mesmo IP.
-- **Excluir conta e exportar dados** ainda não existem (a política de privacidade orienta pedir à equipe).
+- **Baixar meus dados e Excluir conta** ficam no Perfil (`DeleteAccountDialog`, `exportAccount`/`deleteAccount`). Excluir pede o e-mail e, se a conta tiver senha (`user.hasPassword`), a senha; depois tira as cópias da conta do aparelho.
 - **Dados no aparelho:** limpar os dados do navegador apaga os baralhos que estão só no aparelho. Mudar o formato do que fica no `localStorage` exige nova chave (`.v2`) e migração; dados inválidos vão para `<chave>.corrompido` em vez de quebrar a tela.
 - **Service worker:** depois de publicar, quem já abriu o site recebe a versão nova na próxima visita com internet. Para testar offline, use o build (`npx serve out`), não o `npm run dev`.
-- **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
+- **"Esqueci minha senha"** (`/esqueci-senha/` e `/redefinir-senha/#codigo=...`) depende do SMTP configurado na API (sem ele, a tela mostra a mensagem do 503). O código vem depois do `#` e a página o tira da barra de endereço. Ainda **não há confirmação de e-mail** no cadastro.
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.
 - **Fileira de botões no celular:** mais de dois botões lado a lado passam da largura da tela. A página ganha rolagem lateral e, como o `<dialog>` mede a largura pela página, os diálogos abertos nela também passam da tela, com o "Fechar" escondido (issues #10 e #11). Empilhe em coluna no celular e só ponha lado a lado a partir de `sm`, com `flex-wrap`. Nomes longos sem espaço (links colados numa ficha) quebram a linha por causa do `overflow-wrap` do `body`; num item de `flex`, use também `min-width: 0`.
 
@@ -454,4 +457,4 @@ Estas regras vieram de conversas da equipe com assistentes de IA e valem para to
 - **Quem usa o CardVoz:** a cliente é cega e estuda com o TalkBack; o público inclui pessoas com baixa visão. Letras grandes, contraste AAA e as recomendações da WCAG valem mais que qualquer escolha visual (seção 1). Digitar e-mail e senha no TalkBack é trabalhoso: por isso existe o modo sem login.
 - **Trabalho dividido:** cada repositório tem dono no grupo. Mudança de código na `cardvoz-api` ou no `cardvoz-db` só depois de combinar; descreva a tarefa em `docs/tarefas/` do repositório e abra PR para o dono.
 - **Problemas de tela viram issue** no GitHub do site, com captura e o aparelho usado (ex.: "Galaxy S25+ no modo de celular do Firefox"). O commit que corrige cita a issue (`Closes #10`), e ela fecha sozinha quando o PR entra na `main`.
-- **Histórico de pedidos da cliente (out/2026):** modo sem login (partes 1 a 3 publicadas na 0.5.0; a parte 4, três rotas na API para reduzir chamadas, foi implementada em nov/2026 na branch `feat/estatisticas-das-fichas` da `cardvoz-api`, junto com os acertos e erros); leitura contínua com o TalkBack (0.6.0); Ajuda aberta e privacidade (0.7.0); busca e idioma das fichas (0.8.0; guardar o idioma na conta depende da migration do `cardvoz-db` e da API, ver `docs/tarefas/idioma-das-fichas.md` da `cardvoz-api`); "Como montar o arquivo" antes do seletor, contraste revisado, acertos e erros por baralho (cada baralho é uma matéria) e "Estudar só as que errei" (0.9.0, nov/2026). Designs em `docs/superpowers/specs/`.
+- **Histórico de pedidos da cliente (out/2026):** modo sem login (partes 1 a 3 publicadas na 0.5.0; a parte 4, três rotas na API para reduzir chamadas, foi implementada em nov/2026 na branch `feat/estatisticas-das-fichas` da `cardvoz-api`, junto com os acertos e erros); leitura contínua com o TalkBack (0.6.0); Ajuda aberta e privacidade (0.7.0); busca e idioma das fichas (0.8.0; o idioma vai para a conta desde a 0.10.0, pelo item de fila `idiomaBaralho`); "Como montar o arquivo" antes do seletor, contraste revisado, acertos e erros por baralho (cada baralho é uma matéria) e "Estudar só as que errei" (0.9.0, nov/2026). Designs em `docs/superpowers/specs/`.

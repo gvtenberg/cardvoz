@@ -25,7 +25,13 @@ export interface DeckResponse {
   sourceDeckId?: string | null;
   /** Última vez que o baralho foi estudado (estudar não muda o updatedAt) */
   lastStudiedAt?: string | null;
+  /** Idioma das perguntas e das respostas (ex.: "en"); ausente = português ou API sem o campo */
+  questionLanguage?: string | null;
+  answerLanguage?: string | null;
 }
+
+/** Idiomas para a API: "" volta para português (null não muda nada no PUT). */
+export type DeckLanguagesInput = { questionLanguage?: string; answerLanguage?: string };
 
 export interface DeckDetailResponse extends DeckResponse {
   cards: CardResponse[];
@@ -124,14 +130,14 @@ export async function createDeck(data: {
   title: string;
   category: string;
   description?: string;
-}): Promise<DeckResponse> {
+} & DeckLanguagesInput): Promise<DeckResponse> {
   return fetchApi<DeckResponse>("/decks", { method: "POST", body: JSON.stringify(data) });
 }
 
 /** Edição parcial: campos vazios são ignorados pela API (valide antes de enviar). */
 export async function updateDeck(
   id: string,
-  data: { title?: string; category?: string; description?: string }
+  data: { title?: string; category?: string; description?: string } & DeckLanguagesInput
 ): Promise<DeckResponse> {
   return fetchApi<DeckResponse>(`/decks/${id}`, { method: "PUT", body: JSON.stringify(data) });
 }
@@ -212,6 +218,18 @@ export async function getStudyHistory(deckId?: string): Promise<StudySessionResp
   return fetchApi<StudySessionResponse[]>(`/study-sessions/history${query}`);
 }
 
+// --- Dados da conta (LGPD) ---------------------------------------------------
+
+/** Tudo o que a conta guarda, para baixar em JSON. */
+export async function exportAccount(): Promise<unknown> {
+  return fetchApi<unknown>("/account/export");
+}
+
+/** Exclui a conta com tudo o que ela guarda. Erros de campo: ConfirmEmail e Password. */
+export async function deleteAccount(data: { confirmEmail: string; password?: string }): Promise<void> {
+  await fetchApi<void>("/account/delete", { method: "POST", body: JSON.stringify(data) });
+}
+
 // --- Rotas com menos chamadas (parte 4, na cardvoz-api) ----------------------
 // Enquanto a API não as tiver, respondem 404/405 e o site usa o caminho antigo.
 
@@ -249,7 +267,7 @@ export async function importDeck(data: {
   category: string;
   description?: string;
   cards: ({ question: string; answer: string } & CardStats)[];
-}): Promise<DeckDetailResponse> {
+} & DeckLanguagesInput): Promise<DeckDetailResponse> {
   return fetchNewRoute("import", "/decks/import", { method: "POST", body: JSON.stringify(data) });
 }
 

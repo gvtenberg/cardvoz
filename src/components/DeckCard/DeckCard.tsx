@@ -12,6 +12,8 @@ export interface DeckProps {
   title: string;
   category: string;
   cardCount: number;
+  /** Fichas para "Revisar agora" */
+  dueCount?: number;
   lastStudied?: string;
   description?: string | null;
 }
@@ -22,6 +24,7 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
   const targetSlug = deck.slug || String(deck.id);
   const tone = TONES[Math.abs(Number(deck.id) || deck.title.length) % TONES.length];
   const showCategory = deck.category && deck.category.toLowerCase() !== "geral";
+  const due = deck.dueCount ?? 0;
 
   return (
     <article className={styles.deckCard} aria-labelledby={`deck-title-${deck.id}`}>
@@ -37,6 +40,7 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
               <span className="sr-only">
                 , {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
                 {showCategory && `, ${deck.category}`}
+                {due > 0 && `, ${due} para revisar agora`}
               </span>
             </Link>
           </h2>
@@ -44,6 +48,12 @@ export function DeckCard({ deck }: { deck: DeckProps }) {
             {deck.cardCount} {deck.cardCount === 1 ? "ficha" : "fichas"}
             {showCategory && ` · ${deck.category}`}
           </p>
+          {/* Saber por onde começar sem abrir cada baralho */}
+          {due > 0 && (
+            <p className={styles.due} aria-hidden="true">
+              {due} para revisar agora
+            </p>
+          )}
         </div>
       </div>
 

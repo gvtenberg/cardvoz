@@ -38,13 +38,26 @@ Antes do botão **Escolher arquivo** fica **Como montar o arquivo**: ao abrir, e
 1. Na página do baralho, toque em **Estudar**. O leitor de tela lê a primeira pergunta sozinho.
 2. Pense na resposta e toque em **Ver resposta** para conferir.
 3. Toque em **Acertei** ou **Errei**. O botão **Acertei** fica sempre no mesmo lugar, à direita, e funciona mesmo sem abrir a resposta.
-4. No fim, o CardVoz diz quantas você acertou. Se errou alguma, toque em **Estudar só as que errei** para revisar só essas; **Estudar todas de novo** repete o baralho inteiro.
+4. No fim, o CardVoz diz quantas você acertou. Se errou alguma, toque em **Revisar agora** para estudar de novo só as fichas da vez; **Estudar todas de novo** repete o baralho inteiro.
 
-### Acertos e erros
+### Acertos, erros e revisão
 
-Cada baralho funciona como uma matéria: a página dele mostra quantas vezes você acertou e errou no total (ex.: "No total, 45 acertos e 12 erros. 3 fichas para revisar: você errou na última vez.").
+Cada baralho funciona como uma matéria: a página dele mostra quantas vezes você acertou e errou no total e quantas fichas revisar agora (ex.: "No total, 45 acertos e 12 erros. 3 fichas para revisar agora.").
 
-- **Estudar só as que errei** aparece na página do baralho quando há fichas que você errou na última vez. Ao acertar uma delas, ela sai dessa lista.
+O CardVoz lembra quando revisar cada ficha (revisão espaçada):
+
+| Resposta | Próxima revisão |
+|---|---|
+| Errei | na hora |
+| Acertei pela 1ª vez seguida | em 1 dia |
+| 2ª vez seguida | em 3 dias |
+| 3ª vez seguida | em 1 semana |
+| 4ª vez seguida | em 2 semanas |
+| 5ª vez seguida | em 1 mês |
+| 6ª vez seguida ou mais | em 3 meses |
+
+- **Revisar agora** aparece na página do baralho quando há fichas da vez. Em **Meus baralhos**, cada baralho diz quantas fichas há para revisar agora.
+- Se não houver nenhuma, o CardVoz diz a data da próxima revisão.
 - Sem conta, os números ficam neste aparelho. Com conta, ficam também na conta e aparecem nos outros aparelhos. Ao levar um baralho do aparelho para a conta, os números vão junto.
 
 No computador, dá para ligar atalhos de uma tecla na Ajuda: Espaço mostra a resposta, 1 marca "Acertei" e 2 marca "Errei".
@@ -64,7 +77,7 @@ Num baralho de inglês ou espanhol, toque em **Idioma das fichas** e escolha o i
 ## 7. Guardar uma cópia e levar para outro aparelho
 
 - **Exportar baralho** (na página do baralho) ou **Exportar todos** (em Meus baralhos) baixa um arquivo com suas fichas.
-- Para trazer de volta, use **Importar arquivo**. Um exemplo de baralho exportado está em `docs/exemplos/cardvoz-ingles-basico.json`.
+- O arquivo leva também os acertos, os erros e a data da próxima revisão de cada ficha. Para trazer de volta, use **Importar arquivo**: o histórico volta junto. Um exemplo de baralho exportado está em `docs/exemplos/cardvoz-ingles-basico.json`.
 
 ## 8. Conta (opcional)
 
@@ -73,6 +86,8 @@ Com uma conta, seus baralhos ficam guardados também na internet, e você pode u
 - Entre com **e-mail e senha** ou com **Entrar com Google**. Marque **Mostrar senha** para conferir o que digitou.
 - Se você já tinha baralhos no aparelho, o CardVoz pergunta se quer **levá-los para a conta**.
 - Ao **Sair da conta**, você escolhe se os baralhos continuam no aparelho ou são apagados dele. Eles continuam guardados na conta.
+- **Esqueci minha senha** (na tela de entrar) manda um link para o seu e-mail, válido por 1 hora, para criar uma senha nova. Quem entra com o Google também pode usá-lo para criar uma senha.
+- No **Perfil**, **Baixar meus dados** salva em um arquivo tudo o que a conta guarda, e **Excluir conta** apaga a conta e tudo o que ela guarda (pede o seu e-mail e a senha para confirmar).
 
 ## 9. Sem internet e na tela inicial
 

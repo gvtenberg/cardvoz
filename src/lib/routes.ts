@@ -20,6 +20,10 @@ export const routes = {
   register: "/cadastro/",
   /** Criar conta e depois voltar para `voltar` (caminho interno) */
   registerThenReturn: (voltar: string) => `/cadastro/?voltar=${encodeURIComponent(voltar)}`,
+  /** Pedir o link de nova senha por e-mail. Pública */
+  forgotPassword: "/esqueci-senha/",
+  /** Criar a nova senha com o código do link (#codigo=...). Pública */
+  resetPassword: "/redefinir-senha/",
   /** Política de privacidade, pública */
   privacy: "/privacidade/",
   profile: "/perfil/",
@@ -30,8 +34,8 @@ export const routes = {
   deck: (idOrSlug: string) => `/baralho/?id=${idParam(idOrSlug)}`,
   addCards: (idOrSlug: string) => `/baralho/adicionar/?id=${idParam(idOrSlug)}`,
   study: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}`,
-  /** Estudar só as fichas que a pessoa errou na última vez */
-  studyMissed: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}&so=erradas`,
+  /** Revisar agora: as fichas erradas e as que chegaram na data de revisão */
+  review: (idOrSlug: string) => `/estudar/?deck=${idParam(idOrSlug)}&so=revisar`,
 };
 
 /**
@@ -42,6 +46,8 @@ export const PUBLIC_PATHS = [
   routes.home,
   routes.login,
   routes.register,
+  routes.forgotPassword,
+  routes.resetPassword,
   routes.privacy,
   routes.decks,
   routes.newDeck,

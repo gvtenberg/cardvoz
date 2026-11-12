@@ -17,7 +17,7 @@ O **CardVoz** é uma plataforma moderna e inclusiva de estudo ativo por flashcar
 - **Sem conta, se a pessoa preferir**: baralhos, fichas e estudo funcionam sem login, guardados no aparelho. Com conta, os baralhos também ficam na internet e podem ser levados do aparelho para a conta.
 - **Funciona sem internet e pode ser instalado** na tela inicial do celular, como um aplicativo.
 - **Leitura contínua**: textos que o leitor de tela leria em partes são lidos de uma vez (recursos, passos, pergunta e resposta de cada ficha, nome e quantidade de fichas de cada baralho). As perguntas frequentes e a Ajuda ficam sempre abertas, sem toque duplo para ouvir a resposta.
-- **Idioma das fichas**: num baralho de inglês ou espanhol, a pessoa escolhe o idioma das perguntas e das respostas, e o texto ganha o atributo `lang`. O leitor de tela troca a voz e pronuncia corretamente. Português é o padrão. Por enquanto o idioma fica só no aparelho (a API ainda não tem esse campo).
+- **Idioma das fichas**: num baralho de inglês ou espanhol, a pessoa escolhe o idioma das perguntas e das respostas, e o texto ganha o atributo `lang`. O leitor de tela troca a voz e pronuncia corretamente. Com conta, o idioma fica guardado também na conta. Português é o padrão. Por enquanto o idioma fica só no aparelho (a API ainda não tem esse campo).
 - **Busca de fichas**: na página do baralho, procura na pergunta e na resposta, sem diferenciar acentos, e anuncia quantas fichas encontrou.
 - **Botões que dizem a que se referem**: "Editar" e "Excluir" de cada ficha anunciam o número e o começo da pergunta, e as mensagens de confirmação citam o baralho.
 - **Conta com e-mail e senha ou com Google**: a pessoa cria a conta com nome, e-mail e senha (com "Mostrar senha", porque o leitor de tela não lê o que foi digitado num campo de senha) ou toca em "Entrar com Google" e escolhe a conta; nesse caso, na primeira vez a conta no CardVoz é criada sozinha. Usamos nosso próprio botão e a página inteira do Google (nada de janela que abre sozinha), e a sessão dura 30 dias no aparelho.
@@ -181,7 +181,7 @@ Pedido da cliente: digitar e-mail e senha com o TalkBack é trabalhoso. Por isso
 - **Ao entrar** com baralhos no aparelho, um diálogo pergunta se a pessoa quer levá-los para a conta. Se já existir um baralho com o mesmo nome, ela escolhe qual versão fica.
 - **Ao sair**, a pessoa escolhe manter os baralhos no aparelho ou apagá-los dali (continuam na conta). Sessão que termina sozinha vale como "manter".
 - **Exportar e importar** em JSON funcionam sem conta.
-- **Acertos e erros** de cada ficha ficam no aparelho (com ou sem conta) e, com conta, também na API. Daí saem a frase do baralho ("No total, 45 acertos e 12 erros...") e o botão **Estudar só as que errei** (`/estudar/?deck=<id>&so=erradas`).
+- **Acertos e erros** de cada ficha ficam no aparelho (com ou sem conta) e, com conta, também na API. Daí saem a frase do baralho ("No total, 45 acertos e 12 erros...") e a **revisão espaçada**: cada ficha tem um nível (caixa de Leitner) e a data da próxima revisão; o botão **Revisar agora** (`/estudar/?deck=<id>&so=revisar`) estuda só as fichas da vez.
 
 Design completo: `docs/superpowers/specs/2026-10-30-modo-sem-login-design.md`.
 

@@ -18,6 +18,8 @@ export interface UserResponse {
   name: string;
   email: string;
   createdAt: string;
+  /** A conta tem senha (ausente na API antiga: o site pede a senha por garantia) */
+  hasPassword?: boolean;
 }
 
 export interface AuthResponse {
@@ -166,6 +168,30 @@ export function loginWithPassword(data: { email: string; password: string }): Pr
 /** Cria a conta e já entra. Erros da API: 400 (campos inválidos) e 409 (e-mail já usado). */
 export function register(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
   return authenticate("register", data);
+}
+
+async function postAnonymous(path: string, data: object): Promise<unknown> {
+  const response = await safeFetch(`${getApiBaseUrl()}/auth/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw await toApiError(response);
+  return response.status === 204 ? null : response.json();
+}
+
+/**
+ * "Esqueci minha senha": a API manda o link por e-mail se o e-mail tiver conta e
+ * responde sempre a mesma mensagem (503 = envio de e-mail não configurado).
+ */
+export async function requestPasswordReset(email: string): Promise<string> {
+  const body = (await postAnonymous("forgot-password", { email })) as { message?: string } | null;
+  return body?.message ?? "Se este e-mail tiver conta no CardVoz, enviamos um link para criar uma nova senha.";
+}
+
+/** Nova senha com o código do link (uso único, 1 hora). Não entra na conta: a pessoa entra em seguida. */
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await postAnonymous("reset-password", { token, password });
 }
 
 /**

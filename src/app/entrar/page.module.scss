@@ -102,3 +102,22 @@
 .otherTitle {
   font-size: $font-size-xl;
 }
+
+// "Esqueci minha senha": link enviado
+.sent {
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  color: var(--success-soft-text);
+  background-color: var(--success-soft);
+  border-radius: $radius-md;
+}
+
+.errorGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.backLink {
+  @include back-link;
+}
