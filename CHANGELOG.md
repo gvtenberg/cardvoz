@@ -4,6 +4,15 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.9.0 — 11/11/2026
+
+- **Acertos e erros** (pedido da cliente): o CardVoz guarda quantas vezes cada ficha foi acertada e errada. A página do baralho, que funciona como a matéria, mostra o total ("No total, 45 acertos e 12 erros. 3 fichas para revisar: você errou na última vez."). Funciona sem conta (no aparelho) e com conta (também no banco); ao levar um baralho para a conta, os números vão junto.
+- **Estudar só as que errei:** na página do baralho e no fim da rodada, revisa só as fichas erradas na última vez. Acertou, a ficha sai da lista.
+- Menos chamadas à API (parte 4 do modo sem login): o site manda o id gerado no aparelho em `POST /api/decks/import` e `POST /api/study-sessions/complete`, para um envio repetido não duplicar. As rotas estão na branch `feat/estatisticas-das-fichas` da `cardvoz-api`.
+- Novo baralho e Adicionar fichas: **Como montar o arquivo** vem antes de **Escolher arquivo** e virou um botão grande (56px de altura, letra de 20px), no lugar do link pequeno no fim da seção. Os exemplos para baixar também viraram botões ("Baixar exemplo em TXT", "em CSV", "em JSON"). Pedido da cliente.
+- Contraste revisado nos dois temas. Ajustados os pares que ficavam abaixo de 7:1: botão "Acertei" (5,7:1 → 7,2:1), texto "Errei" no tom suave (6,1:1 → 7,4:1), azul de links sobre o fundo creme (6,9:1 → 7,5:1), texto secundário sobre os fundos suaves (6,8:1 → 7,4:1), azul de links sobre a superfície secundária no tema escuro (6,4:1 → 7,2:1) e a inicial verde dos baralhos (6,9:1 → 7,9:1).
+- Contorno de campos, da área "Escolher arquivo" e das caixas de marcar mais escuro (claro) e mais claro (escuro): passou de 1,7:1 para ≥ 3,3:1, o mínimo da WCAG 1.4.11 para achar os controles na tela.
+
 ## 0.8.1 — 01/11/2026
 
 - Diálogos de editar ficha e renomear baralho cabem na tela do celular, com o botão "Fechar" visível (issues #10 e #11). A causa era a fileira de botões no fim da página do baralho ("Idioma das fichas", "Exportar baralho", "Renomear baralho", "Excluir baralho"), mais larga que a tela: a página ganhava rolagem lateral e os diálogos esticavam junto. Agora os botões ficam empilhados no celular.

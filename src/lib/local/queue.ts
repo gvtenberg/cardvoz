@@ -300,7 +300,14 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
       // Marca antes de criar: se a resposta se perder, a próxima vez procura antes
       patchItem(userId, item.id, { attempted: true });
       try {
-        const created = await api.importDeck({ title: item.title, category: item.category, cards: item.cards });
+        // O id do aparelho vira o da conta: se a resposta se perder, repetir não duplica.
+        // As fichas vão sem acertos e erros: o estudo delas está na fila como item próprio
+        const created = await api.importDeck({
+          id: item.deckId,
+          title: item.title,
+          category: item.category,
+          cards: item.cards.map((c) => ({ question: c.question, answer: c.answer })),
+        });
         const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
         const ids = new Map(item.cards.map((c, i) => [c.localId, ordered[i]?.id ?? c.localId]));
         applyIds(userId, item.deckId, created, ids);
@@ -383,6 +390,7 @@ async function sendStudy(userId: string, item: Extract<QueueItem, { type: "estud
   if (!item.sessionId) {
     try {
       await api.completeStudySession({
+        id: item.id,
         deckId: item.deckId,
         startedAt: item.startedAt,
         completedAt: item.completedAt,

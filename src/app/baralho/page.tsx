@@ -3,7 +3,7 @@
 import React, { useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Download, Languages, Play, Plus, Trash2, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, Download, Languages, Play, Plus, RotateCcw, Trash2, Pencil, Upload } from "lucide-react";
 import { Button, Dialog, Input, Select, Skeleton, LoadingStatus, Textarea, useAuth } from "@/components";
 import { errorMessage, type CardResponse } from "@/lib/api";
 import { announce, deleteCard, deleteDeck, editCard, renameDeck, setDeckLanguages, useDeck } from "@/lib/data";
@@ -12,6 +12,7 @@ import { filterCards, resultsText } from "@/lib/searchCards";
 import { downloadJson, exportFileName, toExported } from "@/lib/exportDecks";
 import { requestTransfer } from "@/lib/data/transfer";
 import { routes } from "@/lib/routes";
+import { deckStats, deckStatsText } from "@/lib/studyStats";
 import styles from "./page.module.scss";
 
 /** Começo da pergunta para o nome dos botões: diz a qual ficha cada um se refere */
@@ -237,6 +238,8 @@ function DeckDetailContent() {
   const targetSlug = deck.slug || deck.id;
   const cardList = deck.cards || [];
   const showCategory = deck.category && deck.category.toLowerCase() !== "geral";
+  const stats = deckStats(cardList);
+  const statsText = deckStatsText(stats);
   // Mantém o número original da ficha mesmo filtrando
   const visibleCards = filterCards(
     cardList.map((card, index) => ({ card, index, question: card.question, answer: card.answer })),
@@ -264,6 +267,8 @@ function DeckDetailContent() {
               {languageName(deck.answerLang).toLowerCase()}
             </p>
           )}
+          {/* Acertos e erros somados de todas as vezes que o baralho foi estudado */}
+          {statsText && <p className={styles.meta}>{statsText}</p>}
           {deck.description && <p className={styles.description}>{deck.description}</p>}
         </div>
 
@@ -272,6 +277,12 @@ function DeckDetailContent() {
             <Button href={routes.study(targetSlug)} variant="primary" size="lg">
               <Play style={{ fill: "currentColor" }} aria-hidden="true" />
               <span>Estudar</span>
+            </Button>
+          )}
+          {stats.missed > 0 && (
+            <Button href={routes.studyMissed(targetSlug)} variant="secondary" size="lg">
+              <RotateCcw aria-hidden="true" />
+              <span>Estudar só as que errei ({stats.missed})</span>
             </Button>
           )}
           <Button

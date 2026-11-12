@@ -51,6 +51,11 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
             </li>
             <li>A próxima pergunta é lida automaticamente pelo leitor de tela.</li>
           </ol>
+          <p>
+            O CardVoz guarda quantas vezes você acertou e errou cada ficha. Se errou
+            alguma, toque em <strong>Estudar só as que errei</strong>, no fim da rodada
+            ou na página do baralho, para revisar só essas.
+          </p>
         </>
       ),
     },

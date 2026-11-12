@@ -15,6 +15,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
     updateCard: vi.fn(),
     deleteCard: vi.fn(),
     saveStudySession: vi.fn(),
+    completeStudySession: vi.fn(),
   };
 });
 
@@ -138,10 +139,16 @@ describe("camada de dados", () => {
     expect(readQueue(USER.id)).toHaveLength(1);
   });
 
-  it("estudo de baralho do aparelho não guarda nada; da conta entra na fila", () => {
+  it("estudo guarda acertos e erros no aparelho; só o da conta entra na fila", () => {
     const device = createDeck({ title: "Bio", cards: [{ question: "a", answer: "b" }] });
-    saveStudyResult(device.id, { startedAt: "a", answers: [] });
+    const cardId = findLocalDeck(device.id)!.cards[0].id;
+    saveStudyResult(device.id, { startedAt: "a", answers: [{ cardId, wasCorrect: false, answeredAt: "t1" }] });
     expect(readQueue(USER.id)).toHaveLength(0);
+    const studied = findLocalDeck(device.id)!;
+    expect(studied.cards[0]).toMatchObject({ correctCount: 0, incorrectCount: 1, lastWasCorrect: false });
+    expect(studied.lastStudiedAt).toBe("t1");
+    // Estudar não é editar: não muda a data de alteração do baralho
+    expect(studied.updatedAt).toBe(device.updatedAt);
 
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
@@ -234,6 +241,43 @@ describe("camada de dados: pontos menores", () => {
     expect(() => createDecks([{ title: "A" }, { title: "B" }])).toThrow(storage.StorageFullError);
     spy.mockRestore();
     expect(listDecks()).toEqual([]);
+  });
+});
+
+describe("acertos e erros na sincronização", () => {
+  it("baralho estudado em outro aparelho é buscado de novo, mesmo sem outra mudança", async () => {
+    saveAccount(USER);
+    setActiveAccount(USER);
+    saveLocalDeck(fromApiDeck({ ...remote("r1", "t1"), lastStudiedAt: "s1" }, USER.id));
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t1"), lastStudiedAt: "s2", cards: undefined } as never]);
+    const studied = remote("r1", "t1");
+    studied.cards[0] = { ...studied.cards[0], correctCount: 0, incorrectCount: 1, lastWasCorrect: false, lastAnsweredAt: "s2" };
+    vi.mocked(api.getDeck).mockResolvedValue({ ...studied, lastStudiedAt: "s2" });
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(api.getDeck).toHaveBeenCalledWith("r1");
+    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false });
+  });
+
+  it("API sem os campos de acertos e erros não zera os números do aparelho", async () => {
+    saveAccount(USER);
+    setActiveAccount(USER);
+    saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
+    saveStudyResult("r1", { startedAt: "a", answers: [{ cardId: "r1-c0", wasCorrect: false, answeredAt: "b" }] });
+    // A fila foi enviada e a conta mudou (nome novo), mas a API ainda não manda os números
+    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
+    vi.mocked(api.completeStudySession).mockResolvedValue(undefined);
+    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t2"), cards: undefined } as never]);
+    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t2"));
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(findLocalDeck("r1")?.account?.remoteUpdatedAt).toBe("t2");
+    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false });
   });
 });
 

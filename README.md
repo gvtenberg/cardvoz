@@ -35,19 +35,21 @@ Inspirado em práticas modernas de design (21st.dev) e conformidade estrita com 
 ### Modo Claro
 - **Fundo**: `#F7F4EE` (creme suave, menos ofuscante que branco puro)
 - **Superfície / Ficha**: `#FFFFFF` com borda `#E7E1D6` e cantos de 24–32px
-- **Azul de ação**: `#2846C4` &mdash; 7.6:1 com texto branco (AAA)
+- **Azul de ação**: `#2541B8` &mdash; 8.3:1 com texto branco e 7.5:1 como texto sobre o fundo creme (AAA)
 - **Títulos**: `#18215A` &mdash; ~15:1 (AAA)
-- **Texto secundário**: `#4B5165` &mdash; ~7.2:1 (AAA)
+- **Texto secundário**: `#454B5F` &mdash; ≥ 7.4:1 sobre todos os fundos, inclusive os suaves (AAA)
+- **Contorno de campos e controles**: `#857D6E` &mdash; ≥ 3.7:1 (WCAG 1.4.11)
 
 ### Modo Escuro
 - **Fundo**: `#12151F` / **Superfície**: `#1B2030`
-- **Azul de ação**: `#8FA8FF` com texto `#0D1433` &mdash; ~7.9:1 (AAA)
+- **Azul de ação**: `#9DB3FF` com texto `#0D1433` &mdash; ~8.9:1 (AAA)
 - **Texto principal**: `#F1F3F9` &mdash; ~16:1 (AAA)
 - **Texto secundário**: `#B7BDD2` &mdash; ~9.7:1 (AAA)
+- **Contorno de campos e controles**: `#6E7894` &mdash; ≥ 3.3:1 (WCAG 1.4.11)
 
 ### Cores de Estado
-- **Acertei**: `#1C7543` (claro) / `#6FD39A` (escuro)
-- **Errei**: fundo `#FDE9E7` com texto `#9B1C1C` (claro) / fundo `#3A2225` com texto `#FFC2BD` (escuro)
+- **Acertei**: `#17643A` com texto branco, 7.2:1 (claro) / `#6FD39A` (escuro)
+- **Errei**: fundo `#FDE9E7` com texto `#861616` (claro) / fundo `#3A2225` com texto `#FFC2BD` (escuro)
 
 ---
 
@@ -119,7 +121,9 @@ O `npm run build` roda `next build` e depois `scripts/gerar-sw.mjs`, que cria o 
 - `CORS_ALLOWED_ORIGINS=https://<seu-site>.onrender.com` para liberar o site a chamar a API.
 - `GOOGLE_CLIENT_ID` (o mesmo do site) e `GOOGLE_CLIENT_SECRET`.
 
-**Rotas novas da API (parte 4 do modo sem login):** o site já usa `POST /api/decks/import`, `GET /api/decks/changes` e `POST /api/study-sessions/complete` quando existirem, e cai no caminho antigo (uma chamada por ficha ou por resposta) enquanto a API responder 404/405. A tarefa está descrita no repositório `cardvoz-api` (`docs/tarefas/parte-4-menos-chamadas.md`).
+**Rotas com menos chamadas (parte 4 do modo sem login):** o site usa `POST /api/decks/import`, `GET /api/decks/changes` e `POST /api/study-sessions/complete` (implementadas na branch `feat/estatisticas-das-fichas` da `cardvoz-api`), mandando o id gerado no aparelho para um pedido repetido não duplicar. Enquanto a API publicada responder 404/405, cai no caminho antigo (uma chamada por ficha ou por resposta).
+
+**Acertos e erros:** precisam da migration `20261111000000_estatisticas_das_fichas.sql` do `cardvoz-db` e da API da mesma branch. Antes disso, o site guarda os números só no aparelho e não os apaga ao atualizar as cópias da conta.
 
 **Ordem ao publicar mudanças de login:** primeiro a migration do `cardvoz-db` (`npx supabase db push`), depois a API, por último o site. O site novo chama `/api/auth/google`, que só existe na API nova.
 
@@ -177,6 +181,7 @@ Pedido da cliente: digitar e-mail e senha com o TalkBack é trabalhoso. Por isso
 - **Ao entrar** com baralhos no aparelho, um diálogo pergunta se a pessoa quer levá-los para a conta. Se já existir um baralho com o mesmo nome, ela escolhe qual versão fica.
 - **Ao sair**, a pessoa escolhe manter os baralhos no aparelho ou apagá-los dali (continuam na conta). Sessão que termina sozinha vale como "manter".
 - **Exportar e importar** em JSON funcionam sem conta.
+- **Acertos e erros** de cada ficha ficam no aparelho (com ou sem conta) e, com conta, também na API. Daí saem a frase do baralho ("No total, 45 acertos e 12 erros...") e o botão **Estudar só as que errei** (`/estudar/?deck=<id>&so=erradas`).
 
 Design completo: `docs/superpowers/specs/2026-10-30-modo-sem-login-design.md`.
 

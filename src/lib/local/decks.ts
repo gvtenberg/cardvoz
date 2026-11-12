@@ -7,9 +7,11 @@
  * outra aba acabou de salvar.
  */
 import type { CardResponse, DeckDetailResponse, DeckResponse } from "@/lib/api";
+import type { CardStats } from "@/lib/studyStats";
 import { readJson, requestPersistentStorage, writeJson } from "./storage";
 
-export interface LocalCard {
+/** Acertos e erros são opcionais: fichas guardadas antes deles continuam válidas. */
+export interface LocalCard extends CardStats {
   id: string;
   /** ids antigos (antes de a fila enviar a ficha): telas abertas ainda podem usá-los */
   aliases?: string[];
@@ -54,6 +56,8 @@ export interface LocalDeck {
    */
   questionLang?: string | null;
   answerLang?: string | null;
+  /** Última vez que o baralho foi estudado (nas cópias, o valor da conta) */
+  lastStudiedAt?: string | null;
 }
 
 /** Códigos de idioma aceitos (BCP 47 simples, como "en" ou "pt-BR"). */
@@ -195,6 +199,11 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
         answer: c.answer,
         displayOrder: c.displayOrder,
         createdAt: c.createdAt,
+        // Ausentes na API sem a migration de estatísticas: storeCopy mantém os do aparelho
+        correctCount: c.correctCount,
+        incorrectCount: c.incorrectCount,
+        lastAnsweredAt: c.lastAnsweredAt,
+        lastWasCorrect: c.lastWasCorrect,
       })),
     kind: "conta",
     account: { userId, remoteId: d.id, remoteUpdatedAt: d.updatedAt ?? null },
@@ -202,6 +211,30 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
     upload: null,
     questionLang: null,
     answerLang: null,
+    lastStudiedAt: d.lastStudiedAt,
+  };
+}
+
+/**
+ * Acertos e erros da cópia da conta. A API sem a migration de estatísticas não
+ * manda esses campos: aí ficam os do aparelho, para atualizar a cópia não zerar.
+ */
+export function keepLocalStats(remote: LocalDeck, existing: LocalDeck | null): LocalDeck {
+  const byId = new Map(existing?.cards.map((c) => [c.id, c]) ?? []);
+  return {
+    ...remote,
+    lastStudiedAt: remote.lastStudiedAt !== undefined ? remote.lastStudiedAt : existing?.lastStudiedAt ?? null,
+    cards: remote.cards.map((c) => {
+      if (c.correctCount !== undefined) return c;
+      const old = byId.get(c.id);
+      return {
+        ...c,
+        correctCount: old?.correctCount ?? 0,
+        incorrectCount: old?.incorrectCount ?? 0,
+        lastAnsweredAt: old?.lastAnsweredAt ?? null,
+        lastWasCorrect: old?.lastWasCorrect ?? null,
+      };
+    }),
   };
 }
 
@@ -218,6 +251,7 @@ export function toDeckResponse(d: LocalDeck): DeckResponse & { kind: LocalDeck["
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
     sourceDeckId: d.sourceDeckId,
+    lastStudiedAt: d.lastStudiedAt ?? null,
     kind: d.kind,
     questionLang: d.questionLang ?? null,
     answerLang: d.answerLang ?? null,

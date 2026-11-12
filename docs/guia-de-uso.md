@@ -31,14 +31,21 @@ Se você já tem uma lista de perguntas, em **Importar arquivo** escolha um arqu
 - **CSV:** planilha com as colunas pergunta e resposta.
 - **JSON:** o arquivo exportado pelo próprio CardVoz.
 
-Há arquivos de exemplo na Ajuda e em `public/modelos/` neste repositório.
+Antes do botão **Escolher arquivo** fica **Como montar o arquivo**: ao abrir, ele explica o formato e traz os botões para baixar um exemplo em TXT, CSV ou JSON. Os mesmos exemplos estão na Ajuda e em `public/modelos/` neste repositório.
 
 ## 4. Estudar
 
 1. Na página do baralho, toque em **Estudar**. O leitor de tela lê a primeira pergunta sozinho.
 2. Pense na resposta e toque em **Ver resposta** para conferir.
 3. Toque em **Acertei** ou **Errei**. O botão **Acertei** fica sempre no mesmo lugar, à direita, e funciona mesmo sem abrir a resposta.
-4. No fim, o CardVoz diz quantas você acertou. Toque em **Estudar de novo** para repetir.
+4. No fim, o CardVoz diz quantas você acertou. Se errou alguma, toque em **Estudar só as que errei** para revisar só essas; **Estudar todas de novo** repete o baralho inteiro.
+
+### Acertos e erros
+
+Cada baralho funciona como uma matéria: a página dele mostra quantas vezes você acertou e errou no total (ex.: "No total, 45 acertos e 12 erros. 3 fichas para revisar: você errou na última vez.").
+
+- **Estudar só as que errei** aparece na página do baralho quando há fichas que você errou na última vez. Ao acertar uma delas, ela sai dessa lista.
+- Sem conta, os números ficam neste aparelho. Com conta, ficam também na conta e aparecem nos outros aparelhos. Ao levar um baralho do aparelho para a conta, os números vão junto.
 
 No computador, dá para ligar atalhos de uma tecla na Ajuda: Espaço mostra a resposta, 1 marca "Acertei" e 2 marca "Errei".
 

@@ -11,7 +11,7 @@ O CardVoz é um app de **fichas de estudo (flashcards) para pessoas cegas e com 
 1. **Sem áudio próprio.** Nunca use `speechSynthesis`, TTS, sons ou leitura automática. O leitor de tela da pessoa já fala; uma segunda voz se sobrepõe e atrapalha. A leitura acontece movendo o **foco** (ver seção 7).
 2. **Nada de letra pequena.** O menor texto da interface é **16px** (`$font-size-sm`). Texto corrido é 18px. Use só os tokens `$font-size-*`; nunca escreva tamanhos menores em `px`/`rem`.
 3. **Áreas de toque grandes.** Todo botão ou link de ação tem no mínimo **48px** de altura (`$touch-sm`); ações principais usam 56–72px (`$touch-md`, `$touch-lg`). Os botões da tela de estudo têm 88px no celular.
-4. **Contraste alto.** Texto precisa de contraste **≥ 7:1** (WCAG AAA) nos dois temas. Use apenas as cores dos tokens (`var(--...)`); se criar um par novo de cores, calcule o contraste antes.
+4. **Contraste alto.** Texto precisa de contraste **≥ 7:1** (WCAG AAA) nos dois temas. Use apenas as cores dos tokens (`var(--...)`); se criar um par novo de cores, calcule o contraste antes. Confira também sobre os fundos suaves (`--primary-soft`, `--success-soft`, `--danger-soft`), e não só sobre o fundo da página. Contornos de campos e controles (`--border-strong`) precisam de **≥ 3:1** (WCAG 1.4.11): é por eles que a pessoa com baixa visão acha onde tocar.
 5. **Menos coisas na tela.** A pergunta, a resposta e os botões essenciais são o destaque. Não adicione painéis decorativos, guias fixos, contadores extras, etiquetas de atalho (`<kbd>`) na interface nem textos explicativos longos. A ajuda fica no diálogo **Ajuda** do topo.
 6. **O site é estático** (`output: "export"`). Não use nada que dependa de um servidor Next: rotas dinâmicas `[id]`, API routes, `rewrites`, middleware, Server Actions, otimização do `next/image` ou `fetch` em Server Component em tempo de requisição. Os dados vêm da API C# chamada **pelo navegador**.
 7. **Commits sem atribuição a IA.** Não adicione `Co-Authored-By`, "Generated with…" ou qualquer menção a IA em commits e PRs. Use a identidade git já configurada no repositório.
@@ -109,9 +109,9 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 | `/baralhos/novo/` | Novo baralho (âncora `#importar` leva à importação) | — |
 | `/baralho/?id=<slug>` | Detalhe do baralho | `id` = slug ou id |
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
-| `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id |
+| `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id; `so=erradas` = só as fichas erradas na última vez |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.studyMissed(slug)` (só as fichas erradas na última vez), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
 - **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
 - Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
@@ -129,7 +129,7 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 - Ids de baralhos criados sem internet mudam quando a fila os envia; o id antigo fica em `aliases` e o endereço antigo continua abrindo o baralho.
 - Se o mesmo baralho for editado em dois aparelhos, vale a última alteração enviada (decisão do grupo).
 - Ao entrar, `AccountTransfer` pergunta se leva os baralhos do aparelho para a conta; ao sair, `LogoutDialog` pergunta se mantém ou apaga as cópias. Sessão que termina sozinha vale como "manter". Regras em `data/transfer.ts`.
-- Rotas novas da API (parte 4: `importDeck`, `getDeckChanges`, `completeStudySession`) são usadas quando existem; 404/405 lança `RouteMissingError` e o código cai no caminho antigo.
+- Rotas da parte 4 (`importDeck`, `getDeckChanges`, `completeStudySession`) vão com o id gerado no aparelho (`id`): a API responde 200 com o que já salvou se o mesmo pedido chegar de novo. Enquanto a API publicada não as tiver, 404/405 lança `RouteMissingError` e o código cai no caminho antigo.
 
 **Cliente da API (`src/lib/api.ts`)**
 
@@ -141,7 +141,8 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 - Para a mensagem na tela, use `errorMessage(error, "Texto padrão.")`: ela mostra a mensagem da API quando é falta de conexão ou limite de tentativas, e o texto padrão no resto.
 - A API exige `category` ao criar baralho; o frontend envia `"Geral"` e só **exibe** a categoria quando ela for diferente de `"Geral"`.
 - O campo `voiceNotes` existe na API, mas **não é exibido** (costumava repetir a resposta como "dica").
-- O estudo não fala com a API durante a rodada: no fim, `saveStudyResult` põe a sessão inteira na fila (baralho só do aparelho não guarda histórico).
+- O estudo não fala com a API durante a rodada: no fim, `saveStudyResult` soma os acertos e erros nas fichas do aparelho (sempre, com ou sem conta) e, com conta, põe a sessão inteira na fila; a API soma os mesmos números. Estudar não muda o `updatedAt` do baralho; quem avisa que os números mudaram em outro aparelho é o `lastStudiedAt`.
+- **Acertos e erros** (`src/lib/studyStats.ts`): cada ficha tem `correctCount`, `incorrectCount`, `lastAnsweredAt` e `lastWasCorrect` (opcionais no aparelho). "Estudar só as que errei" (`routes.studyMissed`, `?so=erradas`) usa as fichas com `lastWasCorrect === false`. Fichas criadas com conta vão para a API sem números (o estudo delas segue na fila como item próprio; mandar os dois contaria duas vezes); só "Levar para a conta" envia o histórico (`statsPayload`). API sem os campos: `keepLocalStats` mantém os números do aparelho.
 
 **Login e sessão** (`src/lib/auth/`, `AuthProvider`, `AuthGate`)
 - `accessToken` **só em memória**; `refreshToken` no `localStorage` (`cardvoz.refreshToken`). Nunca coloque token em URL, `console.log` ou mensagem de erro, e não use `dangerouslySetInnerHTML` (um XSS leria o `localStorage`).
@@ -328,7 +329,7 @@ export default function ExemploPage() {
 | Variável | Uso |
 |---|---|
 | `--bg`, `--surface`, `--surface-soft` | Fundo da página, painéis, áreas secundárias |
-| `--border`, `--border-strong` | Contorno de painéis; contorno de campos |
+| `--border`, `--border-strong` | Contorno de painéis (decorativo); contorno de campos e controles (≥ 3:1) |
 | `--ink`, `--text-primary`, `--text-muted` | Títulos; texto; texto secundário (todos ≥ 7:1) |
 | `--primary`, `--primary-hover`, `--primary-fg` | Ação principal ("Ver resposta", "Estudar", "Criar") |
 | `--primary-soft`, `--primary-soft-text` | Botões suaves, Ajuda, destaques |
@@ -453,4 +454,4 @@ Estas regras vieram de conversas da equipe com assistentes de IA e valem para to
 - **Quem usa o CardVoz:** a cliente é cega e estuda com o TalkBack; o público inclui pessoas com baixa visão. Letras grandes, contraste AAA e as recomendações da WCAG valem mais que qualquer escolha visual (seção 1). Digitar e-mail e senha no TalkBack é trabalhoso: por isso existe o modo sem login.
 - **Trabalho dividido:** cada repositório tem dono no grupo. Mudança de código na `cardvoz-api` ou no `cardvoz-db` só depois de combinar; descreva a tarefa em `docs/tarefas/` do repositório e abra PR para o dono.
 - **Problemas de tela viram issue** no GitHub do site, com captura e o aparelho usado (ex.: "Galaxy S25+ no modo de celular do Firefox"). O commit que corrige cita a issue (`Closes #10`), e ela fecha sozinha quando o PR entra na `main`.
-- **Histórico de pedidos da cliente (out/2026):** modo sem login (partes 1 a 3 publicadas na 0.5.0; a parte 4, três rotas na API para reduzir chamadas, está descrita na `cardvoz-api`, aguardando o dono); leitura contínua com o TalkBack (0.6.0); Ajuda aberta e privacidade (0.7.0); busca e idioma das fichas (0.8.0; guardar o idioma na conta depende da migration do `cardvoz-db` e da API, ver `docs/tarefas/idioma-das-fichas.md` da `cardvoz-api`). Designs em `docs/superpowers/specs/`.
+- **Histórico de pedidos da cliente (out/2026):** modo sem login (partes 1 a 3 publicadas na 0.5.0; a parte 4, três rotas na API para reduzir chamadas, foi implementada em nov/2026 na branch `feat/estatisticas-das-fichas` da `cardvoz-api`, junto com os acertos e erros); leitura contínua com o TalkBack (0.6.0); Ajuda aberta e privacidade (0.7.0); busca e idioma das fichas (0.8.0; guardar o idioma na conta depende da migration do `cardvoz-db` e da API, ver `docs/tarefas/idioma-das-fichas.md` da `cardvoz-api`); "Como montar o arquivo" antes do seletor, contraste revisado, acertos e erros por baralho (cada baralho é uma matéria) e "Estudar só as que errei" (0.9.0, nov/2026). Designs em `docs/superpowers/specs/`.

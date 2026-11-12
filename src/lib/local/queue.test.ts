@@ -124,8 +124,14 @@ describe("fila de alterações", () => {
     const result = await processQueue(USER, api);
 
     expect(result.sent).toBe(2);
+    // O id do aparelho vai junto: repetir o pedido não duplica o baralho nem a sessão
+    expect(api.importDeck).toHaveBeenCalledWith(expect.objectContaining({ id: "l1" }));
     expect(api.completeStudySession).toHaveBeenCalledWith(
-      expect.objectContaining({ deckId: "r1", answers: [expect.objectContaining({ cardId: "rc1" })] })
+      expect.objectContaining({
+        id: expect.any(String),
+        deckId: "r1",
+        answers: [expect.objectContaining({ cardId: "rc1" })],
+      })
     );
     const local = findLocalDeck("l1");
     expect(local?.id).toBe("r1");

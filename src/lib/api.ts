@@ -8,6 +8,7 @@
  */
 import { ApiError, getApiBaseUrl, safeFetch, toApiError } from "@/lib/http";
 import { getAccessToken, refreshSession } from "@/lib/auth/session";
+import type { CardStats } from "@/lib/studyStats";
 
 export { ApiError, errorMessage } from "@/lib/http";
 
@@ -22,13 +23,16 @@ export interface DeckResponse {
   updatedAt?: string | null;
   /** Baralho compartilhado de onde esta cópia veio (null se não for cópia) */
   sourceDeckId?: string | null;
+  /** Última vez que o baralho foi estudado (estudar não muda o updatedAt) */
+  lastStudiedAt?: string | null;
 }
 
 export interface DeckDetailResponse extends DeckResponse {
   cards: CardResponse[];
 }
 
-export interface CardResponse {
+/** Acertos e erros vêm junto (API com a migration de estatísticas; antes, ausentes). */
+export interface CardResponse extends CardStats {
   id: string;
   deckId: string;
   question: string;
@@ -155,13 +159,14 @@ export async function getCards(deckId: string): Promise<CardResponse[]> {
   return fetchApi<CardResponse[]>(`/decks/${deckId}/cards`);
 }
 
+/** Os acertos e erros só vão ao levar para a conta uma ficha estudada sem login. */
 export async function createCard(data: {
   deckId: string;
   question: string;
   answer: string;
   voiceNotes?: string;
   displayOrder?: number;
-}): Promise<CardResponse> {
+} & CardStats): Promise<CardResponse> {
   return fetchApi<CardResponse>("/cards", { method: "POST", body: JSON.stringify(data) });
 }
 
@@ -234,12 +239,16 @@ async function fetchNewRoute<T>(route: string, endpoint: string, options?: Reque
   }
 }
 
-/** Cria o baralho com todas as fichas numa chamada só (tudo ou nada). */
+/**
+ * Cria o baralho com todas as fichas numa chamada só (tudo ou nada). Com `id`
+ * (gerado no aparelho), o mesmo pedido repetido devolve o baralho já criado.
+ */
 export async function importDeck(data: {
+  id?: string;
   title: string;
   category: string;
   description?: string;
-  cards: { question: string; answer: string }[];
+  cards: ({ question: string; answer: string } & CardStats)[];
 }): Promise<DeckDetailResponse> {
   return fetchNewRoute("import", "/decks/import", { method: "POST", body: JSON.stringify(data) });
 }
@@ -266,6 +275,8 @@ export async function getDeckChanges(
  * retomar a mesma sessão (ver lib/local/queue.ts).
  */
 export async function completeStudySession(data: {
+  /** Gerado no aparelho: o mesmo pedido repetido não duplica a sessão nem os acertos */
+  id?: string;
   deckId: string;
   startedAt: string;
   completedAt: string;

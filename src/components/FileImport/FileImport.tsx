@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useId, useRef, useState } from "react";
-import { FileCheck2, Upload } from "lucide-react";
+import { ChevronDown, CircleHelp, Download, FileCheck2, Upload } from "lucide-react";
 import {
   IMPORT_ACCEPT,
   ImportError,
@@ -72,6 +72,52 @@ export function FileImport({ value, onChange, disabled = false }: FileImportProp
 
   return (
     <div className={styles.wrapper}>
+      {/* A explicação vem antes de escolher o arquivo: quem usa leitor de tela
+          ouve como montar o arquivo antes de chegar ao botão de escolher */}
+      {!value && (
+        <details className={styles.formatHelp}>
+          <summary>
+            <CircleHelp aria-hidden="true" />
+            <span>Como montar o arquivo</span>
+            <ChevronDown aria-hidden="true" className={styles.chevron} />
+          </summary>
+          <div className={styles.formatBody}>
+            <p>
+              Uma ficha por linha, com pergunta e resposta separadas por ponto e
+              vírgula:
+            </p>
+            <pre className={styles.example}>
+              Capital do Brasil?; Brasília{"\n"}2 + 2?; 4
+            </pre>
+            <p>
+              Planilhas salvas em CSV também funcionam (coluna A: pergunta,
+              coluna B: resposta).
+            </p>
+            <p className={styles.downloadsTitle}>Baixe um exemplo pronto:</p>
+            <ul className={styles.downloads}>
+              <li>
+                <a href="/modelos/fichas-exemplo.txt" download>
+                  <Download aria-hidden="true" />
+                  <span>Baixar exemplo em TXT</span>
+                </a>
+              </li>
+              <li>
+                <a href="/modelos/fichas-exemplo.csv" download>
+                  <Download aria-hidden="true" />
+                  <span>Baixar exemplo em CSV</span>
+                </a>
+              </li>
+              <li>
+                <a href="/modelos/fichas-exemplo.json" download>
+                  <Download aria-hidden="true" />
+                  <span>Baixar exemplo em JSON</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </details>
+      )}
+
       <input
         ref={inputRef}
         id={inputId}
@@ -164,36 +210,7 @@ export function FileImport({ value, onChange, disabled = false }: FileImportProp
             </Button>
           </div>
         </div>
-      ) : (
-        <details className={styles.formatHelp}>
-          <summary>Como montar o arquivo</summary>
-          <div className={styles.formatBody}>
-            <p>
-              Uma ficha por linha, com pergunta e resposta separadas por ponto e
-              vírgula:
-            </p>
-            <pre className={styles.example}>
-              Capital do Brasil?; Brasília{"\n"}2 + 2?; 4
-            </pre>
-            <p>
-              Planilhas salvas em CSV também funcionam (coluna A: pergunta,
-              coluna B: resposta). Exemplos para baixar:{" "}
-              <a href="/modelos/fichas-exemplo.txt" download>
-                TXT
-              </a>
-              ,{" "}
-              <a href="/modelos/fichas-exemplo.csv" download>
-                CSV
-              </a>{" "}
-              e{" "}
-              <a href="/modelos/fichas-exemplo.json" download>
-                JSON
-              </a>
-              .
-            </p>
-          </div>
-        </details>
-      )}
+      ) : null}
     </div>
   );
 }

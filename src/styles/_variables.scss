@@ -8,22 +8,22 @@ $color-light-bg: #F7F4EE;              // Creme suave, menos ofuscante que branc
 $color-light-surface: #FFFFFF;
 $color-light-surface-soft: #FBFAF7;    // Superfície secundária (hover, campos)
 $color-light-border: #E7E1D6;          // Contorno discreto das fichas
-$color-light-border-strong: #CFC7B8;   // Contorno de campos de formulário
+$color-light-border-strong: #857D6E;   // Contorno de campos e controles (≥ 3:1, WCAG 1.4.11)
 $color-light-ink: #18215A;             // Títulos (14.9:1)
 $color-light-text: #1F2437;            // Texto corrido (14:1)
-$color-light-text-muted: #4B5165;      // Texto secundário (7.2:1)
-$color-light-primary: #2846C4;         // Azul de ação (7.6:1 com branco)
+$color-light-text-muted: #454B5F;      // Texto secundário (≥ 7:1 também sobre os fundos suaves)
+$color-light-primary: #2541B8;         // Azul de ação (8.3:1 com branco; 7.5:1 como texto no creme)
 $color-light-primary-hover: #1F3AA8;
 $color-light-primary-soft: #E8EDFF;    // Fundo azul suave
 $color-light-primary-soft-text: #1F3AA8;
-$color-light-focus-ring: #2846C4;
-$color-light-success: #1C7543;         // Botão "Acertei"
-$color-light-success-hover: #16623A;
+$color-light-focus-ring: #2541B8;
+$color-light-success: #17643A;         // Botão "Acertei" (7.2:1 com branco)
+$color-light-success-hover: #114F2D;
 $color-light-success-soft: #E2F4E9;
 $color-light-success-soft-text: #155C33;
 $color-light-danger-soft: #FDE9E7;     // Botão "Errei" (tom suave, sem alarme)
 $color-light-danger-soft-hover: #FAD7D3;
-$color-light-danger-text: #9B1C1C;
+$color-light-danger-text: #861616;
 $color-light-answer-bg: #EEF2FF;       // Destaque da resposta revelada
 
 // --- Modo Escuro (azul-noite suave) ---
@@ -31,11 +31,11 @@ $color-dark-bg: #12151F;
 $color-dark-surface: #1B2030;
 $color-dark-surface-soft: #222839;
 $color-dark-border: #2C3348;
-$color-dark-border-strong: #454E68;
+$color-dark-border-strong: #6E7894;
 $color-dark-ink: #F4F6FC;
 $color-dark-text: #F1F3F9;
 $color-dark-text-muted: #B7BDD2;
-$color-dark-primary: #8FA8FF;
+$color-dark-primary: #9DB3FF;
 $color-dark-primary-hover: #A9BCFF;
 $color-dark-primary-fg: #0D1433;
 $color-dark-primary-soft: #232B4A;
