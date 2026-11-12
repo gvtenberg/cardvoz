@@ -4,6 +4,15 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.12.1 — 13/11/2026
+
+Correções na fila de envio para a conta (vistas no code-review antes da publicação).
+
+- Se a resposta de "criar baralho" ou "Levar para a conta" se perdesse e a pessoa editasse o baralho antes da nova tentativa, a conta ficava com a versão antiga e a cópia do aparelho voltava a ela (ficha nova sumia, ficha excluída voltava). Agora as diferenças vão para a conta logo em seguida.
+- Fichas importadas de um arquivo exportado, num baralho que ainda esperava a internet, chegavam à conta sem acertos e erros.
+- Estudar sem conta um baralho que veio da conta e depois entrar de novo apagava os acertos e erros dessas rodadas. Agora elas vão para a conta.
+- Envio de estudo de antes da 0.11 que tinha parado no meio não conta mais duas vezes as respostas já enviadas. Um "Levar para a conta" de antes da 0.11 parado no meio é completado, sem perder as fichas que faltavam.
+
 ## 0.12.0 — 13/11/2026
 
 Revisão antes da publicação (code-review, segurança, crítica de UX e padronização visual).

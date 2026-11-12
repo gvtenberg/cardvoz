@@ -58,6 +58,16 @@ export interface LocalDeck {
   answerLang?: string | null;
   /** Última vez que o baralho foi estudado (nas cópias, o valor da conta) */
   lastStudiedAt?: string | null;
+  /**
+   * Rodadas estudadas sem login num baralho que veio da conta. Ao voltar para a
+   * conta sem perguntar (relinkUnchanged), elas entram na fila; sem isso, a cópia
+   * da conta chegaria por cima e apagaria os acertos e erros feitos fora dela.
+   */
+  offAccountStudies?: {
+    startedAt: string;
+    completedAt: string;
+    answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
+  }[];
 }
 
 /** Códigos de idioma aceitos (BCP 47 simples, como "en" ou "pt-BR"). */

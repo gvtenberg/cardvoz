@@ -252,3 +252,75 @@ describe("fila: retomadas sem duplicar", () => {
   });
 });
 
+
+describe("fila: baralho devolvido sem as mudanças feitas depois", () => {
+  it("manda as fichas que faltam e exclui as que a pessoa já tinha excluído", async () => {
+    // A primeira tentativa salvou A, B e C; depois, sem internet, B saiu e D entrou
+    contaDeck("l1", [{ id: "a", question: "A" }, { id: "c", question: "C" }, { id: "d", question: "D" }]);
+    enqueue(USER, {
+      type: "criarBaralho", deckId: "l1", title: "Bio", category: "Geral",
+      cards: [
+        { localId: "a", question: "A", answer: "r" },
+        { localId: "c", question: "C", answer: "r" },
+        { localId: "d", question: "D", answer: "r", correctCount: 2, incorrectCount: 0 },
+      ],
+    });
+    const saved = apiDeck("l1", ["ra", "rb", "rc"]);
+    saved.cards = saved.cards.map((c, i) => ({ ...c, question: ["A", "B", "C"][i] }));
+    const api = fakeApi();
+    api.importDeck.mockResolvedValue(saved);
+    api.createCard.mockResolvedValue({ id: "rd", deckId: "l1", question: "D", answer: "r", displayOrder: 3, createdAt: "x" });
+
+    await processQueue(USER, api);
+
+    expect(api.deleteCard).toHaveBeenCalledWith("rb");
+    expect(api.createCard).toHaveBeenCalledWith(expect.objectContaining({ deckId: "l1", question: "D", correctCount: 2 }));
+    expect(findLocalDeck("l1")?.cards.map((c) => c.id)).toEqual(["ra", "rc", "rd"]);
+    expect(pendingCount(USER)).toBe(0);
+  });
+
+  it("renomeia quando o nome mudou depois da primeira tentativa", async () => {
+    contaDeck("l1", [{ id: "a", question: "q0" }]);
+    enqueue(USER, {
+      type: "criarBaralho", deckId: "l1", title: "Biologia", category: "Geral",
+      cards: [{ localId: "a", question: "q0", answer: "r" }],
+    });
+    const api = fakeApi();
+    api.importDeck.mockResolvedValue(apiDeck("l1", ["ra"]));
+
+    await processQueue(USER, api);
+
+    expect(api.updateDeck).toHaveBeenCalledWith("l1", { title: "Biologia" });
+    expect(api.deleteCard).not.toHaveBeenCalled();
+    expect(api.createCard).not.toHaveBeenCalled();
+  });
+
+  it("ficha importada de arquivo num baralho pendente leva o histórico", () => {
+    contaDeck("l1");
+    enqueue(USER, { type: "criarBaralho", deckId: "l1", title: "Bio", category: "Geral", cards: [] });
+    enqueue(USER, {
+      type: "criarFicha", deckId: "l1", localId: "a", question: "q", answer: "r", displayOrder: 1,
+      stats: { correctCount: 3, incorrectCount: 1 },
+    });
+    const item = readQueue(USER)[0];
+    expect(item.type === "criarBaralho" && item.cards[0]).toMatchObject({ correctCount: 3, incorrectCount: 1 });
+  });
+
+  it("estudo de antes da 0.11 parado no meio não manda de novo as respostas já enviadas", async () => {
+    contaDeck("d1");
+    enqueue(USER, {
+      type: "estudo", deckId: "d1", startedAt: "a", completedAt: "b", sentAnswers: 1,
+      answers: [
+        { cardId: "c1", wasCorrect: true, answeredAt: "b" },
+        { cardId: "c2", wasCorrect: false, answeredAt: "b" },
+      ],
+    });
+    const api = fakeApi();
+
+    await processQueue(USER, api);
+
+    expect(api.completeStudySession.mock.calls[0][0].answers).toEqual([
+      { cardId: "c2", wasCorrect: false, answeredAt: "b" },
+    ]);
+  });
+});

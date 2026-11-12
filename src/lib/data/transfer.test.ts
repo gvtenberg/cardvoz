@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, type DeckDetailResponse } from "@/lib/api";
 import { findLocalDeck, listLocalDecks, saveLocalDeck, type LocalDeck } from "@/lib/local/decks";
-import { enqueue, pendingCount } from "@/lib/local/queue";
+import { enqueue, pendingCount, readQueue } from "@/lib/local/queue";
 import {
   convertCopiesToDevice,
   findDuplicate,
@@ -212,5 +212,36 @@ describe("retomadas e motivo da saída", () => {
     expect(leaveReason()).toBe("manual");
     convertCopiesToDevice(USER, "sessao");
     expect(leaveReason()).toBe("sessao");
+  });
+});
+
+describe("levar para a conta: tentativa anterior", () => {
+  it("baralho editado depois de uma tentativa sem resposta fica como está no aparelho", async () => {
+    // A conta guardou a, b, c, d, e na primeira vez; depois, "e" foi trocada por "f"
+    const local = deck("l1", { upload: { remoteId: "R" } });
+    const edited = { ...local, cards: [...local.cards.slice(0, 4), { ...local.cards[4], id: "l1-f", question: "f" }] };
+    saveLocalDeck(edited);
+    const api = fakeApi();
+    api.importDeck.mockResolvedValue(remote("R", ["a", "b", "c", "d", "e"]));
+
+    await transferDeck(edited, "levar", USER, api, null);
+
+    const copy = findLocalDeck("R");
+    expect(copy?.kind).toBe("conta");
+    expect(copy?.cards.map((c) => c.question)).toEqual(["a", "b", "c", "d", "f"]);
+    expect(copy?.cards[0].id).toBe("R-r0");
+    expect(readQueue(USER).map((i) => i.type).sort()).toEqual(["criarFicha", "excluirFicha"]);
+  });
+
+  it("estudo feito sem login num baralho da conta vai para a fila ao religar", () => {
+    deck("r1", {
+      account: fromAccount("r1"),
+      offAccountStudies: [{ startedAt: "a", completedAt: "b", answers: [{ cardId: "r1-a", wasCorrect: true, answeredAt: "b" }] }],
+    });
+
+    relinkUnchanged(USER);
+
+    expect(readQueue(USER)).toMatchObject([{ type: "estudo", deckId: "r1", answers: [{ cardId: "r1-a" }] }]);
+    expect(findLocalDeck("r1")?.offAccountStudies).toBeUndefined();
   });
 });
