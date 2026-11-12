@@ -2,10 +2,11 @@
  * Confere todas as telas em larguras de celular, no Chromium e no Firefox:
  * - a página não pode ganhar rolagem lateral (WCAG 1.4.10, reflow a 320px);
  * - nenhum texto visível abaixo de 16px (regra 2 do AGENTS.md);
- * - os diálogos da página do baralho cabem na tela, com o "Fechar" visível.
+ * - os diálogos (do baralho e do Perfil) cabem na tela, com o "Fechar" visível.
  *
  * Usa um baralho de exemplo no aparelho (sem login) e repete tudo com nomes
- * longos sem espaço, que costumam alargar a página.
+ * longos sem espaço, que costumam alargar a página. O Perfil pede login: lá a
+ * API é simulada (nenhum pedido sai do navegador).
  *
  * Uso, com o site rodando (npm run dev ou npx serve out):
  *   npx playwright install chromium firefox   (só na primeira vez)
@@ -21,8 +22,44 @@ const PAGINAS = [
   "/baralhos/novo/", "/baralho/?id=teste", "/baralho/adicionar/?id=teste", "/estudar/?deck=teste",
   "/estudar/?deck=teste&so=revisar",
 ];
-// Botões que abrem diálogos na página do baralho
-const DIALOGOS = [/^Renomear baralho/, /^Editar ficha 1/, /^Excluir ficha 1/, /^Idioma das fichas/, /^Excluir baralho/];
+const API = (process.env.API || "http://localhost:5000/api").replace(/\/$/, "");
+// Botões que abrem diálogos, por página. "logado": a página pede a API simulada
+const DIALOGOS = [
+  {
+    caminho: "/baralho/?id=teste",
+    botoes: [/^Renomear baralho/, /^Editar ficha 1/, /^Excluir ficha 1/, /^Idioma das fichas/, /^Excluir baralho/],
+  },
+  { caminho: "/perfil/", logado: true, botoes: [/^Sair da conta/, /^Excluir conta/] },
+];
+
+// Respostas mínimas da API para a sessão de teste (o site restaura a sessão pelo /auth/refresh)
+async function simularApi(contexto, origem) {
+  const agora = new Date().toISOString();
+  const cors = {
+    "access-control-allow-origin": origem,
+    "access-control-allow-credentials": "true",
+    "access-control-allow-headers": "authorization, content-type, accept",
+    "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  };
+  await contexto.route(`${API}/**`, (rota) => {
+    const pedido = rota.request();
+    if (pedido.method() === "OPTIONS") return rota.fulfill({ status: 204, headers: cors });
+    const url = pedido.url();
+    let corpo = [];
+    if (url.includes("/auth/refresh")) {
+      corpo = {
+        accessToken: "teste", accessTokenExpiresAt: agora, refreshToken: "teste", refreshTokenExpiresAt: agora,
+        user: {
+          id: "00000000-0000-0000-0000-000000000001", name: "Pessoa de Teste",
+          email: "teste@example.com", createdAt: agora, hasPassword: true, emailConfirmed: false,
+        },
+      };
+    } else if (url.includes("/decks/changes")) {
+      corpo = { decks: [], allIds: [], serverTime: agora };
+    }
+    return rota.fulfill({ status: 200, headers: cors, contentType: "application/json", body: JSON.stringify(corpo) });
+  });
+}
 
 function baralho(titulo, pergunta) {
   const data = "2026-01-01T00:00:00Z";
@@ -106,24 +143,40 @@ for (const [nome, tipo] of [["Chromium", chromium], ["Firefox", firefox]]) {
         if (pequenos.length) problemas.push(`${onde(caminho)} texto abaixo de 16px: ${pequenos.join(", ")}`);
       }
 
-      await pagina.goto(`${SITE}/baralho/?id=teste`);
-      await pagina.waitForLoadState("networkidle");
-      for (const botao of DIALOGOS) {
-        const alvo = pagina.getByRole("button", { name: botao }).first();
-        conferidos++;
-        try {
-          await alvo.scrollIntoViewIfNeeded();
-          await alvo.click({ timeout: 5000 });
-        } catch {
-          // Coberto por outro elemento ou fora da tela: a pessoa também não conseguiria tocar
-          problemas.push(`${onde(`botão ${botao.source.slice(1)}`)} não dá para tocar`);
-          continue;
+      for (const { caminho, logado, botoes } of DIALOGOS) {
+        // Sessão de teste numa aba própria, sem os baralhos do aparelho (eles abririam
+        // o "Levar para sua conta?" logo ao entrar)
+        let aba = pagina;
+        let contextoLogado = null;
+        if (logado) {
+          contextoLogado = await navegador.newContext({
+            viewport: { width: largura, height: 800 },
+            ...(nome === "Chromium" ? { isMobile: true, hasTouch: true } : {}),
+          });
+          await contextoLogado.addInitScript(() => localStorage.setItem("cardvoz.refreshToken", "teste"));
+          await simularApi(contextoLogado, new URL(SITE).origin);
+          aba = await contextoLogado.newPage();
         }
-        await pagina.waitForTimeout(300);
-        const erro = await pagina.evaluate(medirDialogo);
-        if (erro) problemas.push(`${onde(`diálogo ${botao.source.slice(1)}`)} ${erro}`);
-        await pagina.keyboard.press("Escape");
-        await pagina.waitForTimeout(200);
+        await aba.goto(SITE + caminho);
+        await aba.waitForLoadState("networkidle");
+        for (const botao of botoes) {
+          const alvo = aba.getByRole("button", { name: botao }).first();
+          conferidos++;
+          try {
+            await alvo.scrollIntoViewIfNeeded({ timeout: 5000 });
+            await alvo.click({ timeout: 5000 });
+          } catch {
+            // Coberto por outro elemento ou fora da tela: a pessoa também não conseguiria tocar
+            problemas.push(`${onde(`${caminho} botão ${botao.source.slice(1)}`)} não dá para tocar`);
+            continue;
+          }
+          await aba.waitForTimeout(300);
+          const erro = await aba.evaluate(medirDialogo);
+          if (erro) problemas.push(`${onde(`${caminho} diálogo ${botao.source.slice(1)}`)} ${erro}`);
+          await aba.keyboard.press("Escape");
+          await aba.waitForTimeout(200);
+        }
+        if (contextoLogado) await contextoLogado.close();
       }
       await contexto.close();
     }
