@@ -4,6 +4,15 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.10.0 — 12/11/2026
+
+- **Revisão espaçada** (pedido da cliente): o CardVoz lembra quando revisar cada ficha. Errou, ela volta na hora; acertou, volta depois de 1 dia, 3 dias, 1 semana, 2 semanas, 1 mês e 3 meses. **Revisar agora** substitui "Estudar só as que errei" na página do baralho e no fim da rodada; sem fichas da vez, o aviso diz a data da próxima revisão. Em Meus baralhos, cada baralho diz quantas fichas há para revisar.
+- **Idioma das fichas guardado na conta**: aparece nos outros aparelhos.
+- **Exportar e importar** levam também os acertos, os erros e a revisão de cada ficha.
+- **Esqueci minha senha**: link por e-mail (válido por 1 hora) para criar uma senha nova. Serve também para quem entra com o Google criar uma senha. Depende do envio de e-mail configurado na API.
+- **Perfil**: **Baixar meus dados** e **Excluir conta** (LGPD). Política de privacidade atualizada.
+- Depende da API e das migrations `20261112000000_revisao_espacada.sql` e `20261112000100_redefinir_senha.sql`. Com a API antiga, a revisão funciona no aparelho e o idioma fica só nele.
+
 ## 0.9.0 — 11/11/2026
 
 - **Acertos e erros** (pedido da cliente): o CardVoz guarda quantas vezes cada ficha foi acertada e errada. A página do baralho, que funciona como a matéria, mostra o total ("No total, 45 acertos e 12 erros. 3 fichas para revisar: você errou na última vez."). Funciona sem conta (no aparelho) e com conta (também no banco); ao levar um baralho para a conta, os números vão junto.
