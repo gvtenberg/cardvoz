@@ -17,7 +17,7 @@ import { chromium, firefox } from "playwright";
 const SITE = (process.env.SITE || "http://localhost:3000").replace(/\/$/, "");
 const LARGURAS = [320, 360, 375, 412];
 const PAGINAS = [
-  "/", "/entrar/", "/esqueci-senha/", "/redefinir-senha/#codigo=teste", "/cadastro/", "/privacidade/", "/perfil/", "/baralhos/",
+  "/", "/entrar/", "/esqueci-senha/", "/redefinir-senha/#codigo=teste", "/confirmar-email/#codigo=teste", "/cadastro/", "/privacidade/", "/perfil/", "/baralhos/",
   "/baralhos/novo/", "/baralho/?id=teste", "/baralho/adicionar/?id=teste", "/estudar/?deck=teste",
   "/estudar/?deck=teste&so=revisar",
 ];

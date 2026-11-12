@@ -73,3 +73,15 @@
     flex-wrap: wrap;
   }
 }
+
+.emailState {
+  color: var(--text-muted);
+  font-size: $font-size-base;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: var(--text-muted);
+}

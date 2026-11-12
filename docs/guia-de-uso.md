@@ -86,6 +86,7 @@ Com uma conta, seus baralhos ficam guardados também na internet, e você pode u
 - Entre com **e-mail e senha** ou com **Entrar com Google**. Marque **Mostrar senha** para conferir o que digitou.
 - Se você já tinha baralhos no aparelho, o CardVoz pergunta se quer **levá-los para a conta**.
 - Ao **Sair da conta**, você escolhe se os baralhos continuam no aparelho ou são apagados dele. Eles continuam guardados na conta.
+- Ao criar a conta com senha, chega um **link de confirmação** no e-mail. Confirmar não é obrigatório, mas permite entrar também com o Google na mesma conta. Se não chegar, use **Enviar link de confirmação** no Perfil.
 - **Esqueci minha senha** (na tela de entrar) manda um link para o seu e-mail, válido por 1 hora, para criar uma senha nova. Quem entra com o Google também pode usá-lo para criar uma senha.
 - No **Perfil**, **Baixar meus dados** salva em um arquivo tudo o que a conta guarda, e **Excluir conta** apaga a conta e tudo o que ela guarda (pede o seu e-mail e a senha para confirmar).
 

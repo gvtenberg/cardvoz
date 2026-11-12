@@ -20,6 +20,8 @@ export interface UserResponse {
   createdAt: string;
   /** A conta tem senha (quem entra só com o Google não tem) */
   hasPassword?: boolean;
+  /** E-mail confirmado (link do e-mail, Google ou "Esqueci minha senha") */
+  emailConfirmed?: boolean;
 }
 
 export interface AuthResponse {
@@ -187,6 +189,11 @@ async function postAnonymous(path: string, data: object): Promise<unknown> {
 export async function requestPasswordReset(email: string): Promise<string> {
   const body = (await postAnonymous("forgot-password", { email })) as { message?: string } | null;
   return body?.message ?? "Se este e-mail tiver conta no CardVoz, enviamos um link para criar uma nova senha.";
+}
+
+/** Confirma o e-mail com o código do link (uso único, 24 horas). */
+export async function confirmEmail(token: string): Promise<void> {
+  await postAnonymous("confirm-email", { token });
 }
 
 /** Nova senha com o código do link (uso único, 1 hora). Não entra na conta: a pessoa entra em seguida. */

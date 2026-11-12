@@ -195,6 +195,12 @@ export async function getStudyHistory(deckId?: string): Promise<StudySessionResp
 
 // --- Dados da conta (LGPD) ---------------------------------------------------
 
+/** Manda de novo o link de confirmação do e-mail. Devolve a mensagem da API. */
+export async function resendEmailConfirmation(): Promise<string> {
+  const body = await fetchApi<{ message?: string }>("/auth/resend-confirmation", { method: "POST" });
+  return body?.message ?? "Enviamos o link de confirmação para o seu e-mail.";
+}
+
 /** Tudo o que a conta guarda, para baixar em JSON. */
 export async function exportAccount(): Promise<unknown> {
   return fetchApi<unknown>("/account/export");
