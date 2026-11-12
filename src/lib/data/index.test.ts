@@ -122,6 +122,19 @@ describe("camada de dados", () => {
     expect(getSavedAccount()?.lastSync).toBe("agora");
   });
 
+  it("resposta fora do formato não apaga as cópias da conta", async () => {
+    saveAccount(USER);
+    setActiveAccount(USER);
+    saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
+    vi.mocked(api.getDeckChanges).mockResolvedValue({ decks: [] } as never);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    setOnline(true);
+    await syncAccount();
+
+    expect(findLocalDeck("r1")).not.toBeNull();
+    warn.mockRestore();
+  });
 
   it("sem internet no meio da fila, não apaga nem atualiza cópias", async () => {
     saveAccount(USER);
