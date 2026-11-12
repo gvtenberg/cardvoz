@@ -42,6 +42,8 @@ export type QueueItem = { id: string; createdAt: string } & (
       startedAt: string;
       completedAt: string;
       answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
+      /** Versões até a 0.10: respostas já enviadas uma a uma (não podem ir de novo) */
+      sentAnswers?: number;
     }
 );
 
@@ -126,7 +128,8 @@ export function enqueue(userId: string, item: NewQueueItem): void {
 
     case "criarFicha":
       if (pendingDeck) {
-        pendingDeck.cards.push({ localId: item.localId, question: item.question, answer: item.answer });
+        // O histórico importado de arquivo vai junto (sem ele, a cópia da conta chegaria zerada)
+        pendingDeck.cards.push({ localId: item.localId, question: item.question, answer: item.answer, ...item.stats });
         writeQueue(userId, items);
         return;
       }
@@ -233,6 +236,73 @@ function applyIds(userId: string, oldDeckId: string, newDeck: DeckDetailResponse
   }));
 }
 
+/** O que deveria estar na conta depois de criar um baralho. */
+export interface IntendedDeck {
+  title: string;
+  questionLang?: string | null;
+  answerLang?: string | null;
+  cards: ({ localId: string; question: string; answer: string } & CardStats)[];
+}
+
+/**
+ * Compara o baralho que a API devolveu com o que deveria estar lá. Repetir um
+ * import com o mesmo id devolve o baralho salvo na primeira vez, sem as mudanças
+ * feitas depois (ficha nova, excluída, nome, idioma). As fichas iguais ficam com
+ * o id da conta; o resto vira itens no começo da fila, para irem logo em seguida.
+ * Nada é apagado na conta além das fichas que a pessoa já tinha excluído.
+ * Devolve os ids (do aparelho → da conta) das fichas que já estão na conta e se
+ * havia diferença.
+ */
+export function reconcileCreated(
+  userId: string,
+  created: DeckDetailResponse,
+  intended: IntendedDeck,
+  replacing?: string
+): { ids: Map<string, string>; changed: boolean } {
+  const remaining = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
+  const ids = new Map<string, string>();
+  const missing: IntendedDeck["cards"] = [];
+  for (const card of intended.cards) {
+    // A API tira os espaços das pontas ao salvar
+    const i = remaining.findIndex((r) => r.question === card.question.trim() && r.answer === card.answer.trim());
+    if (i >= 0) {
+      ids.set(card.localId, remaining[i].id);
+      remaining.splice(i, 1);
+    } else {
+      missing.push(card);
+    }
+  }
+
+  const now = new Date().toISOString();
+  const extra = (item: NewQueueItem) => ({ ...item, id: crypto.randomUUID(), createdAt: now }) as QueueItem;
+  const fixes: QueueItem[] = [];
+  if (created.title !== intended.title.trim()) {
+    fixes.push(extra({ type: "renomearBaralho", deckId: created.id, title: intended.title }));
+  }
+  const lang = (v?: string | null) => v || null;
+  if (lang(created.questionLanguage) !== lang(intended.questionLang) || lang(created.answerLanguage) !== lang(intended.answerLang)) {
+    fixes.push(extra({
+      type: "idiomaBaralho", deckId: created.id,
+      questionLang: lang(intended.questionLang), answerLang: lang(intended.answerLang),
+    }));
+  }
+  for (const r of remaining) fixes.push(extra({ type: "excluirFicha", deckId: created.id, cardId: r.id }));
+  missing.forEach((c) => {
+    const stats = statsPayload(c);
+    fixes.push(extra({
+      type: "criarFicha", deckId: created.id, localId: c.localId, question: c.question, answer: c.answer,
+      displayOrder: intended.cards.indexOf(c) + 1,
+      ...(Object.keys(stats).length ? { stats } : {}),
+    }));
+  });
+
+  if (fixes.length || replacing) {
+    const rest = readQueue(userId).filter((i) => i.id !== replacing);
+    writeQueue(userId, [...fixes, ...rest]);
+  }
+  return { ids, changed: fixes.length > 0 };
+}
+
 function removeFirst(userId: string, id: string) {
   writeQueue(userId, readQueue(userId).filter((i) => i.id !== id));
 }
@@ -260,10 +330,9 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
         ...languagesInput(item.questionLang, item.answerLang),
         cards: item.cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
       });
-      const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
-      const ids = new Map(item.cards.map((c, i) => [c.localId, ordered[i]?.id ?? c.localId]));
+      // Troca este item pelas diferenças (se houver) antes de trocar os ids
+      const { ids } = reconcileCreated(userId, created, item, item.id);
       applyIds(userId, item.deckId, created, ids);
-      removeFirst(userId, item.id);
       return null;
     }
     case "criarFicha": {
@@ -325,12 +394,16 @@ function failureFor(item: QueueItem, status: number): string | null {
  * fichas que já não existem (excluídas aqui ou em outro aparelho).
  */
 async function sendStudy(item: Extract<QueueItem, { type: "estudo" }>, api: QueueApi) {
+  // Item de antes da 0.11 que parou no meio: as primeiras respostas já estão na
+  // conta e mandá-las de novo contaria duas vezes
+  const answers = item.answers.slice(item.sentAnswers ?? 0);
+  if (answers.length === 0) return;
   await api.completeStudySession({
     id: item.id,
     deckId: item.deckId,
     startedAt: item.startedAt,
     completedAt: item.completedAt,
-    answers: item.answers,
+    answers,
   });
 }
 
