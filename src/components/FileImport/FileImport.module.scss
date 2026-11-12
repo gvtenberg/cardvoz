@@ -148,29 +148,92 @@
   gap: 0.5rem;
 }
 
+// "Como montar o arquivo" com cara de botão: área de toque grande e texto de
+// rótulo (20px), e não um link pequeno no fim da seção
 .formatHelp {
   summary {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    min-height: $touch-sm;
-    padding: 0.5rem 0;
+    gap: 0.75rem;
+    min-height: $touch-md;
+    padding: 0.75rem 1.25rem;
+    font-size: $font-size-lg;
     font-weight: 700;
-    color: var(--primary);
-    text-decoration: underline;
-    text-underline-offset: 4px;
+    color: var(--primary-soft-text);
+    background-color: var(--primary-soft);
+    border: 2px solid transparent;
+    border-radius: $radius-lg;
     cursor: pointer;
-    border-radius: 4px;
+    list-style: none;
+    transition: border-color $transition-fast;
+
+    // Some com o triângulo padrão; a seta própria gira ao abrir
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      border-color: var(--primary);
+    }
 
     &:focus-visible {
       @include focus-ring;
     }
+
+    svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  .chevron {
+    margin-left: auto;
+    transition: transform $transition-fast;
+  }
+
+  &[open] .chevron {
+    transform: rotate(180deg);
+  }
+}
+
+.downloadsTitle {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+// Exemplos para baixar como botões grandes, um embaixo do outro no celular
+.downloads {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  @include respond-to(sm) {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
   a {
-    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: $touch-sm;
+    padding: 0.5rem 1.25rem;
     font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    color: var(--ink);
+    background-color: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: $radius-full;
+    transition: border-color $transition-fast;
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
   }
 }
 
@@ -178,7 +241,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-top: 0.5rem;
+  padding-top: 1rem;
   color: var(--text-muted);
 }
 
