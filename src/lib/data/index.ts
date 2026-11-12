@@ -334,12 +334,23 @@ export function saveStudyResult(
   const deck = findLocalDeck(deckId);
   if (!deck || result.answers.length === 0) return;
   const lastAnswer = result.answers.reduce((a, b) => (b.answeredAt >= a.answeredAt ? b : a));
+  const account = accountOf(deck);
+  // Veio de uma conta e ainda não mudou fora dela: guarda a rodada para enviar quando
+  // ele voltar para a conta (estudar não conta como edição, então não pergunta nada)
+  const keepForAccount = !account && deck.kind === "aparelho" && deck.account !== null && !deck.editedOffAccount;
   updateLocalDeck(deck.id, (d) => ({
     ...d,
     cards: applyAnswers(d.cards, result.answers),
     lastStudiedAt: lastAnswer.answeredAt,
+    ...(keepForAccount
+      ? {
+          offAccountStudies: [
+            ...(d.offAccountStudies ?? []),
+            { startedAt: result.startedAt, completedAt: new Date().toISOString(), answers: result.answers },
+          ],
+        }
+      : {}),
   }));
-  const account = accountOf(deck);
   if (!account) return;
   enqueue(account.id, {
     type: "estudo",
