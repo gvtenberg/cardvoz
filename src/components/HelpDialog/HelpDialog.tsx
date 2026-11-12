@@ -157,6 +157,11 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               uma nova.
             </li>
             <li>
+              Ao criar a conta com senha, chega um e-mail com um link de confirmação.
+              Confirmar não é obrigatório, mas permite entrar também com o Google na
+              mesma conta. Se o link não chegar, peça outro no <strong>Perfil</strong>.
+            </li>
+            <li>
               No <strong>Perfil</strong>, <strong>Baixar meus dados</strong> salva tudo o
               que a conta guarda, e <strong>Excluir conta</strong> apaga a conta.
             </li>

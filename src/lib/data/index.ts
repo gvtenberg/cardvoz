@@ -8,14 +8,13 @@
  */
 import { useEffect, useState } from "react";
 import * as api from "@/lib/api";
-import { ApiError, RouteMissingError, type DeckDetailResponse, type DeckResponse } from "@/lib/api";
+import { ApiError, type DeckDetailResponse, type DeckResponse } from "@/lib/api";
 import { errorMessage } from "@/lib/http";
 import { getSavedAccount, saveAccount, type SavedAccount } from "@/lib/local/account";
 import {
   DECKS_KEY,
   findLocalDeck,
   fromApiDeck,
-  keepLocalStats,
   listLocalDecks,
   newDeviceDeck,
   newLocalCards,
@@ -366,17 +365,12 @@ function storeCopy(remote: DeckDetailResponse, userId: string) {
   const existing = findLocalDeck(remote.id);
   // Só herda os endereços antigos do próprio baralho (não de outro que use este id como antigo)
   const same = existing?.id === remote.id ? existing : null;
-  // A API nova guarda o idioma (campos ausentes = português). A antiga não tem esses
-  // campos: aí fica o do aparelho. Ela se reconhece pelo nível de revisão das fichas
-  const knowsLanguages =
-    remote.questionLanguage !== undefined ||
-    remote.answerLanguage !== undefined ||
-    (remote.cards ?? []).some((c) => c.reviewLevel !== undefined);
+  // Idioma da conta: campo ausente = português
   saveLocalDeck({
-    ...keepLocalStats(fromApiDeck(remote, userId), same),
+    ...fromApiDeck(remote, userId),
     aliases: same?.aliases ?? [],
-    questionLang: knowsLanguages ? remote.questionLanguage ?? null : same?.questionLang ?? null,
-    answerLang: knowsLanguages ? remote.answerLanguage ?? null : same?.answerLang ?? null,
+    questionLang: remote.questionLanguage ?? null,
+    answerLang: remote.answerLanguage ?? null,
   });
 }
 
@@ -399,43 +393,16 @@ function removeVanished(userId: string, remoteIds: Set<string>) {
   }
 }
 
+/** Uma chamada traz o que mudou na conta (criado, editado ou estudado) desde a última vez. */
 async function refreshCopies(account: SavedAccount, gen: number) {
   const held = heldByDevice(account.id);
-  const stale = () => gen !== generation;
-  try {
-    const changes = await api.getDeckChanges(account.lastSync ?? null);
-    if (stale()) return;
-    for (const remote of changes.decks) {
-      if (!held.has(remote.id) && !hasPendingFor(account.id, remote.id)) storeCopy(remote, account.id);
-    }
-    removeVanished(account.id, new Set(changes.allIds));
-    saveAccount({ ...account, lastSync: changes.serverTime });
-    return;
-  } catch (error) {
-    if (!(error instanceof RouteMissingError)) throw error;
+  const changes = await api.getDeckChanges(account.lastSync ?? null);
+  if (gen !== generation) return;
+  for (const remote of changes.decks) {
+    if (!held.has(remote.id) && !hasPendingFor(account.id, remote.id)) storeCopy(remote, account.id);
   }
-
-  const remotes = await api.getDecks();
-  for (const remote of remotes) {
-    if (stale()) return;
-    if (held.has(remote.id) || hasPendingFor(account.id, remote.id)) continue;
-    const found = findLocalDeck(remote.id);
-    const local = found?.id === remote.id ? found : null;
-    // Estudo em outro aparelho não muda o updatedAt: lastStudiedAt avisa que os
-    // acertos e erros mudaram (API sem o campo: undefined, e não compara)
-    const studiedElsewhere =
-      remote.lastStudiedAt !== undefined && (local?.lastStudiedAt ?? null) !== remote.lastStudiedAt;
-    const changed =
-      !local ||
-      local.account?.remoteUpdatedAt !== (remote.updatedAt ?? null) ||
-      local.cards.length !== remote.cardCount ||
-      studiedElsewhere;
-    if (!changed) continue;
-    const detail = await api.getDeck(remote.id);
-    if (detail && !stale()) storeCopy(detail, account.id);
-  }
-  if (stale()) return;
-  removeVanished(account.id, new Set(remotes.map((r) => r.id)));
+  removeVanished(account.id, new Set(changes.allIds));
+  saveAccount({ ...account, lastSync: changes.serverTime });
 }
 
 async function runSync(account: SavedAccount): Promise<SyncResult> {

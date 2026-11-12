@@ -3,7 +3,7 @@
  * com as cópias ao sair. As telas (diálogos) ficam em components/AccountTransfer
  * e components/LogoutDialog.
  */
-import { ApiError, RouteMissingError, type DeckDetailResponse } from "@/lib/api";
+import { ApiError, type DeckDetailResponse } from "@/lib/api";
 import {
   findLocalDeck,
   fromApiDeck,
@@ -13,14 +13,14 @@ import {
   updateLocalDeck,
   type LocalDeck,
 } from "@/lib/local/decks";
-import { clearQueue, findOrphanDeck, hasEditsPendingFor, languagesInput } from "@/lib/local/queue";
+import { clearQueue, hasEditsPendingFor, languagesInput } from "@/lib/local/queue";
 import { readJson, writeJson } from "@/lib/local/storage";
 import { statsPayload } from "@/lib/studyStats";
 import { isCurrentAccount } from "./index";
 
 export type TransferApi = Pick<
   typeof import("@/lib/api"),
-  "importDeck" | "createDeck" | "createCard" | "getDeck" | "deleteDeck" | "getDecks"
+  "importDeck" | "getDeck" | "deleteDeck"
 >;
 
 /** Baralho da conta que "repete" um do aparelho (mesma origem ou mesmo nome). */
@@ -77,61 +77,21 @@ function replaceWithRemote(local: LocalDeck, remote: DeckDetailResponse, userId:
 
 async function upload(local: LocalDeck, title: string, userId: string, api: TransferApi) {
   const cards = [...local.cards].sort((a, b) => a.displayOrder - b.displayOrder);
-  let remoteId = local.upload?.remoteId ?? null;
-  let sentCount = 0;
-
-  if (remoteId === "") {
-    // A tentativa anterior não teve resposta: a conta pode ter criado o baralho
-    const known = new Set(listLocalDecks().flatMap((d) => [d.id, ...d.aliases]));
-    remoteId = await findOrphanDeck(api, title, known);
-  }
-
-  if (remoteId) {
-    // Retomada: continua de onde a conta parou (as fichas vão uma a uma, em ordem)
-    const partial = await api.getDeck(remoteId);
-    if (partial) sentCount = partial.cards.length;
-    else remoteId = null;
-  }
-
-  if (!remoteId) {
-    // Marca a tentativa antes de criar: se a resposta se perder, a próxima procura antes
-    updateLocalDeck(local.id, (d) => ({ ...d, upload: { remoteId: "" } }));
-    try {
-      const created = await api.importDeck({
-        title,
-        category: local.category,
-        ...languagesInput(local.questionLang, local.answerLang),
-        // O histórico estudado sem login vai junto, para não recomeçar do zero
-        cards: cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
-      });
-      replaceWithRemote(local, created, userId);
-      return;
-    } catch (error) {
-      if (!(error instanceof RouteMissingError)) throw error;
-    }
-    const created = await api.createDeck({
-      title,
-      category: local.category,
-      ...languagesInput(local.questionLang, local.answerLang),
-    });
-    remoteId = created.id;
-    // Guarda antes das fichas: se cair a internet, a próxima tentativa continua daqui
-    updateLocalDeck(local.id, (d) => ({ ...d, upload: { remoteId: created.id } }));
-  }
-
-  for (let i = sentCount; i < cards.length; i++) {
-    await api.createCard({
-      deckId: remoteId,
-      question: cards[i].question,
-      answer: cards[i].answer,
-      displayOrder: i + 1,
-      ...statsPayload(cards[i]),
-    });
-  }
-
-  const finished = await api.getDeck(remoteId);
-  if (!finished) throw new ApiError(404, "O baralho não foi encontrado na sua conta.");
-  replaceWithRemote(findLocalDeck(local.id) ?? local, finished, userId);
+  // Id do baralho na conta, guardado antes do envio: se a resposta se perder, a
+  // próxima tentativa manda o mesmo id e a API devolve o baralho já criado, sem
+  // duplicar. Não usa o id do aparelho: num baralho que veio de uma conta, ele é o
+  // id de um baralho que já existe
+  const remoteId = local.upload?.remoteId || crypto.randomUUID();
+  updateLocalDeck(local.id, (d) => ({ ...d, upload: { remoteId } }));
+  const created = await api.importDeck({
+    id: remoteId,
+    title,
+    category: local.category,
+    ...languagesInput(local.questionLang, local.answerLang),
+    // O histórico estudado sem login vai junto, para não recomeçar do zero
+    cards: cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
+  });
+  replaceWithRemote(findLocalDeck(local.id) ?? local, created, userId);
 }
 
 export async function transferDeck(

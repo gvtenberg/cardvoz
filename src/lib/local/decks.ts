@@ -201,7 +201,6 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
         answer: c.answer,
         displayOrder: c.displayOrder,
         createdAt: c.createdAt,
-        // Ausentes na API sem a migration de estatísticas: storeCopy mantém os do aparelho
         correctCount: c.correctCount,
         incorrectCount: c.incorrectCount,
         lastAnsweredAt: c.lastAnsweredAt,
@@ -213,36 +212,12 @@ export function fromApiDeck(d: DeckDetailResponse, userId: string): LocalDeck {
     account: { userId, remoteId: d.id, remoteUpdatedAt: d.updatedAt ?? null },
     editedOffAccount: false,
     upload: null,
-    questionLang: null,
-    answerLang: null,
+    questionLang: d.questionLanguage ?? null,
+    answerLang: d.answerLanguage ?? null,
     lastStudiedAt: d.lastStudiedAt,
   };
 }
 
-/**
- * Acertos e erros da cópia da conta. A API sem a migration de estatísticas não
- * manda esses campos: aí ficam os do aparelho, para atualizar a cópia não zerar.
- */
-export function keepLocalStats(remote: LocalDeck, existing: LocalDeck | null): LocalDeck {
-  const byId = new Map(existing?.cards.map((c) => [c.id, c]) ?? []);
-  return {
-    ...remote,
-    lastStudiedAt: remote.lastStudiedAt !== undefined ? remote.lastStudiedAt : existing?.lastStudiedAt ?? null,
-    cards: remote.cards.map((c) => {
-      if (c.correctCount !== undefined) return c;
-      const old = byId.get(c.id);
-      return {
-        ...c,
-        correctCount: old?.correctCount ?? 0,
-        incorrectCount: old?.incorrectCount ?? 0,
-        lastAnsweredAt: old?.lastAnsweredAt ?? null,
-        lastWasCorrect: old?.lastWasCorrect ?? null,
-        reviewLevel: old?.reviewLevel,
-        nextReviewAt: old?.nextReviewAt,
-      };
-    }),
-  };
-}
 
 export type DeckLanguages = { questionLang: string | null; answerLang: string | null };
 

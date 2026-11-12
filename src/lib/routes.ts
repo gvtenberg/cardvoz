@@ -24,6 +24,8 @@ export const routes = {
   forgotPassword: "/esqueci-senha/",
   /** Criar a nova senha com o código do link (#codigo=...). Pública */
   resetPassword: "/redefinir-senha/",
+  /** Confirmar o e-mail com o código do link (#codigo=...). Pública */
+  confirmEmail: "/confirmar-email/",
   /** Política de privacidade, pública */
   privacy: "/privacidade/",
   profile: "/perfil/",
@@ -48,6 +50,7 @@ export const PUBLIC_PATHS = [
   routes.register,
   routes.forgotPassword,
   routes.resetPassword,
+  routes.confirmEmail,
   routes.privacy,
   routes.decks,
   routes.newDeck,

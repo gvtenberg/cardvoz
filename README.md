@@ -121,9 +121,7 @@ O `npm run build` roda `next build` e depois `scripts/gerar-sw.mjs`, que cria o 
 - `CORS_ALLOWED_ORIGINS=https://<seu-site>.onrender.com` para liberar o site a chamar a API.
 - `GOOGLE_CLIENT_ID` (o mesmo do site) e `GOOGLE_CLIENT_SECRET`.
 
-**Rotas com menos chamadas (parte 4 do modo sem login):** o site usa `POST /api/decks/import`, `GET /api/decks/changes` e `POST /api/study-sessions/complete` (implementadas na branch `feat/estatisticas-das-fichas` da `cardvoz-api`), mandando o id gerado no aparelho para um pedido repetido não duplicar. Enquanto a API publicada responder 404/405, cai no caminho antigo (uma chamada por ficha ou por resposta).
-
-**Acertos e erros:** precisam da migration `20261111000000_estatisticas_das_fichas.sql` do `cardvoz-db` e da API da mesma branch. Antes disso, o site guarda os números só no aparelho e não os apaga ao atualizar as cópias da conta.
+**Rotas com menos chamadas:** o site usa `POST /api/decks/import` (criar ou levar um baralho), `GET /api/decks/changes` (atualizar as cópias) e `POST /api/study-sessions/complete` (uma rodada de estudo), uma chamada cada, mandando o id gerado no aparelho para um pedido repetido não duplicar. Desde a 0.11.0 não há mais o caminho antigo (uma chamada por ficha ou por resposta): o site precisa da API com essas rotas.
 
 **Ordem ao publicar mudanças de login:** primeiro a migration do `cardvoz-db` (`npx supabase db push`), depois a API, por último o site. O site novo chama `/api/auth/google`, que só existe na API nova.
 

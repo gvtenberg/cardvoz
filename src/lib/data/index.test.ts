@@ -4,7 +4,6 @@ vi.mock("@/lib/api", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/lib/api")>();
   return {
     ...real,
-    getDecks: vi.fn(),
     getDeck: vi.fn(),
     getDeckChanges: vi.fn(),
     importDeck: vi.fn(),
@@ -20,7 +19,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
 });
 
 import * as api from "@/lib/api";
-import { RouteMissingError, type DeckDetailResponse } from "@/lib/api";
+import { type DeckDetailResponse } from "@/lib/api";
 import { clearSavedAccount, getSavedAccount, saveAccount } from "@/lib/local/account";
 import { findLocalDeck, fromApiDeck, saveLocalDeck } from "@/lib/local/decks";
 import { enqueue, readQueue } from "@/lib/local/queue";
@@ -54,6 +53,11 @@ function remote(id: string, updatedAt: string, cards = 1): DeckDetailResponse {
       createdAt: "x",
     })),
   };
+}
+
+/** Resposta de GET /api/decks/changes: os baralhos que mudaram e os ids de todos */
+function changes(decks: DeckDetailResponse[], allIds: string[] = decks.map((d) => d.id)) {
+  vi.mocked(api.getDeckChanges).mockResolvedValue({ decks, allIds, serverTime: "agora" });
 }
 
 beforeEach(() => {
@@ -100,28 +104,24 @@ describe("camada de dados", () => {
     expect(api.updateCard).not.toHaveBeenCalled();
   });
 
-  it("sincroniza só o que mudou e remove o que saiu da conta", async () => {
+  it("sincroniza numa chamada: atualiza o que mudou e remove o que saiu da conta", async () => {
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("igual", "t1"), USER.id));
     saveLocalDeck(fromApiDeck(remote("mudou", "t1"), USER.id));
     saveLocalDeck(fromApiDeck(remote("sumiu", "t1"), USER.id));
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.getDecks).mockResolvedValue([
-      { ...remote("igual", "t1"), cards: undefined } as never,
-      { ...remote("mudou", "t2", 2), cards: undefined } as never,
-    ]);
-    vi.mocked(api.getDeck).mockResolvedValue(remote("mudou", "t2", 2));
+    changes([remote("mudou", "t2", 2)], ["igual", "mudou"]);
 
     setOnline(true);
     await syncAccount();
 
-    expect(api.getDeck).toHaveBeenCalledTimes(1);
-    expect(api.getDeck).toHaveBeenCalledWith("mudou");
+    expect(api.getDeckChanges).toHaveBeenCalledTimes(1);
     expect(findLocalDeck("mudou")?.cards).toHaveLength(2);
     expect(findLocalDeck("sumiu")).toBeNull();
     expect(findLocalDeck("igual")).not.toBeNull();
+    expect(getSavedAccount()?.lastSync).toBe("agora");
   });
+
 
   it("sem internet no meio da fila, não apaga nem atualiza cópias", async () => {
     saveAccount(USER);
@@ -134,7 +134,7 @@ describe("camada de dados", () => {
     const result = await syncAccount();
 
     expect(result.offline).toBe(true);
-    expect(api.getDecks).not.toHaveBeenCalled();
+    expect(api.getDeckChanges).not.toHaveBeenCalled();
     expect(findLocalDeck("r1")).not.toBeNull();
     expect(readQueue(USER.id)).toHaveLength(1);
   });
@@ -162,10 +162,8 @@ describe("camada de dados: correções da revisão", () => {
     const { removeAccountCopies } = await import("./transfer");
     saveAccount(USER);
     setActiveAccount(USER);
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
     let release: (v: unknown) => void = () => {};
-    vi.mocked(api.getDecks).mockReturnValue(new Promise((r) => (release = r)) as never);
-    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t1"));
+    vi.mocked(api.getDeckChanges).mockReturnValue(new Promise((r) => (release = r)) as never);
 
     setOnline(true);
     const sync = syncAccount();
@@ -174,12 +172,13 @@ describe("camada de dados: correções da revisão", () => {
     setActiveAccount(null);
     removeAccountCopies(USER.id);
     clearSavedAccount();
-    release([{ ...remote("r1", "t1"), cards: undefined }]);
+    release({ decks: [remote("r1", "t1")], allIds: ["r1"], serverTime: "agora" });
     await sync;
 
     expect(findLocalDeck("r1")).toBeNull();
     expect(getSavedAccount()).toBeNull();
   });
+
 
   it("estudo e edição com o id antigo da ficha usam o id novo", () => {
     setActiveAccount(USER);
@@ -201,15 +200,14 @@ describe("camada de dados: correções da revisão", () => {
     setActiveAccount(USER);
     const device = fromApiDeck(remote("l1", "t1"), USER.id);
     saveLocalDeck({ ...device, kind: "aparelho", account: null, upload: { remoteId: "meio" } });
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("meio", "t1"), cards: undefined } as never]);
-    vi.mocked(api.getDeck).mockResolvedValue(remote("meio", "t1"));
+    changes([remote("meio", "t1")]);
 
     setOnline(true);
     await syncAccount();
 
     expect(findLocalDeck("meio")).toBeNull();
   });
+
 
   it("ao voltar a internet: sessão em erro é restaurada; logada sincroniza", async () => {
     const { reconnectAction } = await import("./index");
@@ -245,40 +243,36 @@ describe("camada de dados: pontos menores", () => {
 });
 
 describe("acertos e erros na sincronização", () => {
-  it("baralho estudado em outro aparelho é buscado de novo, mesmo sem outra mudança", async () => {
+  it("baralho estudado em outro aparelho chega com os números novos", async () => {
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck({ ...remote("r1", "t1"), lastStudiedAt: "s1" }, USER.id));
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t1"), lastStudiedAt: "s2", cards: undefined } as never]);
     const studied = remote("r1", "t1");
-    studied.cards[0] = { ...studied.cards[0], correctCount: 0, incorrectCount: 1, lastWasCorrect: false, lastAnsweredAt: "s2" };
-    vi.mocked(api.getDeck).mockResolvedValue({ ...studied, lastStudiedAt: "s2" });
+    studied.cards[0] = { ...studied.cards[0], correctCount: 0, incorrectCount: 1, lastWasCorrect: false, lastAnsweredAt: "s2", reviewLevel: 0, nextReviewAt: "s2" };
+    changes([{ ...studied, lastStudiedAt: "s2" }]);
 
     setOnline(true);
     await syncAccount();
 
-    expect(api.getDeck).toHaveBeenCalledWith("r1");
-    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false });
+    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false, reviewLevel: 0 });
   });
 
-  it("API sem os campos de acertos e erros não zera os números do aparelho", async () => {
+
+  it("estudo pendente na fila não é sobrescrito pela cópia da conta", async () => {
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
     saveStudyResult("r1", { startedAt: "a", answers: [{ cardId: "r1-c0", wasCorrect: false, answeredAt: "b" }] });
-    // A fila foi enviada e a conta mudou (nome novo), mas a API ainda não manda os números
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.completeStudySession).mockResolvedValue(undefined);
-    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t2"), cards: undefined } as never]);
-    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t2"));
+    // Sem internet para a fila: a cópia da conta (sem o estudo) não pode apagar o resultado
+    vi.mocked(api.completeStudySession).mockRejectedValue(new api.ApiError(0, "sem internet"));
+    changes([remote("r1", "t2")]);
 
     setOnline(true);
     await syncAccount();
 
-    expect(findLocalDeck("r1")?.account?.remoteUpdatedAt).toBe("t2");
     expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false });
   });
+
 });
 
 describe("idioma das fichas na camada de dados", () => {
@@ -297,16 +291,14 @@ describe("idioma das fichas na camada de dados", () => {
     expect(readQueue(USER.id)).toMatchObject([{ type: "idiomaBaralho", deckId: "r1", questionLang: "en", answerLang: null }]);
   });
 
-  it("API sem o campo de idioma não apaga o idioma escolhido no aparelho", async () => {
+  it("o idioma escolhido vai para a conta pela fila", async () => {
     const { setDeckLanguages } = await import("./index");
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck(remote("r1", "t1"), USER.id));
     setDeckLanguages("r1", { questionLang: "en", answerLang: "pt-BR" });
     vi.mocked(api.updateDeck).mockResolvedValue(remote("r1", "t2") as never);
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.getDecks).mockResolvedValue([{ ...remote("r1", "t2", 2), cards: undefined } as never]);
-    vi.mocked(api.getDeck).mockResolvedValue(remote("r1", "t2", 2));
+    changes([{ ...remote("r1", "t2", 2), questionLanguage: "en", answerLanguage: "pt-BR" }]);
 
     setOnline(true);
     await syncAccount();
@@ -316,19 +308,17 @@ describe("idioma das fichas na camada de dados", () => {
     expect(findLocalDeck("r1")?.cards).toHaveLength(2);
   });
 
-  it("API nova traz o idioma escolhido em outro aparelho (ausente = português)", async () => {
+
+  it("traz o idioma escolhido em outro aparelho (ausente = português)", async () => {
     saveAccount(USER);
     setActiveAccount(USER);
     saveLocalDeck({ ...fromApiDeck(remote("r1", "t1"), USER.id), questionLang: "es" });
-    const novo = remote("r1", "t2");
-    novo.cards[0] = { ...novo.cards[0], reviewLevel: 0 };
-    vi.mocked(api.getDeckChanges).mockRejectedValue(new RouteMissingError());
-    vi.mocked(api.getDecks).mockResolvedValue([{ ...novo, answerLanguage: "en", cards: undefined } as never]);
-    vi.mocked(api.getDeck).mockResolvedValue({ ...novo, answerLanguage: "en" });
+    changes([{ ...remote("r1", "t2"), answerLanguage: "en" }]);
 
     setOnline(true);
     await syncAccount();
 
     expect(findLocalDeck("r1")).toMatchObject({ questionLang: null, answerLang: "en" });
   });
+
 });

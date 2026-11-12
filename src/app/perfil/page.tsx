@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download, LogOut, Trash2 } from "lucide-react";
 import { Button, DeleteAccountDialog, LogoutDialog, useAuth } from "@/components";
-import { errorMessage, exportAccount } from "@/lib/api";
+import { errorMessage, exportAccount, resendEmailConfirmation } from "@/lib/api";
 import { downloadJson } from "@/lib/exportDecks";
 import styles from "./page.module.scss";
 
@@ -15,6 +15,20 @@ export default function PerfilPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [sendingConfirmation, setSendingConfirmation] = useState(false);
+
+  const sendConfirmation = async () => {
+    if (sendingConfirmation) return;
+    setSendingConfirmation(true);
+    try {
+      setConfirmMessage(await resendEmailConfirmation());
+    } catch (error) {
+      setConfirmMessage(errorMessage(error, "Não foi possível enviar o link. Tente de novo."));
+    } finally {
+      setSendingConfirmation(false);
+    }
+  };
 
   // Baixa tudo o que a conta guarda (LGPD), num arquivo JSON
   const downloadData = async () => {
@@ -49,13 +63,34 @@ export default function PerfilPage() {
           </div>
           <div>
             <dt>E-mail</dt>
-            <dd>{user.email}</dd>
+            <dd>
+              {user.email}
+              {user.emailConfirmed !== undefined && (
+                <span className={styles.emailState}>
+                  {user.emailConfirmed ? " (confirmado)" : " (não confirmado)"}
+                </span>
+              )}
+            </dd>
           </div>
           <div>
             <dt>Conta criada em</dt>
             <dd>{dateFormat.format(new Date(user.createdAt))}</dd>
           </div>
         </dl>
+        {/* Confirmar não é obrigatório: serve para entrar também com o Google nesta conta */}
+        {user.emailConfirmed === false && (
+          <div className={styles.confirm}>
+            <p>
+              Confirme o seu e-mail para poder entrar também com o Google nesta conta.
+            </p>
+            <p role="status" className={confirmMessage ? styles.status : "sr-only"}>
+              {confirmMessage}
+            </p>
+            <Button variant="soft" size="md" onClick={sendConfirmation} aria-disabled={sendingConfirmation || undefined}>
+              {sendingConfirmation ? "Enviando..." : "Enviar link de confirmação"}
+            </Button>
+          </div>
+        )}
       </section>
 
       <Button variant="secondary" size="lg" block onClick={() => setLogoutOpen(true)}>
