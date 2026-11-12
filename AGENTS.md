@@ -133,6 +133,8 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 - Se o mesmo baralho for editado em dois aparelhos, vale a última alteração enviada (decisão do grupo).
 - Ao entrar, `AccountTransfer` pergunta se leva os baralhos do aparelho para a conta; ao sair, `LogoutDialog` pergunta se mantém ou apaga as cópias. Sessão que termina sozinha vale como "manter". Regras em `data/transfer.ts`.
 - Rotas da parte 4 (`importDeck`, `getDeckChanges`, `completeStudySession`) vão com o id gerado no aparelho (`id`): a API responde 200 com o que já salvou se o mesmo pedido chegar de novo. Desde a 0.11.0 não há caminho antigo: erro dessas rotas é erro de verdade (`ApiError`).
+- Esse 200 traz o baralho **como foi salvo na primeira vez**, sem o que mudou depois. Por isso, depois de todo `importDeck`, `reconcileCreated` (`local/queue.ts`) compara o que voltou com o que deveria estar na conta e põe as diferenças (fichas que faltam, fichas excluídas, nome, idioma) no começo da fila. Nunca apaga o baralho da conta para recomeçar: outro aparelho pode já tê-lo estudado.
+- Estudar não conta como edição. Num baralho que veio da conta e está só no aparelho (depois de sair mantendo as cópias), as rodadas ficam em `offAccountStudies` e entram na fila quando ele volta para a conta (`relinkUnchanged`).
 
 **Cliente da API (`src/lib/api.ts`)**
 
