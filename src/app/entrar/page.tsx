@@ -202,6 +202,9 @@ function EntrarContent() {
           <Button type="submit" variant="primary" size="lg" block aria-disabled={submitting || undefined}>
             {submitting ? "Entrando..." : "Entrar"}
           </Button>
+          <Button href={routes.forgotPassword} variant="ghost" size="sm" block>
+            Esqueci minha senha
+          </Button>
         </form>
 
         {hasGoogle && (

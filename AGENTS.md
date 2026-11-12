@@ -103,6 +103,8 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 | `/` | Landing page (apresentação do produto), pública | — |
 | `/entrar/` | Entrar com e-mail e senha ou com Google, pública. Também recebe a volta do Google (`?code=&state=` ou `?error=`) | `voltar` = caminho interno para depois de entrar |
 | `/cadastro/` | Criar conta com nome, e-mail e senha, pública | `voltar`, como em `/entrar/` |
+| `/esqueci-senha/` | Pedir o link de nova senha por e-mail, pública | — |
+| `/redefinir-senha/` | Criar a nova senha com o código do link, pública | `#codigo=` (depois do `#`, não vai a servidor nenhum) |
 | `/privacidade/` | Política de privacidade, pública | — |
 | `/perfil/` | Dados da conta e "Sair da conta" | — |
 | `/baralhos/` | Lista de baralhos | — |
@@ -111,8 +113,8 @@ scripts/conferir-telas.mjs      # npm run telas: rolagem lateral, texto < 16px e
 | `/baralho/adicionar/?id=<slug>` | Adicionar fichas | `id` = slug ou id |
 | `/estudar/?deck=<slug>` | Estudo | `deck` = slug ou id; `so=revisar` = Revisar agora (erradas e as da data de revisão) |
 
-- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.review(slug)` (Revisar agora), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
-- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
+- **Sempre gere links com `routes`** (`src/lib/routes.ts`): `routes.deck(slug)`, `routes.addCards(slug)`, `routes.study(slug)`, `routes.review(slug)` (Revisar agora), `routes.newDeck`, `routes.importDeck`, `routes.decks` (lista de baralhos), `routes.home` (landing page), `routes.login`, `routes.loginThenReturn(caminho)`, `routes.register`, `routes.registerThenReturn(caminho)`, `routes.forgotPassword`, `routes.resetPassword`, `routes.profile` e `routes.privacy`. Não escreva caminhos à mão.
+- **Toda página pede login, exceto as de `PUBLIC_PATHS`** (`/`, `/entrar/`, `/cadastro/`, `/esqueci-senha/`, `/redefinir-senha/`, `/privacidade/` e as de baralhos e estudo: `/baralhos/`, `/baralhos/novo/`, `/baralho/`, `/baralho/adicionar/`, `/estudar/`). Hoje só `/perfil/` é protegida. Quem protege é o `<AuthGate>` no layout: página nova já nasce protegida, sem checagem própria. Para criar uma página pública, adicione-a em `PUBLIC_PATHS`.
 - Endereço de retorno vindo da URL (`?voltar=`) passa sempre por `safeRedirect()`, que só aceita caminhos internos (evita *open redirect*).
 - Dados variáveis (qual baralho) vão na **query string**, nunca em segmentos dinâmicos `[id]`, porque o site é estático.
 - Páginas que usam `useSearchParams` **precisam** de `<Suspense>` em volta do conteúdo (exigência do export estático). Padrão: um componente `XContent` com a lógica e o `export default` envolvendo-o em `<Suspense fallback={<XLoading />}>`.
@@ -440,7 +442,7 @@ npm run telas         # confere todas as telas no celular (com o site rodando; v
 - **Baixar meus dados e Excluir conta** ficam no Perfil (`DeleteAccountDialog`, `exportAccount`/`deleteAccount`). Excluir pede o e-mail e, se a conta tiver senha (`user.hasPassword`), a senha; depois tira as cópias da conta do aparelho.
 - **Dados no aparelho:** limpar os dados do navegador apaga os baralhos que estão só no aparelho. Mudar o formato do que fica no `localStorage` exige nova chave (`.v2`) e migração; dados inválidos vão para `<chave>.corrompido` em vez de quebrar a tela.
 - **Service worker:** depois de publicar, quem já abriu o site recebe a versão nova na próxima visita com internet. Para testar offline, use o build (`npx serve out`), não o `npm run dev`.
-- **Não há "Esqueci minha senha"** nem confirmação de e-mail no cadastro: os dois dependem de a API enviar e-mails, o que ainda não existe.
+- **"Esqueci minha senha"** (`/esqueci-senha/` e `/redefinir-senha/#codigo=...`) depende do SMTP configurado na API (sem ele, a tela mostra a mensagem do 503). O código vem depois do `#` e a página o tira da barra de endereço. Ainda **não há confirmação de e-mail** no cadastro.
 - O comando `next lint` está obsoleto a partir do Next 15.5; ao migrar para o Next 16, troque pelo ESLint direto.
 - **Fileira de botões no celular:** mais de dois botões lado a lado passam da largura da tela. A página ganha rolagem lateral e, como o `<dialog>` mede a largura pela página, os diálogos abertos nela também passam da tela, com o "Fechar" escondido (issues #10 e #11). Empilhe em coluna no celular e só ponha lado a lado a partir de `sm`, com `flex-wrap`. Nomes longos sem espaço (links colados numa ficha) quebram a linha por causa do `overflow-wrap` do `body`; num item de `flex`, use também `min-width: 0`.
 

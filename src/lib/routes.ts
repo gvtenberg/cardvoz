@@ -20,6 +20,10 @@ export const routes = {
   register: "/cadastro/",
   /** Criar conta e depois voltar para `voltar` (caminho interno) */
   registerThenReturn: (voltar: string) => `/cadastro/?voltar=${encodeURIComponent(voltar)}`,
+  /** Pedir o link de nova senha por e-mail. Pública */
+  forgotPassword: "/esqueci-senha/",
+  /** Criar a nova senha com o código do link (#codigo=...). Pública */
+  resetPassword: "/redefinir-senha/",
   /** Política de privacidade, pública */
   privacy: "/privacidade/",
   profile: "/perfil/",
@@ -42,6 +46,8 @@ export const PUBLIC_PATHS = [
   routes.home,
   routes.login,
   routes.register,
+  routes.forgotPassword,
+  routes.resetPassword,
   routes.privacy,
   routes.decks,
   routes.newDeck,

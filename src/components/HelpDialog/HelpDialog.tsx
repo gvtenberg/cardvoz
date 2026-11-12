@@ -152,6 +152,15 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
               Marque <strong>Mostrar senha</strong> para conferir o que você digitou.
             </li>
             <li>
+              Esqueceu a senha? Em <strong>Entrar</strong>, toque em{" "}
+              <strong>Esqueci minha senha</strong>: chega um link no seu e-mail para criar
+              uma nova.
+            </li>
+            <li>
+              No <strong>Perfil</strong>, <strong>Baixar meus dados</strong> salva tudo o
+              que a conta guarda, e <strong>Excluir conta</strong> apaga a conta.
+            </li>
+            <li>
               Você continua conectado neste aparelho por até 30 dias, mesmo fechando o
               navegador.
             </li>
