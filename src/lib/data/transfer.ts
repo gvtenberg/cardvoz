@@ -13,7 +13,7 @@ import {
   updateLocalDeck,
   type LocalDeck,
 } from "@/lib/local/decks";
-import { clearQueue, hasEditsPendingFor, languagesInput } from "@/lib/local/queue";
+import { clearQueue, enqueue, hasEditsPendingFor, languagesInput, reconcileCreated } from "@/lib/local/queue";
 import { readJson, writeJson } from "@/lib/local/storage";
 import { statsPayload } from "@/lib/studyStats";
 import { isCurrentAccount } from "./index";
@@ -33,7 +33,11 @@ export function relinkUnchanged(userId: string): number {
   let count = 0;
   for (const deck of listLocalDecks()) {
     if (deck.kind === "aparelho" && deck.account?.userId === userId && !deck.editedOffAccount) {
-      updateLocalDeck(deck.id, (d) => ({ ...d, kind: "conta" }));
+      // O que foi estudado sem login vai para a conta como estudo comum
+      for (const study of deck.offAccountStudies ?? []) {
+        enqueue(userId, { type: "estudo", deckId: deck.id, ...study });
+      }
+      updateLocalDeck(deck.id, (d) => ({ ...d, kind: "conta", offAccountStudies: undefined }));
       count++;
     }
   }
@@ -91,7 +95,42 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
     // O histórico estudado sem login vai junto, para não recomeçar do zero
     cards: cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
   });
-  replaceWithRemote(findLocalDeck(local.id) ?? local, created, userId);
+
+  // A pessoa saiu da conta enquanto o envio terminava: não traz a conta de volta ao aparelho
+  if (!isCurrentAccount(userId)) return;
+  // Compara com o baralho como está agora: uma tentativa anterior (resposta perdida,
+  // ou um envio pela metade de antes da 0.11) devolve o que a conta guardou naquela
+  // vez, sem as edições feitas depois. As diferenças vão para a fila
+  const fresh = findLocalDeck(local.id) ?? local;
+  const sorted = [...fresh.cards].sort((a, b) => a.displayOrder - b.displayOrder);
+  const { ids, changed } = reconcileCreated(userId, created, {
+    title,
+    questionLang: fresh.questionLang,
+    answerLang: fresh.answerLang,
+    cards: sorted.map((c) => ({ localId: c.id, question: c.question, answer: c.answer, ...statsPayload(c) })),
+  });
+  if (!changed) {
+    replaceWithRemote(fresh, created, userId);
+    return;
+  }
+  // Fica com o conteúdo do aparelho, já como cópia da conta: as fichas que a conta
+  // tem passam a usar o id dela, e as outras esperam a fila
+  const keepOld = fresh.id !== fresh.account?.remoteId && fresh.id !== created.id;
+  removeLocalDeck(fresh.id);
+  saveLocalDeck({
+    ...fresh,
+    id: created.id,
+    title,
+    aliases: keepOld ? [...fresh.aliases, fresh.id] : fresh.aliases,
+    kind: "conta",
+    account: { userId, remoteId: created.id, remoteUpdatedAt: created.updatedAt ?? null },
+    editedOffAccount: false,
+    upload: null,
+    cards: fresh.cards.map((c) => {
+      const remoteId = ids.get(c.id);
+      return remoteId ? { ...c, id: remoteId, aliases: [...(c.aliases ?? []), c.id] } : c;
+    }),
+  });
 }
 
 export async function transferDeck(

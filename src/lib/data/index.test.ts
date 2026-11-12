@@ -122,6 +122,15 @@ describe("camada de dados", () => {
     expect(getSavedAccount()?.lastSync).toBe("agora");
   });
 
+  it("estudo sem login num baralho que veio da conta fica guardado para ela", () => {
+    saveLocalDeck({ ...fromApiDeck(remote("r1", "t1"), USER.id), kind: "aparelho" });
+    saveStudyResult("r1", { startedAt: "a", answers: [{ cardId: "r1-c0", wasCorrect: true, answeredAt: "b" }] });
+    const local = findLocalDeck("r1");
+    expect(local?.offAccountStudies).toHaveLength(1);
+    expect(local?.cards[0].correctCount).toBe(1);
+    expect(readQueue(USER.id)).toHaveLength(0);
+  });
+
   it("resposta fora do formato não apaga as cópias da conta", async () => {
     saveAccount(USER);
     setActiveAccount(USER);
