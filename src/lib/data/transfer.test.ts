@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, RouteMissingError, type DeckDetailResponse } from "@/lib/api";
+import { ApiError, type DeckDetailResponse } from "@/lib/api";
 import { findLocalDeck, listLocalDecks, saveLocalDeck, type LocalDeck } from "@/lib/local/decks";
 import { enqueue, pendingCount } from "@/lib/local/queue";
 import {
@@ -50,12 +50,12 @@ function remote(id: string, questions: string[], title = "Biologia"): DeckDetail
 
 function fakeApi() {
   return {
-    importDeck: vi.fn().mockRejectedValue(new RouteMissingError()),
-    createDeck: vi.fn().mockResolvedValue({ id: "novo", slug: "novo", title: "Biologia", category: "Geral", cardCount: 0, createdAt: "x" }),
-    createCard: vi.fn().mockImplementation(async (c) => ({ ...c, id: `id-${c.question}`, createdAt: "x" })),
-    getDeck: vi.fn().mockResolvedValue(remote("novo", ["a", "b", "c", "d", "e"])),
+    // A API devolve o baralho criado com o id pedido e as fichas na ordem enviada
+    importDeck: vi.fn().mockImplementation(async (d: { id: string; title: string; cards: { question: string }[] }) =>
+      remote(d.id, d.cards.map((c) => c.question), d.title)
+    ),
+    getDeck: vi.fn().mockResolvedValue(null),
     deleteDeck: vi.fn().mockResolvedValue(undefined),
-    getDecks: vi.fn().mockResolvedValue([]),
   } satisfies Record<keyof TransferApi, unknown>;
 }
 
@@ -85,21 +85,24 @@ describe("levar para a conta", () => {
     expect(findDuplicate(other, USER)).toBeNull();
   });
 
-  it("sem a rota nova, cria o baralho e as fichas em ordem e vira cópia da conta", async () => {
+  it("leva o baralho numa chamada e vira cópia da conta", async () => {
     const local = deck("l1");
     const api = fakeApi();
 
     await transferDeck(local, "levar", USER, api, null);
 
-    expect(api.createDeck).toHaveBeenCalledWith({ title: "Biologia", category: "Geral" });
-    expect(api.createCard.mock.calls.map((c) => c[0].question)).toEqual(["a", "b", "c", "d", "e"]);
+    expect(api.importDeck).toHaveBeenCalledTimes(1);
+    const sent = api.importDeck.mock.calls[0][0];
+    expect(sent.cards.map((c: { question: string }) => c.question)).toEqual(["a", "b", "c", "d", "e"]);
+    // Id novo: o do aparelho pode ser o de um baralho que já existe na conta
+    expect(sent.id).not.toBe("l1");
     const moved = findLocalDeck("l1");
-    expect(moved?.id).toBe("novo");
+    expect(moved?.id).toBe(sent.id);
     expect(moved?.kind).toBe("conta");
     expect(moved?.aliases).toContain("l1");
   });
 
-  it("leva os acertos e erros estudados sem login, nas duas rotas", async () => {
+  it("leva os acertos e erros estudados sem login", async () => {
     const local = deck("l1");
     saveLocalDeck({
       ...local,
@@ -109,49 +112,29 @@ describe("levar para a conta", () => {
     });
     const api = fakeApi();
     await transferDeck(findLocalDeck("l1")!, "levar", USER, api, null);
-    expect(api.createCard.mock.calls[0][0]).toMatchObject({
-      question: "a", correctCount: 2, incorrectCount: 1, lastAnsweredAt: "t", lastWasCorrect: false,
-    });
-    expect(api.createCard.mock.calls[1][0]).not.toHaveProperty("correctCount");
-
-    const other = deck("l2");
-    saveLocalDeck({ ...other, cards: other.cards.map((c) => ({ ...c, correctCount: 1, incorrectCount: 0 })) });
-    const withRoute = fakeApi();
-    withRoute.importDeck.mockResolvedValue(remote("r9", ["a", "b", "c", "d", "e"]));
-    await transferDeck(findLocalDeck("l2")!, "levar", USER, withRoute, null);
-    expect(withRoute.importDeck.mock.calls[0][0].cards[0]).toMatchObject({ correctCount: 1, incorrectCount: 0 });
+    const cards = api.importDeck.mock.calls[0][0].cards;
+    expect(cards[0]).toMatchObject({ question: "a", correctCount: 2, incorrectCount: 1, lastWasCorrect: false });
+    expect(cards[1]).not.toHaveProperty("correctCount");
   });
 
-  it("retoma um envio interrompido sem criar o baralho de novo", async () => {
-    const local = deck("l1", { upload: { remoteId: "novo" } });
-    const api = fakeApi();
-    api.getDeck
-      .mockResolvedValueOnce(remote("novo", ["a", "b"]))
-      .mockResolvedValueOnce(remote("novo", ["a", "b", "c", "d", "e"]));
-
-    await transferDeck(local, "levar", USER, api, null);
-
-    expect(api.createDeck).not.toHaveBeenCalled();
-    expect(api.importDeck).not.toHaveBeenCalled();
-    expect(api.createCard.mock.calls.map((c) => [c[0].question, c[0].displayOrder])).toEqual([
-      ["c", 3], ["d", 4], ["e", 5],
-    ]);
-  });
-
-  it("guarda o id da conta antes das fichas, para retomar se cair a internet", async () => {
+  it("resposta perdida: tenta de novo com o mesmo id, sem duplicar", async () => {
     const local = deck("l1");
     const api = fakeApi();
-    api.createCard.mockRejectedValueOnce(new ApiError(0, "sem internet"));
-
+    api.importDeck.mockRejectedValueOnce(new ApiError(0, "resposta perdida"));
     await expect(transferDeck(local, "levar", USER, api, null)).rejects.toThrow();
-    expect(findLocalDeck("l1")?.upload).toEqual({ remoteId: "novo" });
+    const firstId = api.importDeck.mock.calls[0][0].id;
+    expect(findLocalDeck("l1")?.upload).toEqual({ remoteId: firstId });
+
+    await transferDeck(findLocalDeck("l1")!, "levar", USER, api, null);
+    expect(api.importDeck.mock.calls[1][0].id).toBe(firstId);
+    expect(findLocalDeck(firstId)?.kind).toBe("conta");
   });
 
   it("manter os dois leva com o nome do aparelho", async () => {
     const local = deck("l1");
     const api = fakeApi();
     await transferDeck(local, "manterDois", USER, api, { remoteId: "c1", remoteTitle: "Biologia" });
-    expect(api.createDeck).toHaveBeenCalledWith({ title: "Biologia (do aparelho)", category: "Geral" });
+    expect(api.importDeck.mock.calls[0][0].title).toBe("Biologia (do aparelho)");
   });
 
   it("ficar com o do aparelho apaga o da conta antes de levar", async () => {
@@ -160,7 +143,7 @@ describe("levar para a conta", () => {
     const api = fakeApi();
     await transferDeck(local, "ficarAparelho", USER, api, { remoteId: "c1", remoteTitle: "Biologia" });
     expect(api.deleteDeck).toHaveBeenCalledWith("c1");
-    expect(api.deleteDeck.mock.invocationCallOrder[0]).toBeLessThan(api.createDeck.mock.invocationCallOrder[0]);
+    expect(api.deleteDeck.mock.invocationCallOrder[0]).toBeLessThan(api.importDeck.mock.invocationCallOrder[0]);
     expect(findLocalDeck("c1")).toBeNull();
   });
 
@@ -171,7 +154,7 @@ describe("levar para a conta", () => {
     await transferDeck(local, "ficarConta", USER, api, { remoteId: "c1", remoteTitle: "Biologia" });
     expect(findLocalDeck("l1")).toBeNull();
     expect(findLocalDeck("c1")?.kind).toBe("conta");
-    expect(api.createDeck).not.toHaveBeenCalled();
+    expect(api.importDeck).not.toHaveBeenCalled();
   });
 });
 
@@ -220,23 +203,7 @@ describe("sair da conta: estudo pendente", () => {
 });
 
 describe("retomadas e motivo da saída", () => {
-  it("baralho levado cuja resposta se perdeu não é criado de novo", async () => {
-    const local = deck("l1");
-    const api = fakeApi();
-    api.importDeck.mockRejectedValueOnce(new ApiError(0, "resposta perdida"));
-    await expect(transferDeck(local, "levar", USER, api, null)).rejects.toThrow();
-    expect(findLocalDeck("l1")?.upload).toEqual({ remoteId: "" });
 
-    api.getDecks.mockResolvedValue([{ id: "novo", slug: "novo", title: "Biologia", category: "Geral", cardCount: 2, createdAt: "x" }]);
-    api.getDeck
-      .mockResolvedValueOnce(remote("novo", ["a", "b"]))
-      .mockResolvedValueOnce(remote("novo", ["a", "b", "c", "d", "e"]));
-    await transferDeck(findLocalDeck("l1")!, "levar", USER, api, null);
-
-    expect(api.importDeck).toHaveBeenCalledTimes(1);
-    expect(api.createDeck).not.toHaveBeenCalled();
-    expect(api.createCard.mock.calls.map((c) => c[0].question)).toEqual(["c", "d", "e"]);
-  });
 
   it("guarda se a saída foi pela pessoa ou pelo fim da sessão", async () => {
     const { leaveReason } = await import("./transfer");

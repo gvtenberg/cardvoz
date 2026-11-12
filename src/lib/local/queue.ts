@@ -7,7 +7,7 @@
  * Se o mesmo baralho for editado em dois aparelhos, vale a última alteração
  * enviada (decisão do grupo; sincronização completa fica para o futuro).
  */
-import { ApiError, RouteMissingError, type CardResponse, type DeckDetailResponse } from "@/lib/api";
+import { ApiError, type CardResponse, type DeckDetailResponse } from "@/lib/api";
 import { statsPayload, type CardStats } from "@/lib/studyStats";
 import { findLocalDeck, listLocalDecks, updateLocalDeck } from "./decks";
 import { readJson, removeKey, writeJson } from "./storage";
@@ -25,8 +25,6 @@ export type QueueItem = { id: string; createdAt: string } & (
       /** Idioma escolhido antes de o baralho chegar à conta (null = português) */
       questionLang?: string | null;
       answerLang?: string | null;
-      /** Já houve uma tentativa: a API pode ter criado o baralho e a resposta se perdido */
-      attempted?: boolean;
     }
   | { type: "idiomaBaralho"; deckId: string; questionLang: string | null; answerLang: string | null }
   | { type: "renomearBaralho"; deckId: string; title: string }
@@ -44,9 +42,6 @@ export type QueueItem = { id: string; createdAt: string } & (
       startedAt: string;
       completedAt: string;
       answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
-      /** Caminho antigo: sessão já aberta na API e quantas respostas ela já tem */
-      sessionId?: string;
-      sentAnswers?: number;
     }
 );
 
@@ -182,9 +177,8 @@ export function enqueue(userId: string, item: NewQueueItem): void {
 
 export type QueueApi = Pick<
   typeof import("@/lib/api"),
-  | "createDeck" | "importDeck" | "updateDeck" | "deleteDeck" | "createCard" | "updateCard" | "deleteCard"
-  | "completeStudySession" | "startStudySession" | "recordStudyReview" | "finishStudySession"
-  | "getDecks" | "getDeck"
+  | "importDeck" | "updateDeck" | "deleteDeck" | "createCard" | "updateCard" | "deleteCard"
+  | "completeStudySession"
 >;
 
 export interface QueueResult {
@@ -243,69 +237,6 @@ function removeFirst(userId: string, id: string) {
   writeQueue(userId, readQueue(userId).filter((i) => i.id !== id));
 }
 
-/** Atualiza um item da fila (progresso de uma retomada). */
-function patchItem(userId: string, id: string, change: Partial<QueueItem>) {
-  writeQueue(
-    userId,
-    readQueue(userId).map((i) => (i.id === id ? ({ ...i, ...change } as QueueItem) : i))
-  );
-}
-
-/**
- * Baralho que a API criou numa tentativa cuja resposta se perdeu: mesmo nome e
- * ainda desconhecido no aparelho. O mais novo, se houver mais de um.
- */
-export async function findOrphanDeck(
-  api: Pick<QueueApi, "getDecks">,
-  title: string,
-  knownIds: Set<string>
-): Promise<string | null> {
-  const remotes = await api.getDecks();
-  const orphans = remotes
-    .filter((d) => d.title === title && !knownIds.has(d.id))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  return orphans[0]?.id ?? null;
-}
-
-function knownRemoteIds(): Set<string> {
-  const ids = new Set<string>();
-  for (const deck of listLocalDecks()) {
-    ids.add(deck.id);
-    deck.aliases.forEach((a) => ids.add(a));
-    if (deck.account?.remoteId) ids.add(deck.account.remoteId);
-    if (deck.upload?.remoteId) ids.add(deck.upload.remoteId);
-  }
-  return ids;
-}
-
-/** Continua a partir de um baralho que já existe na API (criado antes, resposta perdida). */
-async function adoptDeck(
-  userId: string,
-  item: Extract<QueueItem, { type: "criarBaralho" }>,
-  remote: DeckDetailResponse
-) {
-  const ordered = [...remote.cards].sort((a, b) => a.displayOrder - b.displayOrder);
-  const ids = new Map<string, string>();
-  item.cards.forEach((c, i) => {
-    if (ordered[i]) ids.set(c.localId, ordered[i].id);
-  });
-  // As fichas que não chegaram viram itens próprios, na ordem
-  const now = new Date().toISOString();
-  const missing: QueueItem[] = item.cards.slice(ordered.length).map((c, i) => ({
-    id: crypto.randomUUID(),
-    createdAt: now,
-    type: "criarFicha",
-    deckId: remote.id,
-    localId: c.localId,
-    question: c.question,
-    answer: c.answer,
-    displayOrder: ordered.length + i + 1,
-    stats: statsPayload(c),
-  }));
-  const rest = readQueue(userId).filter((i) => i.id !== item.id);
-  writeQueue(userId, [...missing, ...rest]);
-  applyIds(userId, item.deckId, remote, ids);
-}
 
 /** Idioma para criar na API: só o que não é português (ausente = português). */
 export function languagesInput(questionLang?: string | null, answerLang?: string | null) {
@@ -319,56 +250,20 @@ export function languagesInput(questionLang?: string | null, answerLang?: string
 async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise<string | null> {
   switch (item.type) {
     case "criarBaralho": {
-      if (item.attempted) {
-        const orphanId = await findOrphanDeck(api, item.title, knownRemoteIds());
-        const orphan = orphanId ? await api.getDeck(orphanId) : null;
-        if (orphan) {
-          await adoptDeck(userId, item, orphan);
-          return null;
-        }
-      }
-      // Marca antes de criar: se a resposta se perder, a próxima vez procura antes
-      patchItem(userId, item.id, { attempted: true });
-      try {
-        // O id do aparelho vira o da conta: se a resposta se perder, repetir não duplica.
-        // As fichas vão sem acertos e erros: o estudo delas está na fila como item próprio
-        const created = await api.importDeck({
-          id: item.deckId,
-          title: item.title,
-          category: item.category,
-          ...languagesInput(item.questionLang, item.answerLang),
-          cards: item.cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
-        });
-        const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
-        const ids = new Map(item.cards.map((c, i) => [c.localId, ordered[i]?.id ?? c.localId]));
-        applyIds(userId, item.deckId, created, ids);
-        removeFirst(userId, item.id);
-        return null;
-      } catch (error) {
-        if (!(error instanceof RouteMissingError)) throw error;
-      }
-      // Sem a rota nova: cria o baralho e troca este item por uma ficha por item,
-      // para um envio interrompido não criar o baralho de novo
-      const deck = await api.createDeck({
+      // O id do aparelho vira o da conta: se a resposta se perder, repetir o pedido
+      // devolve o baralho já criado (200), sem duplicar. As fichas só levam o histórico
+      // importado de arquivo: o estudo depois da criação vai como item próprio
+      const created = await api.importDeck({
+        id: item.deckId,
         title: item.title,
         category: item.category,
         ...languagesInput(item.questionLang, item.answerLang),
+        cards: item.cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
       });
-      const now = new Date().toISOString();
-      const cardItems: QueueItem[] = item.cards.map((c, i) => ({
-        id: crypto.randomUUID(),
-        createdAt: now,
-        type: "criarFicha",
-        deckId: deck.id,
-        localId: c.localId,
-        question: c.question,
-        answer: c.answer,
-        displayOrder: i + 1,
-        stats: statsPayload(c),
-      }));
-      const rest = readQueue(userId).filter((i) => i.id !== item.id);
-      writeQueue(userId, [...cardItems, ...rest]);
-      applyIds(userId, item.deckId, { ...deck, cards: [] }, new Map());
+      const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
+      const ids = new Map(item.cards.map((c, i) => [c.localId, ordered[i]?.id ?? c.localId]));
+      applyIds(userId, item.deckId, created, ids);
+      removeFirst(userId, item.id);
       return null;
     }
     case "criarFicha": {
@@ -402,7 +297,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
       await api.deleteCard(item.cardId);
       break;
     case "estudo":
-      await sendStudy(userId, item, api);
+      await sendStudy(item, api);
       break;
   }
   removeFirst(userId, item.id);
@@ -429,42 +324,16 @@ function failureFor(item: QueueItem, status: number): string | null {
  * resposta e conclui, guardando o progresso para retomar a mesma sessão se cair
  * a internet (em vez de deixar uma sessão pela metade e abrir outra).
  */
-async function sendStudy(userId: string, item: Extract<QueueItem, { type: "estudo" }>, api: QueueApi) {
-  if (!item.sessionId) {
-    try {
-      await api.completeStudySession({
-        id: item.id,
-        deckId: item.deckId,
-        startedAt: item.startedAt,
-        completedAt: item.completedAt,
-        answers: item.answers,
-      });
-      return;
-    } catch (error) {
-      if (!(error instanceof RouteMissingError)) throw error;
-    }
-  }
-
-  let sessionId = item.sessionId;
-  if (!sessionId) {
-    sessionId = (await api.startStudySession({ deckId: item.deckId })).id;
-    patchItem(userId, item.id, { sessionId, sentAnswers: 0 });
-  }
-  for (let i = item.sentAnswers ?? 0; i < item.answers.length; i++) {
-    const answer = item.answers[i];
-    try {
-      await api.recordStudyReview(sessionId, {
-        cardId: answer.cardId,
-        wasCorrect: answer.wasCorrect,
-        voiceUsed: false,
-      });
-    } catch (error) {
-      // Ficha excluída enquanto a pessoa estudava: pula só ela
-      if (!(error instanceof ApiError && error.status === 404)) throw error;
-    }
-    patchItem(userId, item.id, { sentAnswers: i + 1 });
-  }
-  await api.finishStudySession(sessionId);
+async function sendStudy(item: Extract<QueueItem, { type: "estudo" }>, api: QueueApi) {
+  // Uma chamada com a rodada inteira; o id do item evita sessão duplicada se a
+  // resposta se perder e o pedido for repetido
+  await api.completeStudySession({
+    id: item.id,
+    deckId: item.deckId,
+    startedAt: item.startedAt,
+    completedAt: item.completedAt,
+    answers: item.answers,
+  });
 }
 
 /** Recusa definitiva da API (4xx): não adianta tentar de novo. */

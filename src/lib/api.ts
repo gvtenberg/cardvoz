@@ -188,31 +188,6 @@ export async function deleteCard(id: string): Promise<void> {
   await fetchApi<void>(`/cards/${id}`, { method: "DELETE" });
 }
 
-export async function startStudySession(data: {
-  deckId?: string;
-  deckSlug?: string;
-}): Promise<StudySessionResponse> {
-  return fetchApi<StudySessionResponse>("/study-sessions/start", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-/** Registra a resposta de uma ficha (a tela já calcula o placar sozinha). */
-export async function recordStudyReview(
-  sessionId: string,
-  data: { cardId: string; wasCorrect: boolean; voiceUsed: boolean }
-): Promise<void> {
-  await fetchApi<StudyReviewResponse>(`/study-sessions/${sessionId}/review`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-export async function finishStudySession(sessionId: string): Promise<StudySessionResponse> {
-  return fetchApi<StudySessionResponse>(`/study-sessions/${sessionId}/finish`, { method: "POST" });
-}
-
 export async function getStudyHistory(deckId?: string): Promise<StudySessionResponse[]> {
   const query = deckId ? `?deckId=${deckId}` : "";
   return fetchApi<StudySessionResponse[]>(`/study-sessions/history${query}`);
@@ -230,32 +205,7 @@ export async function deleteAccount(data: { confirmEmail: string; password?: str
   await fetchApi<void>("/account/delete", { method: "POST", body: JSON.stringify(data) });
 }
 
-// --- Rotas com menos chamadas (parte 4, na cardvoz-api) ----------------------
-// Enquanto a API não as tiver, respondem 404/405 e o site usa o caminho antigo.
-
-/** A rota ainda não existe na API publicada. */
-export class RouteMissingError extends Error {
-  constructor() {
-    super("Rota ainda não disponível na API.");
-    this.name = "RouteMissingError";
-  }
-}
-
-// Lembra as rotas ausentes para não tentar de novo a cada chamada da mesma visita
-const missingRoutes = new Set<string>();
-
-async function fetchNewRoute<T>(route: string, endpoint: string, options?: RequestInit): Promise<T> {
-  if (missingRoutes.has(route)) throw new RouteMissingError();
-  try {
-    return await fetchApi<T>(endpoint, options);
-  } catch (error) {
-    if (error instanceof ApiError && (error.status === 404 || error.status === 405)) {
-      missingRoutes.add(route);
-      throw new RouteMissingError();
-    }
-    throw error;
-  }
-}
+// --- Rotas com menos chamadas (parte 4) -------------------------------------
 
 /**
  * Cria o baralho com todas as fichas numa chamada só (tudo ou nada). Com `id`
@@ -268,7 +218,7 @@ export async function importDeck(data: {
   description?: string;
   cards: ({ question: string; answer: string } & CardStats)[];
 } & DeckLanguagesInput): Promise<DeckDetailResponse> {
-  return fetchNewRoute("import", "/decks/import", { method: "POST", body: JSON.stringify(data) });
+  return fetchApi<DeckDetailResponse>("/decks/import", { method: "POST", body: JSON.stringify(data) });
 }
 
 /** Baralhos criados ou alterados depois de `since`, já com as fichas. */
@@ -276,21 +226,12 @@ export async function getDeckChanges(
   since: string | null
 ): Promise<{ decks: DeckDetailResponse[]; allIds: string[]; serverTime: string }> {
   const query = since ? `?since=${encodeURIComponent(since)}` : "";
-  const result = await fetchNewRoute<{ decks?: unknown; allIds?: unknown; serverTime?: unknown }>(
-    "changes",
-    `/decks/changes${query}`
-  );
-  // Na API sem a rota, um baralho com endereço "changes" responde aqui: não é a lista de alterações
-  if (!Array.isArray(result?.decks) || !Array.isArray(result?.allIds) || typeof result?.serverTime !== "string") {
-    throw new RouteMissingError();
-  }
-  return result as { decks: DeckDetailResponse[]; allIds: string[]; serverTime: string };
+  return fetchApi<{ decks: DeckDetailResponse[]; allIds: string[]; serverTime: string }>(`/decks/changes${query}`);
 }
 
 /**
- * Guarda uma sessão de estudo já concluída (feita com ou sem internet). Sem a
- * rota nova, a fila usa start + review + finish e guarda o progresso para
- * retomar a mesma sessão (ver lib/local/queue.ts).
+ * Guarda uma sessão de estudo já concluída (feita com ou sem internet), com
+ * todas as respostas numa chamada só.
  */
 export async function completeStudySession(data: {
   /** Gerado no aparelho: o mesmo pedido repetido não duplica a sessão nem os acertos */
@@ -300,7 +241,7 @@ export async function completeStudySession(data: {
   completedAt: string;
   answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[];
 }): Promise<void> {
-  await fetchNewRoute("complete", "/study-sessions/complete", {
+  await fetchApi<void>("/study-sessions/complete", {
     method: "POST",
     body: JSON.stringify(data),
   });

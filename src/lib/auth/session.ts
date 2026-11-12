@@ -18,7 +18,7 @@ export interface UserResponse {
   name: string;
   email: string;
   createdAt: string;
-  /** A conta tem senha (ausente na API antiga: o site pede a senha por garantia) */
+  /** A conta tem senha (quem entra só com o Google não tem) */
   hasPassword?: boolean;
 }
 
