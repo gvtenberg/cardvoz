@@ -57,7 +57,7 @@
 
   &:focus-visible {
     @include focus-ring;
-    border-radius: 0.25rem;
+    border-radius: $radius-xs;
   }
 }
 

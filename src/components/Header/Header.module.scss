@@ -111,12 +111,13 @@
 .helpButton {
   color: var(--primary-soft-text);
   background-color: var(--primary-soft);
+  border-color: var(--primary-soft-text);
 }
 
 .menuButton {
   color: var(--ink);
   background-color: var(--surface);
-  border-color: var(--border);
+  border-color: var(--border-strong);
 
   @include respond-to(md) {
     display: none;
