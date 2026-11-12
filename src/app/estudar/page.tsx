@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Eye, PartyPopper, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Button, Skeleton, LoadingStatus } from "@/components";
 import type { CardResponse } from "@/lib/api";
@@ -64,6 +64,7 @@ function isInteractiveTarget(el: Element | null): boolean {
 
 function EstudarContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const deckSlug = searchParams.get("deck") || "";
   // "Revisar agora": a rodada tem só as fichas erradas e as que chegaram na data de
   // revisão (o endereço antigo, so=erradas, continua valendo)
@@ -277,7 +278,16 @@ function EstudarContent() {
               ? <>A próxima revisão de <strong>{deck.title}</strong> é em {nextReview}.</>
               : <>Você ainda não estudou <strong>{deck.title}</strong>. Comece estudando todas.</>}
           </p>
-          <Button href={routes.study(deck.slug || deck.id)} variant="primary" size="lg">
+          {/* Mesmo endereço sem o "so": um link não remontaria a página e o filtro
+              de revisão continuaria ligado. A rodada recomeça aqui e a URL acompanha */}
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => {
+              restartSession(false);
+              router.replace(routes.study(deck.slug || deck.id));
+            }}
+          >
             <Play style={{ fill: "currentColor" }} aria-hidden="true" />
             <span>Estudar todas</span>
           </Button>
