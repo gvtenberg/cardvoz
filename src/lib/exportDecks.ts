@@ -1,20 +1,49 @@
 /**
  * Exportar baralhos em arquivo JSON, no mesmo formato que a importação lê:
  * um baralho é { "titulo", "fichas": [{ "pergunta", "resposta" }] } e "todos os
- * baralhos" é uma lista desses objetos. Funciona sem login.
+ * baralhos" é uma lista desses objetos. Funciona sem login. Fichas já estudadas
+ * levam acertos, erros e a revisão, para importar de volta sem perder o histórico.
  */
+import { reviewState, type CardStats } from "@/lib/studyStats";
+
+/** Histórico de uma ficha no arquivo (só em fichas já estudadas) */
+export interface ExportedStats {
+  acertos?: number;
+  erros?: number;
+  /** Data da resposta mais recente (ISO) e se ela foi "Acertei" */
+  ultimaResposta?: string;
+  acertouUltima?: boolean;
+  /** Revisão espaçada: nível (0 a 6) e data da próxima revisão (ISO) */
+  nivelRevisao?: number;
+  proximaRevisao?: string;
+}
 
 export interface ExportedDeck {
   titulo: string;
   /** Idioma das perguntas e das respostas (ex.: "en"); ausente = português */
   idiomaPerguntas?: string;
   idiomaRespostas?: string;
-  fichas: { pergunta: string; resposta: string }[];
+  fichas: ({ pergunta: string; resposta: string } & ExportedStats)[];
+}
+
+function exportedStats(card: CardStats): ExportedStats {
+  const correct = card.correctCount ?? 0;
+  const incorrect = card.incorrectCount ?? 0;
+  if (correct + incorrect === 0) return {};
+  const review = reviewState(card);
+  return {
+    acertos: correct,
+    erros: incorrect,
+    ...(card.lastAnsweredAt && typeof card.lastWasCorrect === "boolean"
+      ? { ultimaResposta: card.lastAnsweredAt, acertouUltima: card.lastWasCorrect }
+      : {}),
+    ...(review.nextReviewAt ? { nivelRevisao: review.level, proximaRevisao: review.nextReviewAt } : {}),
+  };
 }
 
 export function toExported(deck: {
   title: string;
-  cards: { question: string; answer: string }[];
+  cards: ({ question: string; answer: string } & CardStats)[];
   questionLang?: string | null;
   answerLang?: string | null;
 }): ExportedDeck {
@@ -22,7 +51,7 @@ export function toExported(deck: {
     titulo: deck.title,
     ...(deck.questionLang && { idiomaPerguntas: deck.questionLang }),
     ...(deck.answerLang && { idiomaRespostas: deck.answerLang }),
-    fichas: deck.cards.map((c) => ({ pergunta: c.question, resposta: c.answer })),
+    fichas: deck.cards.map((c) => ({ pergunta: c.question, resposta: c.answer, ...exportedStats(c) })),
   };
 }
 

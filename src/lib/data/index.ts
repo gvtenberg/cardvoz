@@ -30,7 +30,7 @@ import {
 } from "@/lib/local/decks";
 import { enqueue, hasPendingFor, pendingCount, processQueue, QUEUE_KEY } from "@/lib/local/queue";
 import { onLocalChange } from "@/lib/local/storage";
-import { applyAnswers, type StudyAnswer } from "@/lib/studyStats";
+import { applyAnswers, statsPayload, type CardStats, type StudyAnswer } from "@/lib/studyStats";
 
 export type DeckKind = LocalDeck["kind"];
 export type DeckItem = DeckResponse & { kind: DeckKind } & DeckLanguages & DeckDue;
@@ -207,7 +207,8 @@ export function createDeck(data: {
     deckId: copy.id,
     title: copy.title,
     category: copy.category,
-    cards: copy.cards.map((c) => ({ localId: c.id, question: c.question, answer: c.answer })),
+    // Só o histórico importado do arquivo: estudos depois da criação vão como item próprio
+    cards: copy.cards.map((c) => ({ localId: c.id, question: c.question, answer: c.answer, ...statsPayload(c) })),
     questionLang: copy.questionLang ?? null,
     answerLang: copy.answerLang ?? null,
   });
@@ -272,7 +273,7 @@ export function deleteDeck(id: string): void {
   }
 }
 
-export function addCards(deckId: string, cards: { question: string; answer: string }[]): void {
+export function addCards(deckId: string, cards: ({ question: string; answer: string } & CardStats)[]): void {
   const deck = findLocalDeck(deckId);
   if (!deck || cards.length === 0) return;
   const start = deck.cards.reduce((max, c) => Math.max(max, c.displayOrder), 0) + 1;
@@ -288,6 +289,7 @@ export function addCards(deckId: string, cards: { question: string; answer: stri
         question: card.question,
         answer: card.answer,
         displayOrder: card.displayOrder,
+        stats: statsPayload(card),
       });
     }
     kick();

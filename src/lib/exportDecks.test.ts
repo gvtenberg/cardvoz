@@ -63,3 +63,34 @@ describe("baralho exportado de exemplo (docs/exemplos)", () => {
     expect(result).toMatchObject({ questionLang: "en", answerLang: "pt-BR" });
   });
 });
+
+describe("histórico das fichas no arquivo", () => {
+  it("exportar e importar de volta mantém acertos, erros e revisão", () => {
+    const exported = toExported({
+      title: "Química",
+      cards: [
+        {
+          question: "H2O?", answer: "Água", correctCount: 3, incorrectCount: 1,
+          lastAnsweredAt: "2026-11-10T10:00:00.000Z", lastWasCorrect: true,
+          reviewLevel: 2, nextReviewAt: "2026-11-13T10:00:00.000Z",
+        },
+        { question: "NaCl?", answer: "Sal" },
+      ],
+    });
+    expect(exported.fichas[0]).toMatchObject({ acertos: 3, erros: 1, acertouUltima: true, nivelRevisao: 2 });
+    expect(exported.fichas[1]).toEqual({ pergunta: "NaCl?", resposta: "Sal" });
+
+    const [card, nova] = parseImportText(JSON.stringify(exported), "quimica.json").cards;
+    expect(card).toMatchObject({
+      correctCount: 3, incorrectCount: 1, lastWasCorrect: true,
+      reviewLevel: 2, nextReviewAt: "2026-11-13T10:00:00.000Z",
+    });
+    expect(nova).toEqual({ question: "NaCl?", answer: "Sal" });
+  });
+
+  it("ignora histórico com valores estranhos", () => {
+    const text = JSON.stringify({ fichas: [{ pergunta: "a", resposta: "b", acertos: -2, erros: "x" }] });
+    expect(parseImportText(text, "x.json").cards[0]).toEqual({ question: "a", answer: "b" });
+  });
+});
+

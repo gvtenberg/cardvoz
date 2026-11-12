@@ -401,7 +401,7 @@ export default function ExemploPage() {
 
 - **TXT:** uma ficha por linha (`pergunta; resposta`, também TAB ou `|`), blocos separados por linha em branco, ou linhas `P:` / `R:`.
 - **CSV:** vírgula ou ponto e vírgula (padrão do Excel em português), com ou sem cabeçalho (`pergunta`/`resposta`, `question`/`answer`, `frente`/`verso`).
-- **JSON:** lista de fichas ou `{ "titulo": "...", "fichas": [...] }`.
+- **JSON:** lista de fichas ou `{ "titulo": "...", "fichas": [...] }`. O arquivo exportado pelo CardVoz leva também o histórico de cada ficha estudada (`acertos`, `erros`, `ultimaResposta`, `acertouUltima`, `nivelRevisao`, `proximaRevisao`), lido de volta na importação; valores estranhos são ignorados.
 - Limites: 2 MB e 1000 fichas. Exemplos em `public/modelos/`.
 
 ---

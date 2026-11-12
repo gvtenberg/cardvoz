@@ -77,7 +77,7 @@ Num baralho de inglês ou espanhol, toque em **Idioma das fichas** e escolha o i
 ## 7. Guardar uma cópia e levar para outro aparelho
 
 - **Exportar baralho** (na página do baralho) ou **Exportar todos** (em Meus baralhos) baixa um arquivo com suas fichas.
-- Para trazer de volta, use **Importar arquivo**. Um exemplo de baralho exportado está em `docs/exemplos/cardvoz-ingles-basico.json`.
+- O arquivo leva também os acertos, os erros e a data da próxima revisão de cada ficha. Para trazer de volta, use **Importar arquivo**: o histórico volta junto. Um exemplo de baralho exportado está em `docs/exemplos/cardvoz-ingles-basico.json`.
 
 ## 8. Conta (opcional)
 

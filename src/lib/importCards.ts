@@ -12,12 +12,34 @@
  *        ou um par ["pergunta", "resposta"]. Uma lista desses objetos (o arquivo
  *        de "Exportar todos") vira vários baralhos.
  */
+import { MAX_REVIEW_LEVEL, type CardStats } from "@/lib/studyStats";
 
 import { isLanguageCode } from "@/lib/local/decks";
 
-export interface ImportedCard {
+/** Ficha lida do arquivo; o arquivo exportado pelo CardVoz traz também o histórico */
+export interface ImportedCard extends CardStats {
   question: string;
   answer: string;
+}
+
+const isDate = (v: unknown): v is string => typeof v === "string" && !Number.isNaN(Date.parse(v));
+const isCount = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 100000;
+
+/** Acertos, erros e revisão do arquivo exportado; valor estranho é ignorado. */
+function statsOf(obj: Record<string, unknown>): CardStats {
+  const correct = isCount(obj.acertos) ? obj.acertos : 0;
+  const incorrect = isCount(obj.erros) ? obj.erros : 0;
+  if (correct + incorrect === 0) return {};
+  const stats: CardStats = { correctCount: correct, incorrectCount: incorrect };
+  if (isDate(obj.ultimaResposta) && typeof obj.acertouUltima === "boolean") {
+    stats.lastAnsweredAt = new Date(obj.ultimaResposta).toISOString();
+    stats.lastWasCorrect = obj.acertouUltima;
+    if (isDate(obj.proximaRevisao) && isCount(obj.nivelRevisao) && obj.nivelRevisao <= MAX_REVIEW_LEVEL) {
+      stats.reviewLevel = obj.acertouUltima ? obj.nivelRevisao : 0;
+      stats.nextReviewAt = new Date(obj.proximaRevisao).toISOString();
+    }
+  }
+  return stats;
 }
 
 export interface ImportResult {
@@ -104,6 +126,7 @@ function parseEntries(entries: unknown[]): { cards: ImportedCard[]; skipped: num
   for (const entry of entries) {
     let question = "";
     let answer = "";
+    let stats: CardStats = {};
     if (Array.isArray(entry)) {
       question = toText(entry[0]);
       answer = toText(entry[1]);
@@ -111,9 +134,10 @@ function parseEntries(entries: unknown[]): { cards: ImportedCard[]; skipped: num
       const obj = entry as Record<string, unknown>;
       question = toText(pick(obj, QUESTION_KEYS));
       answer = toText(pick(obj, ANSWER_KEYS));
+      stats = statsOf(obj);
     }
     if (question && answer) {
-      cards.push({ question, answer });
+      cards.push({ question, answer, ...stats });
     } else {
       skipped++;
     }

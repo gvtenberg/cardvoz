@@ -8,6 +8,7 @@
  * enviada (decisão do grupo; sincronização completa fica para o futuro).
  */
 import { ApiError, RouteMissingError, type CardResponse, type DeckDetailResponse } from "@/lib/api";
+import { statsPayload, type CardStats } from "@/lib/studyStats";
 import { findLocalDeck, listLocalDecks, updateLocalDeck } from "./decks";
 import { readJson, removeKey, writeJson } from "./storage";
 
@@ -19,7 +20,8 @@ export type QueueItem = { id: string; createdAt: string } & (
       deckId: string;
       title: string;
       category: string;
-      cards: { localId: string; question: string; answer: string }[];
+      /** Fichas importadas de um arquivo exportado trazem o histórico (CardStats) */
+      cards: ({ localId: string; question: string; answer: string } & CardStats)[];
       /** Idioma escolhido antes de o baralho chegar à conta (null = português) */
       questionLang?: string | null;
       answerLang?: string | null;
@@ -29,7 +31,11 @@ export type QueueItem = { id: string; createdAt: string } & (
   | { type: "idiomaBaralho"; deckId: string; questionLang: string | null; answerLang: string | null }
   | { type: "renomearBaralho"; deckId: string; title: string }
   | { type: "excluirBaralho"; deckId: string }
-  | { type: "criarFicha"; deckId: string; localId: string; question: string; answer: string; displayOrder: number }
+  | {
+      type: "criarFicha"; deckId: string; localId: string; question: string; answer: string; displayOrder: number;
+      /** Histórico importado de um arquivo (só na criação: o estudo depois vai como item próprio) */
+      stats?: CardStats;
+    }
   | { type: "editarFicha"; deckId: string; cardId: string; question: string; answer: string }
   | { type: "excluirFicha"; deckId: string; cardId: string }
   | {
@@ -294,6 +300,7 @@ async function adoptDeck(
     question: c.question,
     answer: c.answer,
     displayOrder: ordered.length + i + 1,
+    stats: statsPayload(c),
   }));
   const rest = readQueue(userId).filter((i) => i.id !== item.id);
   writeQueue(userId, [...missing, ...rest]);
@@ -330,7 +337,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
           title: item.title,
           category: item.category,
           ...languagesInput(item.questionLang, item.answerLang),
-          cards: item.cards.map((c) => ({ question: c.question, answer: c.answer })),
+          cards: item.cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
         });
         const ordered = [...created.cards].sort((a, b) => a.displayOrder - b.displayOrder);
         const ids = new Map(item.cards.map((c, i) => [c.localId, ordered[i]?.id ?? c.localId]));
@@ -357,6 +364,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
         question: c.question,
         answer: c.answer,
         displayOrder: i + 1,
+        stats: statsPayload(c),
       }));
       const rest = readQueue(userId).filter((i) => i.id !== item.id);
       writeQueue(userId, [...cardItems, ...rest]);
@@ -369,6 +377,7 @@ async function sendItem(userId: string, item: QueueItem, api: QueueApi): Promise
         question: item.question,
         answer: item.answer,
         displayOrder: item.displayOrder,
+        ...item.stats,
       });
       applyIds(userId, item.deckId, null, new Map([[item.localId, card.id]]));
       removeFirst(userId, item.id);

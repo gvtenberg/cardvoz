@@ -7,7 +7,7 @@
  * outra aba acabou de salvar.
  */
 import type { CardResponse, DeckDetailResponse, DeckResponse } from "@/lib/api";
-import { dueCards, type CardStats } from "@/lib/studyStats";
+import { dueCards, statsPayload, type CardStats } from "@/lib/studyStats";
 import { readJson, requestPersistentStorage, writeJson } from "./storage";
 
 /** Acertos e erros são opcionais: fichas guardadas antes deles continuam válidas. */
@@ -139,7 +139,7 @@ export function removeLocalDeck(id: string): void {
 }
 
 export function newLocalCards(
-  cards: { question: string; answer: string }[],
+  cards: ({ question: string; answer: string } & CardStats)[],
   startOrder = 1
 ): LocalCard[] {
   const now = new Date().toISOString();
@@ -147,6 +147,8 @@ export function newLocalCards(
     id: crypto.randomUUID(),
     question: c.question,
     answer: c.answer,
+    // Arquivo exportado pelo CardVoz: o histórico da ficha vem junto
+    ...statsPayload(c),
     displayOrder: startOrder + i,
     createdAt: now,
   }));
@@ -155,7 +157,7 @@ export function newLocalCards(
 export function newDeviceDeck(data: {
   title: string;
   category?: string;
-  cards?: { question: string; answer: string }[];
+  cards?: ({ question: string; answer: string } & CardStats)[];
   questionLang?: string | null;
   answerLang?: string | null;
 }): LocalDeck {
