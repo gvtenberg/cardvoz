@@ -99,6 +99,29 @@ describe("levar para a conta", () => {
     expect(moved?.aliases).toContain("l1");
   });
 
+  it("leva os acertos e erros estudados sem login, nas duas rotas", async () => {
+    const local = deck("l1");
+    saveLocalDeck({
+      ...local,
+      cards: local.cards.map((c, i) =>
+        i === 0 ? { ...c, correctCount: 2, incorrectCount: 1, lastAnsweredAt: "t", lastWasCorrect: false } : c
+      ),
+    });
+    const api = fakeApi();
+    await transferDeck(findLocalDeck("l1")!, "levar", USER, api, null);
+    expect(api.createCard.mock.calls[0][0]).toMatchObject({
+      question: "a", correctCount: 2, incorrectCount: 1, lastAnsweredAt: "t", lastWasCorrect: false,
+    });
+    expect(api.createCard.mock.calls[1][0]).not.toHaveProperty("correctCount");
+
+    const other = deck("l2");
+    saveLocalDeck({ ...other, cards: other.cards.map((c) => ({ ...c, correctCount: 1, incorrectCount: 0 })) });
+    const withRoute = fakeApi();
+    withRoute.importDeck.mockResolvedValue(remote("r9", ["a", "b", "c", "d", "e"]));
+    await transferDeck(findLocalDeck("l2")!, "levar", USER, withRoute, null);
+    expect(withRoute.importDeck.mock.calls[0][0].cards[0]).toMatchObject({ correctCount: 1, incorrectCount: 0 });
+  });
+
   it("retoma um envio interrompido sem criar o baralho de novo", async () => {
     const local = deck("l1", { upload: { remoteId: "novo" } });
     const api = fakeApi();

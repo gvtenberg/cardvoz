@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Check, Eye, PartyPopper, Plus, RotateCcw, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, PartyPopper, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Button, Skeleton, LoadingStatus } from "@/components";
 import type { CardResponse } from "@/lib/api";
 import { saveStudyResult, useDeck } from "@/lib/data";
@@ -11,6 +11,7 @@ import { markFirstStudyDone } from "@/lib/install";
 import { langAttr } from "@/lib/languages";
 import { routes } from "@/lib/routes";
 import { useShortcutsEnabled } from "@/lib/shortcuts";
+import { missedCards } from "@/lib/studyStats";
 import styles from "./page.module.scss";
 
 const ACTION_LOCK_MS = 400;
@@ -64,6 +65,8 @@ function isInteractiveTarget(el: Element | null): boolean {
 function EstudarContent() {
   const searchParams = useSearchParams();
   const deckSlug = searchParams.get("deck") || "";
+  // "Estudar só as que errei": a rodada tem só as fichas erradas na última vez
+  const [onlyMissed, setOnlyMissed] = useState(searchParams.get("so") === "erradas");
 
   // O baralho vem do aparelho; as fichas da rodada são fixadas ao começar, para
   // uma atualização vinda da conta não mudar as fichas no meio do estudo
@@ -90,9 +93,17 @@ function EstudarContent() {
   const startedAtRef = useRef(new Date().toISOString());
   const answersRef = useRef<{ cardId: string; wasCorrect: boolean; answeredAt: string }[]>([]);
 
+  const cardsFor = useCallback(
+    (missedOnly: boolean): CardResponse[] => {
+      const all = deck?.cards || [];
+      return missedOnly ? missedCards(all) : all;
+    },
+    [deck]
+  );
+
   useEffect(() => {
-    if (deck && cards === null) setCards(deck.cards || []);
-  }, [deck, cards]);
+    if (deck && cards === null) setCards(cardsFor(onlyMissed));
+  }, [deck, cards, cardsFor, onlyMissed]);
 
   const roundCards = cards ?? [];
   const currentCard: CardResponse | undefined = roundCards[currentIndex];
@@ -164,12 +175,13 @@ function EstudarContent() {
     [currentCard, isFinished, currentIndex, correctCount, roundCards.length, deck, acquireLock]
   );
 
-  const restartSession = () => {
+  /** Nova rodada: todas as fichas ou só as erradas, já com o resultado da rodada que acabou */
+  const restartSession = (missedOnly: boolean) => {
     answeredIndexRef.current = null;
     answersRef.current = [];
     startedAtRef.current = new Date().toISOString();
-    // Começa a nova rodada com as fichas atuais do baralho
-    if (deck) setCards(deck.cards || []);
+    setOnlyMissed(missedOnly);
+    if (deck) setCards(cardsFor(missedOnly));
     setCurrentIndex(0);
     setIsRevealed(false);
     setCorrectCount(0);
@@ -242,6 +254,25 @@ function EstudarContent() {
 
   const deckHref = routes.deck(deck.slug || deck.id);
 
+  if (roundCards.length === 0 && onlyMissed && (deck.cards?.length ?? 0) > 0) {
+    return (
+      <main id="main-content" className={styles.main}>
+        <BackLink href={deckHref} label={deck.title} />
+        <section className={styles.messageCard}>
+          <h1 className={styles.messageTitle}>Nenhuma ficha para revisar</h1>
+          <p className={styles.messageText}>
+            Você não errou nenhuma ficha de <strong>{deck.title}</strong> na última vez que
+            a estudou.
+          </p>
+          <Button href={routes.study(deck.slug || deck.id)} variant="primary" size="lg">
+            <Play style={{ fill: "currentColor" }} aria-hidden="true" />
+            <span>Estudar todas</span>
+          </Button>
+        </section>
+      </main>
+    );
+  }
+
   if (roundCards.length === 0) {
     return (
       <main id="main-content" className={styles.main}>
@@ -278,8 +309,9 @@ function EstudarContent() {
             </span>
           </h1>
           <p className={styles.messageText}>
-            Você estudou {total === 1 ? "a ficha" : `as ${total} fichas`} de{" "}
-            <strong>{deck.title}</strong>.
+            Você {onlyMissed ? "revisou" : "estudou"}{" "}
+            {total === 1 ? "a ficha" : `as ${total} fichas`}
+            {onlyMissed ? " que tinha errado" : ""} de <strong>{deck.title}</strong>.
           </p>
 
           {/* Só visual: o título acima já anuncia acertos e aproveitamento */}
@@ -303,9 +335,21 @@ function EstudarContent() {
           </ul>
 
           <div className={styles.finishedActions}>
-            <Button variant="primary" size="lg" block onClick={restartSession}>
-              <RotateCcw aria-hidden="true" />
-              <span>Estudar de novo</span>
+            {/* Errou alguma: revisar só elas é o próximo passo mais útil, então vem primeiro */}
+            {incorrectCount > 0 && (
+              <Button variant="primary" size="lg" block onClick={() => restartSession(true)}>
+                <RotateCcw aria-hidden="true" />
+                <span>Estudar só as que errei ({incorrectCount})</span>
+              </Button>
+            )}
+            <Button
+              variant={incorrectCount > 0 ? "secondary" : "primary"}
+              size="lg"
+              block
+              onClick={() => restartSession(false)}
+            >
+              {incorrectCount > 0 ? <Play aria-hidden="true" /> : <RotateCcw aria-hidden="true" />}
+              <span>{incorrectCount > 0 ? "Estudar todas de novo" : "Estudar de novo"}</span>
             </Button>
             <Button variant="secondary" size="md" block href={routes.decks}>
               Voltar aos baralhos
@@ -334,7 +378,10 @@ function EstudarContent() {
       </div>
 
       <article className={styles.studyCard}>
-        <h1 className={styles.deckTitle}>{deck.title}</h1>
+        <h1 className={styles.deckTitle}>
+          {deck.title}
+          {onlyMissed && " · só as que errei"}
+        </h1>
 
         <h2 ref={questionRef} tabIndex={-1} className={styles.faceBlock}>
           <span className={styles.faceLabel}>

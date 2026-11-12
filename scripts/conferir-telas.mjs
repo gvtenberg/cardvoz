@@ -19,6 +19,7 @@ const LARGURAS = [320, 360, 375, 412];
 const PAGINAS = [
   "/", "/entrar/", "/cadastro/", "/privacidade/", "/perfil/", "/baralhos/",
   "/baralhos/novo/", "/baralho/?id=teste", "/baralho/adicionar/?id=teste", "/estudar/?deck=teste",
+  "/estudar/?deck=teste&so=erradas",
 ];
 // Botões que abrem diálogos na página do baralho
 const DIALOGOS = [/^Renomear baralho/, /^Editar ficha 1/, /^Excluir ficha 1/, /^Idioma das fichas/, /^Excluir baralho/];
@@ -30,7 +31,9 @@ function baralho(titulo, pergunta) {
     sourceDeckId: null, createdAt: data, updatedAt: data, kind: "aparelho", account: null,
     editedOffAccount: false, upload: null,
     cards: [
-      { id: "f1", question: pergunta, answer: "4", displayOrder: 0, createdAt: data },
+      // Estudada e errada na última vez: a página mostra os acertos e erros e "Estudar só as que errei"
+      { id: "f1", question: pergunta, answer: "4", displayOrder: 0, createdAt: data,
+        correctCount: 1, incorrectCount: 2, lastAnsweredAt: data, lastWasCorrect: false },
       { id: "f2", question: "Quanto é 3²?", answer: "9", displayOrder: 1, createdAt: data },
     ],
   };

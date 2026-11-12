@@ -15,6 +15,7 @@ import {
 } from "@/lib/local/decks";
 import { clearQueue, findOrphanDeck, hasEditsPendingFor } from "@/lib/local/queue";
 import { readJson, writeJson } from "@/lib/local/storage";
+import { statsPayload } from "@/lib/studyStats";
 import { isCurrentAccount } from "./index";
 
 export type TransferApi = Pick<
@@ -99,7 +100,8 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
       const created = await api.importDeck({
         title,
         category: local.category,
-        cards: cards.map((c) => ({ question: c.question, answer: c.answer })),
+        // O histórico estudado sem login vai junto, para não recomeçar do zero
+        cards: cards.map((c) => ({ question: c.question, answer: c.answer, ...statsPayload(c) })),
       });
       replaceWithRemote(local, created, userId);
       return;
@@ -118,6 +120,7 @@ async function upload(local: LocalDeck, title: string, userId: string, api: Tran
       question: cards[i].question,
       answer: cards[i].answer,
       displayOrder: i + 1,
+      ...statsPayload(cards[i]),
     });
   }
 

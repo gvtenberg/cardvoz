@@ -15,6 +15,7 @@ import {
   DECKS_KEY,
   findLocalDeck,
   fromApiDeck,
+  keepLocalStats,
   listLocalDecks,
   newDeviceDeck,
   newLocalCards,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/local/decks";
 import { enqueue, hasPendingFor, pendingCount, processQueue, QUEUE_KEY } from "@/lib/local/queue";
 import { onLocalChange } from "@/lib/local/storage";
+import { applyAnswers, type StudyAnswer } from "@/lib/studyStats";
 
 export type DeckKind = LocalDeck["kind"];
 export type DeckItem = DeckResponse & { kind: DeckKind } & DeckLanguages;
@@ -308,15 +310,26 @@ export function deleteCard(deckId: string, oldCardId: string): void {
   }
 }
 
-/** Resultado de uma rodada de estudo. Baralho só do aparelho não guarda histórico. */
+/**
+ * Resultado de uma rodada de estudo. Os acertos e erros de cada ficha ficam no
+ * aparelho na hora (com ou sem conta); com conta, a rodada também entra na fila
+ * e a API soma os mesmos números. Não usa touch(): estudar não é editar o
+ * baralho (não muda o updatedAt nem o editedOffAccount).
+ */
 export function saveStudyResult(
   deckId: string,
-  result: { startedAt: string; answers: { cardId: string; wasCorrect: boolean; answeredAt: string }[] }
+  result: { startedAt: string; answers: StudyAnswer[] }
 ): void {
   const deck = findLocalDeck(deckId);
-  if (!deck) return;
+  if (!deck || result.answers.length === 0) return;
+  const lastAnswer = result.answers.reduce((a, b) => (b.answeredAt >= a.answeredAt ? b : a));
+  updateLocalDeck(deck.id, (d) => ({
+    ...d,
+    cards: applyAnswers(d.cards, result.answers),
+    lastStudiedAt: lastAnswer.answeredAt,
+  }));
   const account = accountOf(deck);
-  if (!account || result.answers.length === 0) return;
+  if (!account) return;
   enqueue(account.id, {
     type: "estudo",
     deckId: deck.id,
@@ -343,7 +356,7 @@ function storeCopy(remote: DeckDetailResponse, userId: string) {
   const same = existing?.id === remote.id ? existing : null;
   // O idioma fica só no aparelho: a versão da conta não o traz
   saveLocalDeck({
-    ...fromApiDeck(remote, userId),
+    ...keepLocalStats(fromApiDeck(remote, userId), same),
     aliases: same?.aliases ?? [],
     questionLang: same?.questionLang ?? null,
     answerLang: same?.answerLang ?? null,
@@ -391,10 +404,15 @@ async function refreshCopies(account: SavedAccount, gen: number) {
     if (held.has(remote.id) || hasPendingFor(account.id, remote.id)) continue;
     const found = findLocalDeck(remote.id);
     const local = found?.id === remote.id ? found : null;
+    // Estudo em outro aparelho não muda o updatedAt: lastStudiedAt avisa que os
+    // acertos e erros mudaram (API sem o campo: undefined, e não compara)
+    const studiedElsewhere =
+      remote.lastStudiedAt !== undefined && (local?.lastStudiedAt ?? null) !== remote.lastStudiedAt;
     const changed =
       !local ||
       local.account?.remoteUpdatedAt !== (remote.updatedAt ?? null) ||
-      local.cards.length !== remote.cardCount;
+      local.cards.length !== remote.cardCount ||
+      studiedElsewhere;
     if (!changed) continue;
     const detail = await api.getDeck(remote.id);
     if (detail && !stale()) storeCopy(detail, account.id);
