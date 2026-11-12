@@ -34,6 +34,8 @@ export default function NovoBaralhoPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Trava no lugar de disabled: o botão desativado perderia o foco do leitor de tela
+    if (isSubmitting) return;
     if (importedDecks) {
       setIsSubmitting(true);
       try {
@@ -136,7 +138,7 @@ export default function NovoBaralhoPage() {
         </section>
 
         <div className={styles.actions}>
-          <Button type="submit" variant="primary" size="lg" block disabled={isSubmitting}>
+          <Button type="submit" variant="primary" size="lg" block aria-disabled={isSubmitting || undefined}>
             {submitLabel}
           </Button>
           <Button href={routes.decks} variant="ghost" size="md" block>

@@ -56,7 +56,7 @@ O CardVoz lembra quando revisar cada ficha (revisão espaçada):
 | 5ª vez seguida | em 1 mês |
 | 6ª vez seguida ou mais | em 3 meses |
 
-- **Revisar agora** aparece na página do baralho quando há fichas da vez. Em **Meus baralhos**, cada baralho diz quantas fichas há para revisar agora.
+- **Revisar agora** aparece quando há fichas da vez: em **Meus baralhos**, no cartão de cada baralho (entre **Estudar** e **Ver fichas**), e na página do baralho.
 - Se não houver nenhuma, o CardVoz diz a data da próxima revisão.
 - Sem conta, os números ficam neste aparelho. Com conta, ficam também na conta e aparecem nos outros aparelhos. Ao levar um baralho do aparelho para a conta, os números vão junto.
 
@@ -68,7 +68,7 @@ Na página do baralho:
 
 - **Editar** e **Excluir** ficam em cada ficha. O leitor de tela diz o número e o começo da pergunta, para você saber qual está alterando.
 - **Buscar fichas** procura na pergunta e na resposta, sem se importar com acentos, e diz quantas fichas encontrou.
-- **Renomear baralho** e **Excluir baralho** ficam no fim da página.
+- **Opções do baralho**, no fim da página, tem **Renomear baralho**, **Idioma das fichas** e **Exportar baralho**. **Excluir baralho** fica separado, por último.
 
 ## 6. Baralhos de outro idioma
 

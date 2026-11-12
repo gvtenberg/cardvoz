@@ -398,6 +398,11 @@ async function refreshCopies(account: SavedAccount, gen: number) {
   const held = heldByDevice(account.id);
   const changes = await api.getDeckChanges(account.lastSync ?? null);
   if (gen !== generation) return;
+  // Resposta fora do formato (API de outra versão, proxy devolvendo {}): sem
+  // allIds, removeVanished apagaria todas as cópias da conta do aparelho
+  if (!Array.isArray(changes?.decks) || !Array.isArray(changes.allIds) || typeof changes.serverTime !== "string") {
+    throw new Error("Resposta inesperada de /decks/changes.");
+  }
   for (const remote of changes.decks) {
     if (!held.has(remote.id) && !hasPendingFor(account.id, remote.id)) storeCopy(remote, account.id);
   }

@@ -377,53 +377,63 @@ function DeckDetailContent() {
         )}
       </section>
 
-      <div className={styles.dangerZone}>
-        <Button variant="soft" size="md" onClick={openLanguageModal} aria-haspopup="dialog">
-          <Languages aria-hidden="true" />
-          <span>Idioma das fichas</span>
-        </Button>
-        {/* Baralho só do aparelho, com a conta aberta: dá para levar depois do "Agora não" */}
-        {deck.kind === "aparelho" && authStatus === "logado" && (
-          <Button variant="soft" size="md" onClick={() => requestTransfer([deck.id])}>
-            <Upload aria-hidden="true" />
-            <span>Levar para a conta</span>
+      {/* Opções com título próprio: dá para pular até elas pelos títulos. Excluir
+          fica separado, no fim, para não ser tocado no lugar de "Renomear" */}
+      <section aria-labelledby="opcoes-titulo" className={styles.options}>
+        <h2 id="opcoes-titulo" className={styles.sectionTitle}>
+          Opções do baralho
+        </h2>
+        <div className={styles.optionsActions}>
+          <Button
+            variant="soft"
+            size="md"
+            onClick={() => {
+              setRenameTitle(deck.title);
+              setRenameError("");
+              setShowRenameModal(true);
+            }}
+            aria-haspopup="dialog"
+          >
+            <Pencil aria-hidden="true" />
+            <span>Renomear baralho</span>
           </Button>
-        )}
-        <Button
-          variant="soft"
-          size="md"
-          onClick={() => {
-            const fileName = exportFileName(deck.title, new Date());
-            downloadJson(fileName, toExported(deck));
-            setStatusMessage(`Arquivo “${fileName}” baixado.`);
-          }}
-          aria-label={`Exportar baralho ${deck.title}`}
-        >
-          <Download aria-hidden="true" />
-          <span>Exportar baralho</span>
-        </Button>
-        <Button
-          variant="secondary"
-          size="md"
-          onClick={() => {
-            setRenameTitle(deck.title);
-            setRenameError("");
-            setShowRenameModal(true);
-          }}
-        >
-          <span>Renomear baralho</span>
-        </Button>
-           
-        <Button
-          variant="danger"
-          size="md"
-          onClick={() => setShowConfirmDelete(true)}
-          aria-haspopup="dialog"
-        >
-          <Trash2 aria-hidden="true" />
-          <span>Excluir baralho</span>
-        </Button>
-      </div>
+          <Button variant="soft" size="md" onClick={openLanguageModal} aria-haspopup="dialog">
+            <Languages aria-hidden="true" />
+            <span>Idioma das fichas</span>
+          </Button>
+          <Button
+            variant="soft"
+            size="md"
+            onClick={() => {
+              const fileName = exportFileName(deck.title, new Date());
+              downloadJson(fileName, toExported(deck));
+              setStatusMessage(`Arquivo “${fileName}” baixado.`);
+            }}
+            aria-label={`Exportar baralho ${deck.title}`}
+          >
+            <Download aria-hidden="true" />
+            <span>Exportar baralho</span>
+          </Button>
+          {/* Baralho só do aparelho, com a conta aberta: dá para levar depois do "Agora não" */}
+          {deck.kind === "aparelho" && authStatus === "logado" && (
+            <Button variant="soft" size="md" onClick={() => requestTransfer([deck.id])}>
+              <Upload aria-hidden="true" />
+              <span>Levar para a conta</span>
+            </Button>
+          )}
+        </div>
+        <div className={styles.dangerZone}>
+          <Button
+            variant="danger"
+            size="md"
+            onClick={() => setShowConfirmDelete(true)}
+            aria-haspopup="dialog"
+          >
+            <Trash2 aria-hidden="true" />
+            <span>Excluir baralho</span>
+          </Button>
+        </div>
+      </section>
 
       <Dialog
         open={showConfirmDelete}

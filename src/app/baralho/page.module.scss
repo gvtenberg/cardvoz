@@ -192,15 +192,33 @@
 
 // Até cinco botões: empilhados no celular. Numa fileira só, passavam da
 // largura da tela, a página ganhava rolagem lateral e os diálogos esticavam junto.
-.dangerZone {
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.optionsActions {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-top: 1rem;
 
   @include respond-to(sm) {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+}
+
+// Separada das outras opções por uma linha e um respiro
+.dangerZone {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+
+  @include respond-to(sm) {
+    flex-direction: row;
   }
 }
 

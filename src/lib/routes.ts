@@ -68,9 +68,24 @@ export function samePath(a: string, b: string): boolean {
 /**
  * Só aceita caminhos internos do site; qualquer outra coisa vai para a lista de
  * baralhos. Sem isso, um link como /entrar/?voltar=https://site-falso.com
- * levaria a pessoa, logo depois de entrar, para uma página falsa. Recusa também
- * //site.com e /\site.com, que o navegador trataria como outro site.
+ * levaria a pessoa, logo depois de entrar, para uma página falsa.
+ *
+ * A conferência resolve o endereço como o navegador faz, em vez de olhar só os
+ * primeiros caracteres: o navegador apaga tab e quebra de linha antes de ler a
+ * URL, então "/\t/site.com" viraria "//site.com" (outro site) e passaria numa
+ * regex simples.
  */
+const SAFE_ORIGIN = "https://cardvoz.invalid";
+
 export function safeRedirect(voltar: string | null): string {
-  return voltar && /^\/(?![\\/])/.test(voltar) ? voltar : routes.decks;
+  if (!voltar || !voltar.startsWith("/")) return routes.decks;
+  // Espaço ou caractere de controle não aparece em caminho do site
+  if (/[\u0000- \u007F]/.test(voltar)) return routes.decks;
+  try {
+    const url = new URL(voltar, SAFE_ORIGIN);
+    if (url.origin !== SAFE_ORIGIN) return routes.decks;
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return routes.decks;
+  }
 }

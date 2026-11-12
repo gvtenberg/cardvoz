@@ -320,13 +320,11 @@ function failureFor(item: QueueItem, status: number): string | null {
 }
 
 /**
- * Estudo: uma chamada com a rota nova. Sem ela, abre a sessão, registra cada
- * resposta e conclui, guardando o progresso para retomar a mesma sessão se cair
- * a internet (em vez de deixar uma sessão pela metade e abrir outra).
+ * Estudo: uma chamada com a rodada inteira. O id do item evita sessão duplicada
+ * se a resposta se perder e o pedido for repetido. A API ignora respostas de
+ * fichas que já não existem (excluídas aqui ou em outro aparelho).
  */
 async function sendStudy(item: Extract<QueueItem, { type: "estudo" }>, api: QueueApi) {
-  // Uma chamada com a rodada inteira; o id do item evita sessão duplicada se a
-  // resposta se perder e o pedido for repetido
   await api.completeStudySession({
     id: item.id,
     deckId: item.deckId,

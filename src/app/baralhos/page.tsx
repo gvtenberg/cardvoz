@@ -88,7 +88,7 @@ export default function HomePage() {
     <main id="main-content" tabIndex={-1} className={styles.main}>
       <header className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Seus baralhos</h1>
+          <h1 className={styles.pageTitle}>Meus baralhos</h1>
           {decks === null && <Skeleton width="11rem" height="1.25rem" className={styles.subtitleSkeleton} />}
           {decks && decks.length > 0 && (
             <p className={styles.pageSubtitle}>
