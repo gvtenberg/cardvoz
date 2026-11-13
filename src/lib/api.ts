@@ -193,6 +193,15 @@ export async function getStudyHistory(deckId?: string): Promise<StudySessionResp
   return fetchApi<StudySessionResponse[]>(`/study-sessions/history${query}`);
 }
 
+/**
+ * Passe para abrir o painel Admin já logado: código de uso único que vale 1 minuto.
+ * Só para admins (403 para os demais).
+ */
+export async function createAdminPass(): Promise<string> {
+  const body = await fetchApi<{ code: string }>("/auth/admin-pass", { method: "POST" });
+  return body.code;
+}
+
 // --- Dados da conta (LGPD) ---------------------------------------------------
 
 /** Manda de novo o link de confirmação do e-mail. Devolve a mensagem da API. */

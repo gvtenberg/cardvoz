@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Download, LayoutDashboard, LogOut, Trash2 } from "lucide-react";
 import { Button, DeleteAccountDialog, LogoutDialog, useAuth } from "@/components";
-import { errorMessage, exportAccount, resendEmailConfirmation } from "@/lib/api";
+import { createAdminPass, errorMessage, exportAccount, resendEmailConfirmation } from "@/lib/api";
 import { downloadJson } from "@/lib/exportDecks";
-import { adminPanelUrl } from "@/lib/routes";
+import { adminPanelUrl, adminPanelWithPass } from "@/lib/routes";
 import styles from "./page.module.scss";
 
 const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" });
@@ -18,6 +18,7 @@ export default function PerfilPage() {
   const [downloading, setDownloading] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
+  const [openingPanel, setOpeningPanel] = useState(false);
 
   const sendConfirmation = async () => {
     if (sendingConfirmation) return;
@@ -43,6 +44,27 @@ export default function PerfilPage() {
       setStatusMessage(errorMessage(error, "Não foi possível baixar os seus dados. Tente de novo."));
     } finally {
       setDownloading(false);
+    }
+  };
+
+  // Voltar do painel pelo botão "Voltar" pode reabrir esta página como estava, com
+  // o botão ainda em "Abrindo o painel...": libera de novo
+  useEffect(() => {
+    const reset = () => setOpeningPanel(false);
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
+  }, []);
+
+  // O painel é outro site e não enxerga a sessão daqui: leva um passe da API para
+  // entrar sem login. Se o passe falhar (API antiga ou fora do ar), abre o painel
+  // assim mesmo, e ele pede o login como antes
+  const openAdminPanel = async () => {
+    if (openingPanel) return;
+    setOpeningPanel(true);
+    try {
+      window.location.assign(adminPanelWithPass(await createAdminPass()));
+    } catch {
+      window.location.assign(adminPanelUrl);
     }
   };
 
@@ -94,16 +116,16 @@ export default function PerfilPage() {
         )}
       </section>
 
-      {/* Só para a equipe: atalho para o painel, que pede login de novo (é outro site) */}
+      {/* Só para a equipe: atalho para o painel, que já abre logado (passe da API) */}
       {user.isAdmin && (
         <section className={styles.panel} aria-labelledby="painel-titulo">
           <h2 id="painel-titulo" className={styles.panelTitle}>
-            Painel da equipe
+            Painel Admin
           </h2>
           <p>No painel, você cuida das contas e dos baralhos prontos.</p>
-          <Button href={adminPanelUrl} variant="soft" size="md">
+          <Button variant="soft" size="md" onClick={openAdminPanel} aria-disabled={openingPanel || undefined}>
             <LayoutDashboard aria-hidden="true" />
-            <span>Abrir o painel da equipe</span>
+            <span>{openingPanel ? "Abrindo o painel..." : "Abrir painel Admin"}</span>
           </Button>
         </section>
       )}

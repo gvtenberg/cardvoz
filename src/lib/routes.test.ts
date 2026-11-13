@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { routes, safeRedirect } from "./routes";
+import { adminPanelUrl, adminPanelWithPass, routes, safeRedirect } from "./routes";
 
 describe("safeRedirect", () => {
   it("aceita caminhos internos, com busca e âncora", () => {
@@ -29,5 +29,11 @@ describe("safeRedirect", () => {
     for (const voltar of ["/\t/site-falso.com", "/\n/site-falso.com", "/\r\\site-falso.com", "/ /x"]) {
       expect(safeRedirect(voltar)).toBe(routes.decks);
     }
+  });
+});
+
+describe("adminPanelWithPass", () => {
+  it("põe o passe depois do # da tela de entrar do painel", () => {
+    expect(adminPanelWithPass("abc_-1")).toBe(`${adminPanelUrl}/entrar/#passe=abc_-1`);
   });
 });

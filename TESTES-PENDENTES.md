@@ -66,3 +66,12 @@ E: Nome e quantidade de fichas são lidos juntos, sem paradas repetidas, e os bo
 ### T18 – Zoom de 200% e tema escuro (v0.12.0)
 F: Aumente o zoom para 200% e ligue o tema escuro; percorra Meus baralhos, um baralho, o estudo, a Ajuda e o Perfil.
 E: Tudo cabe na tela sem rolar para o lado, e os textos e contornos dos botões continuam fáceis de ver.
+
+## Painel Admin
+> Depende da API e do painel publicados com o passe do painel.
+### T19 – Abrir painel Admin já logado (v0.14.0)
+F: Entre no site com uma conta de admin (Google ou senha), abra Perfil e toque em "Abrir painel Admin".
+E: O botão tem esse nome, e o painel abre direto na página inicial dele, sem pedir login.
+### T20 – Passe usado de novo (v0.14.0)
+F: Depois do T19, saia do painel, volte ao Perfil do site pelo "Voltar" do navegador e toque de novo em "Abrir painel Admin".
+E: O botão não fica travado em "Abrindo o painel..." e o painel abre logado de novo.
