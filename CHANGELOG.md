@@ -4,6 +4,10 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.14.0 — 12/11/2026
+
+- **Painel Admin sem entrar de novo:** no Perfil, o botão agora se chama "Abrir painel Admin" e abre o painel já logado na mesma conta, com senha ou com o Google. Precisa da API com o passe do painel (`POST /api/auth/admin-pass`) e do painel 0.2.0; sem eles, o painel pede o login como antes.
+
 ## 0.13.0 — 12/11/2026
 
 - **Entrar com o Google mais rápido:** a API do plano gratuito dorme quando ninguém usa, e a volta do Google ficava uns 20 segundos em "Entrando...". Agora as telas Entrar e Criar conta acordam a API assim que abrem, enquanto a pessoa escolhe a conta.

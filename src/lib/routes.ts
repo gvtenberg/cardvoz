@@ -96,3 +96,9 @@ export function safeRedirect(voltar: string | null): string {
  */
 export const adminPanelUrl =
   process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/+$/, "") || "https://cardvoz-admin.onrender.com";
+
+/**
+ * Entrada do painel com o passe da API (uso único, 1 minuto): o painel entra sem
+ * pedir login. O código vai depois do #, que o navegador não manda a servidor nenhum.
+ */
+export const adminPanelWithPass = (code: string) => `${adminPanelUrl}/entrar/#passe=${encodeURIComponent(code)}`;
