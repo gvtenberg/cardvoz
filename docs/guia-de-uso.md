@@ -49,12 +49,13 @@ O CardVoz lembra quando revisar cada ficha (revisão espaçada):
 | Resposta | Próxima revisão |
 |---|---|
 | Errei | na hora |
-| Acertei pela 1ª vez seguida | em 1 dia |
-| 2ª vez seguida | em 3 dias |
-| 3ª vez seguida | em 1 semana |
-| 4ª vez seguida | em 2 semanas |
-| 5ª vez seguida | em 1 mês |
-| 6ª vez seguida ou mais | em 3 meses |
+| Acertei uma ficha nova, ou uma que tinha errado | em 1 dia |
+| Acertei na data da revisão | cada vez mais longe: 3 dias, 8 dias, 20 dias, 50 dias, 4 meses, 10 meses e, no máximo, 1 ano |
+
+- **Cada ficha tem o próprio ritmo.** A ficha que você já errou cresce mais devagar e volta mais vezes; a que você sempre acerta vai ficando para mais longe.
+- **Estudar antes da data não atrapalha.** Em **Estudar** (com todas as fichas), o CardVoz conta só o tempo que passou desde a última resposta. Estudar o baralho inteiro todo dia não empurra as fichas para daqui a meses.
+- **Revisou com atraso e acertou?** A ficha ganha um intervalo um pouco maior, porque você lembrou por mais tempo que o combinado.
+- É o mesmo jeito de marcar as revisões do Anki, com os dois botões do CardVoz: "Acertei" e "Errei".
 
 - **Revisar agora** aparece quando há fichas da vez: em **Meus baralhos**, no cartão de cada baralho (entre **Estudar** e **Ver fichas**), e na página do baralho.
 - Se não houver nenhuma, o CardVoz diz a data da próxima revisão.

@@ -83,45 +83,122 @@ describe("acertos e erros das fichas", () => {
       incorrectCount: 0,
       lastAnsweredAt: "t",
       lastWasCorrect: true,
-      reviewLevel: 1,
+      reviewEase: 2500,
       nextReviewAt: "t",
     });
   });
 });
 
-describe("revisão espaçada (caixa de Leitner)", () => {
+// Os mesmos casos e números de CardTests.cs, na API: as duas contas precisam dar o mesmo resultado
+describe("revisão espaçada no estilo do Anki", () => {
   const T0 = "2026-11-12T10:00:00.000Z";
-  const at = (days: number) => new Date(Date.parse(T0) + days * 86400000).toISOString();
+  const HOUR = 3600000;
+  const at = (days: number, extraMs = 0) => new Date(Date.parse(T0) + days * 86400000 + extraMs).toISOString();
+  /** Ficha em revisão: intervalo, facilidade e última resposta em T0 */
+  const inReview = (days: number, ease = 2500) =>
+    card("a", { correctCount: 1, lastAnsweredAt: T0, lastWasCorrect: true, reviewEase: ease, nextReviewAt: at(days) });
+  /** Intervalo em vigor: os dias entre a última resposta e a próxima revisão */
+  const interval = (c: CardStats) => reviewState(c).intervalDays;
+  const answer = (c: ReturnType<typeof card>, wasCorrect: boolean, when: string) =>
+    applyAnswers([c], [{ cardId: "a", wasCorrect, answeredAt: when }])[0];
 
-  it("cada Acertei sobe um nível e afasta a revisão; Errei volta para a hora", () => {
-    let [c] = [card("a")];
-    const answer = (wasCorrect: boolean, when: string) => {
-      [c] = applyAnswers([c], [{ cardId: "a", wasCorrect, answeredAt: when }]);
-      return c;
-    };
-    expect(answer(true, T0)).toMatchObject({ reviewLevel: 1, nextReviewAt: at(1) });
-    expect(answer(true, at(1))).toMatchObject({ reviewLevel: 2, nextReviewAt: at(4) });
-    expect(answer(true, at(4))).toMatchObject({ reviewLevel: 3, nextReviewAt: at(11) });
-    expect(answer(true, at(11))).toMatchObject({ reviewLevel: 4, nextReviewAt: at(25) });
-    expect(answer(true, at(25))).toMatchObject({ reviewLevel: 5, nextReviewAt: at(55) });
-    expect(answer(true, at(55))).toMatchObject({ reviewLevel: 6, nextReviewAt: at(145) });
-    expect(answer(true, at(145))).toMatchObject({ reviewLevel: 6, nextReviewAt: at(235) });
-    expect(answer(false, at(235))).toMatchObject({ reviewLevel: 0, nextReviewAt: at(235) });
+  it("Acertei na data multiplica o intervalo pela facilidade, até 1 ano", () => {
+    let c = card("a");
+    let when = T0;
+    for (const expected of [1, 3, 8, 20, 50, 125, 313, 365, 365]) {
+      c = answer(c, true, when);
+      expect(interval(c)).toBe(expected);
+      expect(c.nextReviewAt).toBe(addDays(when, expected));
+      when = c.nextReviewAt!;
+    }
+    expect(c).toMatchObject({ correctCount: 9, reviewEase: 2500 });
+  });
+
+  it("Errei volta para revisar na hora e baixa a facilidade uma vez", () => {
+    let c = answer(inReview(8), false, at(8));
+    expect(c).toMatchObject({ reviewEase: 2300, nextReviewAt: at(8), lastWasCorrect: false });
+    expect(interval(c)).toBe(0);
+
+    // Errar de novo antes de acertar não baixa a facilidade outra vez
+    c = answer(c, false, at(8, 5 * 60000));
+    expect(c).toMatchObject({ reviewEase: 2300, incorrectCount: 2 });
+
+    // Acertou: recomeça em 1 dia e cresce mais devagar (1 × 2,3 = 2; 2 × 2,3 = 5)
+    c = answer(c, true, at(9));
+    expect(interval(c)).toBe(1);
+    c = answer(c, true, at(10));
+    expect(interval(c)).toBe(2);
+    c = answer(c, true, at(12));
+    expect(interval(c)).toBe(5);
+  });
+
+  it("a facilidade não passa do mínimo", () => {
+    let c = card("a");
+    let when = T0;
+    for (let i = 0; i < 8; i++) {
+      c = answer(c, true, when);
+      when = c.nextReviewAt!;
+      c = answer(c, false, when);
+    }
+    expect(c.reviewEase).toBe(1300);
+  });
+
+  it("Acertei atrasado conta metade do atraso", () => {
+    // 10 dias de intervalo, respondida 10 dias depois da data: (10 + 5) × 2,5 = 37,5
+    expect(answer(inReview(10), true, at(20)).nextReviewAt).toBe(at(58));
+  });
+
+  it("Acertei antes da data conta só o tempo que passou", () => {
+    // 2 dias depois, de 10: 2 × 2,5 = 5, menor que o intervalo, que não encolhe
+    expect(answer(inReview(10), true, at(2)).nextReviewAt).toBe(at(12));
+    // 8 dias depois, de 10: 8 × 2,5 = 20
+    expect(interval(answer(inReview(10), true, at(8)))).toBe(20);
+
+    // Mesma ficha duas vezes no mesmo dia: o intervalo não cresce
+    const twice = answer(answer(card("a"), true, T0), true, at(0, HOUR));
+    expect(twice.nextReviewAt).toBe(at(0, 25 * HOUR));
+
+    // Estudo diário um pouco antes de completar 24 horas ainda avança: 23 h × 2,5 = 2,4 dias
+    expect(interval(answer(answer(card("a"), true, T0), true, at(0, 23 * HOUR)))).toBe(2);
+  });
+
+  it("resposta antiga soma, mas não troca a última nem a revisão", () => {
+    const c = answer(answer(card("a"), true, T0), false, at(-5));
+    expect(c).toMatchObject({ nextReviewAt: at(1), reviewEase: 2500, lastWasCorrect: true, incorrectCount: 1 });
   });
 
   it("entra em Revisar agora quando chega a data; nunca estudada não entra", () => {
     const cards = [
       card("errada", { lastAnsweredAt: T0, lastWasCorrect: false }),
-      card("amanha", { lastAnsweredAt: T0, lastWasCorrect: true, reviewLevel: 1, nextReviewAt: at(1) }),
+      card("amanha", { lastAnsweredAt: T0, lastWasCorrect: true, nextReviewAt: at(1) }),
       card("nova"),
     ];
     expect(dueCards(cards, Date.parse(at(0.5))).map((c) => c.id)).toEqual(["errada"]);
     expect(dueCards(cards, Date.parse(at(1))).map((c) => c.id)).toEqual(["errada", "amanha"]);
   });
 
-  it("ficha guardada antes da revisão espaçada ganha o nível que dá para deduzir", () => {
-    expect(reviewState(card("a", { lastAnsweredAt: T0, lastWasCorrect: true }))).toEqual({ level: 1, nextReviewAt: at(1) });
-    expect(reviewState(card("b", { lastAnsweredAt: T0, lastWasCorrect: false }))).toEqual({ level: 0, nextReviewAt: T0 });
-    expect(reviewState(card("c"))).toEqual({ level: 0, nextReviewAt: null });
+  it("ficha guardada pelas versões anteriores ganha o que dá para deduzir", () => {
+    // Só a última resposta (antes da revisão espaçada)
+    expect(reviewState(card("a", { lastAnsweredAt: T0, lastWasCorrect: true }))).toEqual({ intervalDays: 1, ease: 2500, nextReviewAt: at(1) });
+    expect(reviewState(card("b", { lastAnsweredAt: T0, lastWasCorrect: false }))).toEqual({ intervalDays: 0, ease: 2500, nextReviewAt: T0 });
+    expect(reviewState(card("c"))).toEqual({ intervalDays: 0, ease: 2500, nextReviewAt: null });
+    // Caixa de Leitner (0.10 a 0.14): nível e data; o intervalo sai das datas
+    const leitner = { lastAnsweredAt: T0, lastWasCorrect: true, reviewLevel: 3, nextReviewAt: at(7) } as CardStats;
+    expect(reviewState(card("d", leitner))).toEqual({ intervalDays: 7, ease: 2500, nextReviewAt: at(7) });
+    // E a ficha continua de onde estava: 7 dias na data viram 7 × 2,5 = 17,5
+    expect(interval(answer(card("a", leitner), true, at(7)))).toBe(18);
+  });
+
+  it("valores estragados no aparelho não quebram a conta", () => {
+    const broken = card("a", { lastAnsweredAt: T0, lastWasCorrect: true, reviewEase: 50, nextReviewAt: "x" });
+    expect(reviewState(broken)).toMatchObject({ intervalDays: 1, ease: 1300 });
+    expect(answer(broken, true, at(1)).nextReviewAt).toBe(at(2));
+    // Próxima revisão a anos da última resposta: o intervalo fica em 1 ano
+    const far = card("a", { lastAnsweredAt: T0, lastWasCorrect: true, nextReviewAt: at(5000) });
+    expect(interval(far)).toBe(365);
   });
 });
+
+function addDays(iso: string, days: number): string {
+  return new Date(Date.parse(iso) + days * 86400000).toISOString();
+}

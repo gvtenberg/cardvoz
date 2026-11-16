@@ -4,6 +4,13 @@ A versão aparece no rodapé da página inicial e no fim da Ajuda, com o código
 
 O número segue `MAJOR.MINOR.PATCH`. Fica em `0.x` até a validação com a cliente; a `1.0.0` marca o app pronto para as usuárias. Funcionalidade nova sobe o MINOR; só correção sobe o PATCH.
 
+## 0.15.0 — 16/11/2026
+
+- **Revisão espaçada no estilo do Anki:** cada ficha passa a ter o próprio ritmo, em vez dos seis intervalos fixos de antes. Acertou uma ficha nova ou que tinha errado: ela volta em 1 dia. Acertou na data: o intervalo é multiplicado pela facilidade da ficha (3 dias, 8, 20, 50, 125... até 1 ano). Errou: ela volta na hora e passa a crescer mais devagar, então a ficha difícil volta mais vezes. Os botões continuam os mesmos, "Acertei" e "Errei".
+- **Estudar antes da data não empurra mais as fichas para longe:** em "Estudar" (todas as fichas), só conta o tempo que passou desde a última resposta. Antes, cada "Acertei" subia um nível, mesmo no mesmo dia.
+- As fichas já estudadas continuam de onde estavam: o intervalo de cada uma são os dias entre a última resposta e a próxima revisão, que já estavam guardados. O arquivo exportado leva também a `facilidade` da ficha; arquivos antigos continuam sendo lidos.
+- Precisa da API com a mesma regra (`feat/revisao-tipo-anki`) e da migration `20261116000000_revisao_tipo_anki.sql`. Com a API anterior, o site calcula a revisão nova no aparelho, mas a conta ainda devolve os intervalos antigos.
+
 ## 0.14.0 — 12/11/2026
 
 - **Painel Admin sem entrar de novo:** no Perfil, o botão agora se chama "Abrir painel Admin" e abre o painel já logado na mesma conta, com senha ou com o Google. Precisa da API com o passe do painel (`POST /api/auth/admin-pass`) e do painel 0.2.0; sem eles, o painel pede o login como antes.

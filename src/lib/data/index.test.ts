@@ -270,13 +270,13 @@ describe("acertos e erros na sincronização", () => {
     setActiveAccount(USER);
     saveLocalDeck(fromApiDeck({ ...remote("r1", "t1"), lastStudiedAt: "s1" }, USER.id));
     const studied = remote("r1", "t1");
-    studied.cards[0] = { ...studied.cards[0], correctCount: 0, incorrectCount: 1, lastWasCorrect: false, lastAnsweredAt: "s2", reviewLevel: 0, nextReviewAt: "s2" };
+    studied.cards[0] = { ...studied.cards[0], correctCount: 0, incorrectCount: 1, lastWasCorrect: false, lastAnsweredAt: "s2", reviewEase: 2300, nextReviewAt: "s2" };
     changes([{ ...studied, lastStudiedAt: "s2" }]);
 
     setOnline(true);
     await syncAccount();
 
-    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false, reviewLevel: 0 });
+    expect(findLocalDeck("r1")?.cards[0]).toMatchObject({ incorrectCount: 1, lastWasCorrect: false, reviewEase: 2300, nextReviewAt: "s2" });
   });
 
 

@@ -180,7 +180,7 @@ Pedido da cliente: digitar e-mail e senha com o TalkBack é trabalhoso. Por isso
 - **Ao entrar** com baralhos no aparelho, um diálogo pergunta se a pessoa quer levá-los para a conta. Se já existir um baralho com o mesmo nome, ela escolhe qual versão fica.
 - **Ao sair**, a pessoa escolhe manter os baralhos no aparelho ou apagá-los dali (continuam na conta). Sessão que termina sozinha vale como "manter".
 - **Exportar e importar** em JSON funcionam sem conta.
-- **Acertos e erros** de cada ficha ficam no aparelho (com ou sem conta) e, com conta, também na API. Daí saem a frase do baralho ("No total, 45 acertos e 12 erros...") e a **revisão espaçada**: cada ficha tem um nível (caixa de Leitner) e a data da próxima revisão; o botão **Revisar agora** (`/estudar/?deck=<id>&so=revisar`) estuda só as fichas da vez.
+- **Acertos e erros** de cada ficha ficam no aparelho (com ou sem conta) e, com conta, também na API. Daí saem a frase do baralho ("No total, 45 acertos e 12 erros...") e a **revisão espaçada**: cada ficha tem um intervalo, uma facilidade e a data da próxima revisão, no estilo do Anki (regra em `src/lib/studyStats.ts`, igual à da API); o botão **Revisar agora** (`/estudar/?deck=<id>&so=revisar`) estuda só as fichas da vez.
 
 Design completo: `docs/superpowers/specs/2026-10-30-modo-sem-login-design.md`.
 
