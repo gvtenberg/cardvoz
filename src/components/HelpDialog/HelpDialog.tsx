@@ -53,8 +53,9 @@ export function HelpDialog({ open, onClose }: HelpDialogProps) {
           </ol>
           <p>
             O CardVoz lembra quando revisar cada ficha. Errou: ela volta para revisar na
-            hora. Acertou: a próxima revisão fica para depois de 1 dia, depois 3 dias, 1
-            semana, 2 semanas, 1 mês e 3 meses. Toque em <strong>Revisar agora</strong>, no
+            hora. Acertou: a próxima revisão fica para o dia seguinte e, a cada acerto na
+            data, vai ficando mais longe (3 dias, 8 dias, 20 dias...), até 1 ano. A ficha
+            que você já errou volta mais vezes. Toque em <strong>Revisar agora</strong>, no
             fim da rodada, em Meus baralhos ou na página do baralho, para estudar só as
             fichas da vez.
           </p>

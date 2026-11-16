@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { exportFileName, toExported } from "./exportDecks";
 import { parseImportText } from "./importCards";
+import { reviewState } from "./studyStats";
 
 const bio = { title: "Biologia Celular", cards: [{ question: "q1", answer: "r1" }, { question: "q2", answer: "r2" }] };
 const ing = { title: "Inglês", cards: [{ question: "go", answer: "went" }] };
@@ -72,20 +73,35 @@ describe("histórico das fichas no arquivo", () => {
         {
           question: "H2O?", answer: "Água", correctCount: 3, incorrectCount: 1,
           lastAnsweredAt: "2026-11-10T10:00:00.000Z", lastWasCorrect: true,
-          reviewLevel: 2, nextReviewAt: "2026-11-13T10:00:00.000Z",
+          reviewEase: 2300, nextReviewAt: "2026-11-13T10:00:00.000Z",
         },
         { question: "NaCl?", answer: "Sal" },
       ],
     });
-    expect(exported.fichas[0]).toMatchObject({ acertos: 3, erros: 1, acertouUltima: true, nivelRevisao: 2 });
+    expect(exported.fichas[0]).toMatchObject({ acertos: 3, erros: 1, acertouUltima: true, facilidade: 2300, proximaRevisao: "2026-11-13T10:00:00.000Z" });
     expect(exported.fichas[1]).toEqual({ pergunta: "NaCl?", resposta: "Sal" });
 
     const [card, nova] = parseImportText(JSON.stringify(exported), "quimica.json").cards;
     expect(card).toMatchObject({
       correctCount: 3, incorrectCount: 1, lastWasCorrect: true,
-      reviewLevel: 2, nextReviewAt: "2026-11-13T10:00:00.000Z",
+      reviewEase: 2300, nextReviewAt: "2026-11-13T10:00:00.000Z",
     });
+    expect(reviewState(card).intervalDays).toBe(3);
     expect(nova).toEqual({ question: "NaCl?", answer: "Sal" });
+  });
+
+  it("arquivo exportado com a caixa de Leitner (até a 0.14) mantém a data da revisão", () => {
+    const text = JSON.stringify({
+      fichas: [{
+        pergunta: "a", resposta: "b", acertos: 2, erros: 0,
+        ultimaResposta: "2026-11-10T10:00:00.000Z", acertouUltima: true,
+        nivelRevisao: 2, proximaRevisao: "2026-11-13T10:00:00.000Z",
+      }],
+    });
+    const [card] = parseImportText(text, "antigo.json").cards;
+    expect(card.nextReviewAt).toBe("2026-11-13T10:00:00.000Z");
+    // O intervalo sai dos dias entre a última resposta e a próxima revisão
+    expect(reviewState(card)).toMatchObject({ intervalDays: 3, ease: 2500 });
   });
 
   it("ignora histórico com valores estranhos", () => {

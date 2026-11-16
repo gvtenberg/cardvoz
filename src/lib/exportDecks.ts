@@ -13,9 +13,9 @@ export interface ExportedStats {
   /** Data da resposta mais recente (ISO) e se ela foi "Acertei" */
   ultimaResposta?: string;
   acertouUltima?: boolean;
-  /** Revisão espaçada: nível (0 a 6) e data da próxima revisão (ISO) */
-  nivelRevisao?: number;
+  /** Revisão espaçada: data da próxima revisão (ISO) e facilidade em milésimos (2500 = 2,5) */
   proximaRevisao?: string;
+  facilidade?: number;
 }
 
 export interface ExportedDeck {
@@ -37,7 +37,7 @@ function exportedStats(card: CardStats): ExportedStats {
     ...(card.lastAnsweredAt && typeof card.lastWasCorrect === "boolean"
       ? { ultimaResposta: card.lastAnsweredAt, acertouUltima: card.lastWasCorrect }
       : {}),
-    ...(review.nextReviewAt ? { nivelRevisao: review.level, proximaRevisao: review.nextReviewAt } : {}),
+    ...(review.nextReviewAt ? { proximaRevisao: review.nextReviewAt, facilidade: review.ease } : {}),
   };
 }
 

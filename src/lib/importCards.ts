@@ -12,7 +12,7 @@
  *        ou um par ["pergunta", "resposta"]. Uma lista desses objetos (o arquivo
  *        de "Exportar todos") vira vários baralhos.
  */
-import { MAX_REVIEW_LEVEL, type CardStats } from "@/lib/studyStats";
+import type { CardStats } from "@/lib/studyStats";
 
 import { isLanguageCode } from "@/lib/local/decks";
 
@@ -34,10 +34,10 @@ function statsOf(obj: Record<string, unknown>): CardStats {
   if (isDate(obj.ultimaResposta) && typeof obj.acertouUltima === "boolean") {
     stats.lastAnsweredAt = new Date(obj.ultimaResposta).toISOString();
     stats.lastWasCorrect = obj.acertouUltima;
-    if (isDate(obj.proximaRevisao) && isCount(obj.nivelRevisao) && obj.nivelRevisao <= MAX_REVIEW_LEVEL) {
-      stats.reviewLevel = obj.acertouUltima ? obj.nivelRevisao : 0;
-      stats.nextReviewAt = new Date(obj.proximaRevisao).toISOString();
-    }
+    // O intervalo da ficha sai das duas datas (reviewState). Arquivo exportado até
+    // a 0.14 (caixa de Leitner) traz também "nivelRevisao", que não é mais usado
+    if (isDate(obj.proximaRevisao)) stats.nextReviewAt = new Date(obj.proximaRevisao).toISOString();
+    if (isCount(obj.facilidade)) stats.reviewEase = obj.facilidade;
   }
   return stats;
 }

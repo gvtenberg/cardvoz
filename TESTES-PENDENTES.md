@@ -75,3 +75,15 @@ E: O botão tem esse nome, e o painel abre direto na página inicial dele, sem p
 ### T20 – Passe usado de novo (v0.14.0)
 F: Depois do T19, saia do painel, volte ao Perfil do site pelo "Voltar" do navegador e toque de novo em "Abrir painel Admin".
 E: O botão não fica travado em "Abrindo o painel..." e o painel abre logado de novo.
+
+## Revisão espaçada (estilo do Anki)
+> Depende da API publicada com a revisão nova. Use um baralho novo, que você nunca estudou.
+### T21 – Ficha acertada volta no dia seguinte (v0.15.0)
+F: Estude o baralho acertando todas as fichas e volte a Meus baralhos; no dia seguinte, no mesmo horário ou mais tarde, abra Meus baralhos de novo.
+E: No primeiro dia, o cartão do baralho não mostra "Revisar agora"; no dia seguinte, mostra, com todas as fichas.
+### T22 – Ficha errada volta na hora (v0.15.0)
+F: Estude o baralho errando uma ficha de propósito; no fim da rodada, toque em "Revisar agora" e acerte a ficha.
+E: A revisão traz só a ficha errada; depois de acertar, não sobra nenhuma ficha para revisar agora.
+### T23 – Estudar de novo no mesmo dia não afasta a revisão (v0.15.0)
+F: No mesmo dia do T21, estude o baralho de novo com "Estudar", acertando tudo; no dia seguinte, abra Meus baralhos.
+E: O "Revisar agora" aparece no dia seguinte do mesmo jeito (antes, estudar duas vezes empurrava a revisão para dali a 3 dias).
